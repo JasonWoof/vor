@@ -53,6 +53,7 @@ void clearBuffer();
 #define W 100
 #define M 255
 #define BIG_FONT_FILE "fonts/score.png"
+#define STARTSPACE 430 // pixels from the left which will be cleared of rocks when you die
 // }}}
 // macros {{{
 #define CONDERROR(a) if((a)) {initerror = strdup(SDL_GetError());return 1;}
@@ -1106,12 +1107,17 @@ int gameloop() {
 						// Create a new ship and start all over again
 						state = GAMEPLAY;
 						play_tune(1);
-						initialshield = 150;
+						initialshield = 0;
 						xship = 10;
 						yship = YSIZE/2;
-						xvel = 2;
+						xvel = 3;
 						yvel = 0;
 						shieldlevel = 3*W;
+						for(i = 0; i<MAXROCKS; i++ ) {
+							if(rock[i].x < STARTSPACE) {
+								rock[i].active = 0;
+							}
+						}
 					break;
 					case GAME_OVER:
 						state = HIGH_SCORE_ENTRY;
@@ -1245,7 +1251,8 @@ int gameloop() {
 				}
 				else {
 					state = DEAD_PAUSE;
-					state_timeout = 100.0;
+					state_timeout = 50.0;
+
 				}
 			}
 
