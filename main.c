@@ -134,6 +134,7 @@ float xvel,yvel;	// Change in X position per tick.
 float rockrate,rockspeed;
 float movementrate;
 float yscroll;
+float scrollvel;
 
 int nships,score,initticks,ticks_since_last, last_ticks;
 int gameover;
@@ -1093,7 +1094,10 @@ int gameloop() {
 
 			// SCROLLING
 			yscroll = yship - (YSIZE / 2);
-			yscroll /= -15;
+			yscroll += yvel * 25;
+			yscroll /= -25;
+			yscroll = ((scrollvel * (12 - movementrate)) + (yscroll * movementrate)) / 12;
+			scrollvel = yscroll;
 			yscroll = yscroll*movementrate;
 			yship += yscroll;
 			
