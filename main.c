@@ -1,22 +1,24 @@
-/*
-    Space Rocks! Avoid the rocks as long as you can! {{{
-    Copyright (C) 2001  Paul Holt <pad@pcholt.com>
+/* Variations on RockDodger
+ * Space Rocks copyright (C) 2001  Paul Holt <pad@pcholt.com>
+ *
+ * Project fork 2004, Jason Woofenden and Joshua Grams.
+ *  (a whole bunch of modifications and project rename)
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-    }}}
-*/
 #undef DEBUG
 
 extern int font_height;
@@ -116,8 +118,9 @@ struct highscore {
 // SDL_Surface global variables {{{
 SDL_Surface 
     *surf_screen,	// Screen
-    *surf_b_rock,	// Title element "rock"
-    *surf_b_dodgers,	// Title element "dodgers"
+	*surf_b_variations,  // "variations" banner
+	*surf_b_on,  // "on" banner
+	*surf_b_rockdodger,  // "rockdodger" banner
     *surf_b_game,	// Title element "game"
     *surf_b_over,	// Title element "over"
     *surf_ship,		// Spaceship element
@@ -178,13 +181,10 @@ float state_timeout = 600.0;
 
 const int fakesin[] = {0,1,0,-1};
 const int fakecos[] = {1,0,-1,0};
-#define NSEQUENCE 5
+#define NSEQUENCE 2
 char *sequence[] = {
     "Press SPACE to start",
-    "http://spacerocks.sourceforge.net",
-    "G'day tesmako",
-    "G'day overcode",
-    "S=shield D=laser"
+    "http://qualdan.com/vor/"
 };
 
 int bangdotlife, nbangdots;
@@ -226,14 +226,14 @@ FILE *hs_fopen(char *mode) {/*{{{*/
     FILE *f;
     mode_t mask;
     mask = umask(0111);
-    if (f=fopen("/usr/share/rockdodger/.highscore",mode)) {
+    if (f=fopen("/usr/share/vor/.highscore",mode)) {
 	umask(mask);
 	return f;
     }
     else {
 	char s[1024];
 	umask(0177);
-	sprintf(s,"%s/.rockdodger_high",getenv("HOME"));
+	sprintf(s,"%s/.vor-high",getenv("HOME"));
 	if (f=fopen(s,mode)) {
 	    umask(mask);
 	    return f;
@@ -654,7 +654,7 @@ int init(int fullscreen) {/*{{{*/
     // Where are our data files?
     // default: ./data
     // second alternative: RD_DATADIR
-    // final alternative: /usr/share/rockdodger
+    // final alternative: /usr/share/vor
     data_dir = strdup("./data");
     if (missing(data_dir)) {
 	char *env;
@@ -667,7 +667,7 @@ int init(int fullscreen) {/*{{{*/
 	    }
 	}
 	else {
-	    data_dir = strdup("/usr/share/rockdodger");
+	    data_dir = strdup("/usr/share/vor");
 	    if (missing(data_dir)) {
 		fprintf (stderr,"Cannot find data in %s\n", data_dir);
 		exit(-2);
@@ -717,11 +717,14 @@ int init(int fullscreen) {/*{{{*/
 	);
 
     // Load the banners
-    NULLERROR(temp = IMG_Load(load_file("banners/rock.png")));
-    NULLERROR(surf_b_rock = SDL_DisplayFormat(temp));
+    NULLERROR(temp = IMG_Load(load_file("banners/variations.png")));
+    NULLERROR(surf_b_variations = SDL_DisplayFormat(temp));
 
-    NULLERROR(temp = IMG_Load(load_file("banners/dodgers.png")));
-    NULLERROR(surf_b_dodgers = SDL_DisplayFormat(temp));
+    NULLERROR(temp = IMG_Load(load_file("banners/on.png")));
+    NULLERROR(surf_b_on = SDL_DisplayFormat(temp));
+
+    NULLERROR(temp = IMG_Load(load_file("banners/rockdodger.png")));
+    NULLERROR(surf_b_rockdodger = SDL_DisplayFormat(temp));
 
     NULLERROR(temp = IMG_Load(load_file("banners/game.png")));
     NULLERROR(surf_b_game = SDL_DisplayFormat(temp));
@@ -921,22 +924,32 @@ int draw() {/*{{{*/
 	    break;
 
 	case TITLE_PAGE:
-	    src.w = surf_b_rock->w;
-	    src.h = surf_b_rock->h;
+	    src.w = surf_b_variations->w;
+	    src.h = surf_b_variations->h;
 	    dest.w = src.w;
 	    dest.h = src.h;
 	    dest.x = (XSIZE-src.w)/2 + cos(fadetimer/6.5)*10;
-	    dest.y = (YSIZE/2-src.h)/2 + sin(fadetimer/5)*10;
-	    SDL_SetAlpha(surf_b_rock, SDL_SRCALPHA, (int)(200+55*sin(fadetimer+=movementrate/2.0)));
-	    SDL_BlitSurface(surf_b_rock,&src,surf_screen,&dest);
-	    src.w = surf_b_dodgers->w;
-	    src.h = surf_b_dodgers->h;
+	    dest.y = (YSIZE/2-src.h)/2 + sin(fadetimer/5.0)*10;
+	    SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200+55*sin(fadetimer+=movementrate/2.0)));
+	    SDL_BlitSurface(surf_b_variations,&src,surf_screen,&dest);
+
+	    src.w = surf_b_on->w;
+	    src.h = surf_b_on->h;
 	    dest.w = src.w;
 	    dest.h = src.h;
-	    dest.x = (XSIZE-src.w)/2+sin(fadetimer/6.5)*10;
-	    dest.y = (YSIZE/2-src.h)/2 + surf_b_rock->h + 20 + sin((fadetimer+1)/5)*10;
-	    SDL_SetAlpha(surf_b_dodgers, SDL_SRCALPHA, (int)(200+55*sin(fadetimer-1.0)));
-	    SDL_BlitSurface(surf_b_dodgers,&src,surf_screen,&dest);
+	    dest.x = (XSIZE-src.w)/2 + cos((fadetimer+1.0)/6.5)*10;
+	    dest.y = (YSIZE/2-src.h)/2 + surf_b_variations->h + 20 + sin((fadetimer+1.0)/5.0)*10;
+	    SDL_SetAlpha(surf_b_on, SDL_SRCALPHA, (int)(200+55*sin(fadetimer-1.0)));
+	    SDL_BlitSurface(surf_b_on,&src,surf_screen,&dest);
+
+	    src.w = surf_b_rockdodger->w;
+	    src.h = surf_b_rockdodger->h;
+	    dest.w = src.w;
+	    dest.h = src.h;
+	    dest.x = (XSIZE-src.w)/2 + cos((fadetimer+2.0)/6.5)*10;
+	    dest.y = (YSIZE/2-src.h)/2 + surf_b_variations->h + surf_b_on->h + 40 + sin((fadetimer+2.0)/5)*10;
+	    SDL_SetAlpha(surf_b_rockdodger, SDL_SRCALPHA, (int)(200+55*sin(fadetimer-2.0)));
+	    SDL_BlitSurface(surf_b_rockdodger,&src,surf_screen,&dest);
 
 	    text = "Version " VERSION;
 	    x = (XSIZE-SFont_wide(text))/2 + sin(fadetimer/4.5)*10;
@@ -1306,13 +1319,13 @@ int gameloop() {/*{{{*/
 			paused = !paused;
 			if (paused) {
 			    SDL_Rect src,dest;
-			    src.w = surf_b_rock->w;
-			    src.h = surf_b_rock->h;
+			    src.w = surf_b_variations->w;
+			    src.h = surf_b_variations->h;
 			    dest.w = src.w;
 			    dest.h = src.h;
 			    dest.x = (XSIZE-src.w)/2;
 			    dest.y = (YSIZE-src.h)/2;
-			    SDL_BlitSurface(surf_b_rock,&src,surf_screen,&dest);
+			    SDL_BlitSurface(surf_b_variations,&src,surf_screen,&dest);
 			    // Update the surface
 			    SDL_Flip(surf_screen);
 			    printf("paused\n");
@@ -1391,87 +1404,3 @@ main(int argc, char **argv) {/*{{{*/
 
     return 0;
 }/*}}}*/
-
-/*
- * $Id: main.c,v 1.22 2002/02/15 20:26:45 pad Exp $
- * $Log: main.c,v $
- * Revision 1.22  2002/02/15 20:26:45  pad
- * Update - explosion time limits (ergh) and stuff
- *
- * Revision 1.21  2002/01/26 14:13:27  pad
- * Released to pcholt.com as 0.4.0a
- *
- * Revision 1.20  2002/01/20 22:24:41  pad
- * No longer crashes on space bar in high score table
- * Rocks make a random noise when they explode
- *
- * Revision 1.19  2002/01/17 19:38:45  pad
- * Bang noise (must add more noises)
- *
- * Revision 1.18  2002/01/16 01:34:28  pad
- * Rocks now change colour smoothly while being heated.
- *
- * Revision 1.17  2002/01/15 21:56:51  pad
- * Lasers work, and rocks blow up, but unspectacularly.
- *
- * Revision 1.16  2001/10/21 22:08:41  pad
- * Moving title screen,
- * New game-over graphics
- * High scores entered on the line of the new high score
- *
- * Revision 1.15  2001/10/11 22:25:10  pad
- * High scores are saved!
- * /usr/share/rockdodger/.highscore or, if this is impossible,
- * $HOME/.rockdodger_high
- *
- * Revision 1.14  2001/10/09 22:29:38  pad
- * Excellent! The game works, highscores are good, sound.c plays tunes,
- * the SFont.c has been revamped, and the game looks good to go.
- *
- * Revision 1.13  2001/10/07 19:23:28  pad
- * SDL_mixer, music and sound added
- *
- * Revision 1.12  2001/09/29 23:28:27  pad
- * 0.1.8b release
- * {{{
- * Revision 1.11  2001/09/25 21:34:58  pad
- * Test for SDL_DISABLE
- * Something in sound.c I can't think what.
- *
- * Revision 1.10  2001/09/21 21:37:06  pad
- * Donno. I canged something. Download it, it still works.
- * The laser doesn't do anything, but you can fire it by pressing "d".
- *
- * Revision 1.9  2001/09/18 22:41:22  pad
- * The score stays on the screen no matter what the game mode.
- *
- * Revision 1.7  2001/09/09 21:57:54  pad
- * Starting to add sound.  There will be a background Ogg Vorbis soudtrack,
- * with a sample-driven sound effects engine.
- *
- * Revision 1.6  2001/09/08 23:01:02  pad
- * Version number on start screen, from Makefile
- * Makefile 'make package' works
- *
- * Revision 1.5  2001/09/08 00:13:03  pad
- * State table
- * Title screen
- * Revamped scoring system
- * Looks nice!
- *
- * Revision 1.4  2001/09/06 21:42:05  pad
- * Score is displayed using the lovely SFont library.
- *
- * Revision 1.3  2001/09/03 22:50:34  pad
- * Functions cut back, larger number of space rocks.
- * Now it's an actual challenge.
- *
- * Functions normalised - aim should be to have each function perform
- * one action and one action alone. This is not yet complete.
- *
- * The high-speed movementrate error is fixed, but there are still
- * unexplained crashes. I must find out how to let SDL give me a core
- * dump to work with..
- *
- }}}
- */

@@ -15,8 +15,8 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-VERSION=0.4.2
-PACKAGENAME=rockdodger
+VERSION=0.1
+PACKAGENAME=vor
 NEWD=$(PACKAGENAME)-$(VERSION)
 TMP=/tmp
 OPTIONS=-DVERSION=\"$(VERSION)\"
@@ -30,19 +30,19 @@ INSTALL = install
 INSTALL_PROGRAM = $(INSTALL) -o games -g games
 INSTALL_DATA = $(INSTALL) -m 644
 
-DATA_PREFIX = /usr/share/rockdodger
+DATA_PREFIX = /usr/share/vor
 PROGRAM_PREFIX = /usr/games/bin
 
-all:	rd
+all: vor
 
 .c.o:
 	cc -c -g $? `sdl-config --cflags` $(OPTIONS)
 
-rd:	SFont.o $(SOUNDSOURCE).o main.o
-	cc -o rd $+ $(LIBRARIES)
+vor:	SFont.o $(SOUNDSOURCE).o main.o
+	cc -o $@ $+ $(LIBRARIES)
 
 clean:
-	rm -f *.o rd
+	rm -f *.o vor
 
 install:	all
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
@@ -54,7 +54,7 @@ install:	all
 	if [ ! -d $(DATA_PREFIX)/sounds ]; then mkdir $(DATA_PREFIX)/sounds; fi
 	if [ ! -d $(DATA_PREFIX)/sprites ]; then mkdir $(DATA_PREFIX)/sprites; fi
 
-	$(INSTALL_PROGRAM) ./rd $(PROGRAM_PREFIX)
+	$(INSTALL_PROGRAM) ./vor $(PROGRAM_PREFIX)
 	$(INSTALL_DATA) ./data/banners/* $(DATA_PREFIX)/banners/
 	$(INSTALL_DATA) ./data/fonts/* $(DATA_PREFIX)/fonts/
 	$(INSTALL_DATA) ./data/icons/* $(DATA_PREFIX)/icons/
@@ -66,7 +66,7 @@ install:	all
 	chmod a+rw $(DATA_PREFIX)/.highscore
 
 uninstall:
-	rm -f $(PROGRAM_PREFIX)/rd
+	rm -f $(PROGRAM_PREFIX)/vor
 	rm -f $(DATA_PREFIX)/banners/*
 	rm -f $(DATA_PREFIX)/fonts/*
 	rm -f $(DATA_PREFIX)/icons/*

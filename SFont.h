@@ -1,5 +1,5 @@
 /************************************************************************ 
-*    SFONT - SDL Font Library by Karl Bartel <karlb@gmx.net>		*
+*    SFONT - SDL Font Library by Karl Bartel <karlb@gmx.net>		    *
 *                                                                       *
 *  All functions are explained below. There are two versions of each    *
 *  funtction. The first is the normal one, the function with the        *
