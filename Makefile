@@ -62,7 +62,7 @@ data/sprites/rock%.png: rocks.pov Makefile
 	rm $@.pnm $@-c.pnm
 
 clean:
-	rm -f *.o vor pnmoutline data/sprites/ship.png
+	rm -f *.o vor pnmoutline $(graphics)
 
 install:	all
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi

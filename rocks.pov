@@ -6,6 +6,7 @@
 
 #macro rnd() (rand(RS)) #end
 
+// rock size. The larger this number, the closer the camera, and the smaller the bumps.
 #declare rsize = 1 + rnd();
 
 camera
@@ -17,10 +18,6 @@ camera
 	look_at <0, 0, 0>
 
 	angle 55
-//	aperture .12
-//	blur_samples 10000
-//	focal_point <.6387,.7,-.3193>
-//	confidence .99
 }
 
 // same light sorce as ship.pov
@@ -57,8 +54,7 @@ blob{
 	texture{
 		pigment{ color rgb <53 / 55, 44 / 55, 36 / 55>}
 	}
-	normal{ bumps 1 scale (0.16 / rsize) }
+	normal { bumps 1 scale (0.16 / rsize) }
 
-	finish {//phong .2
-		ambient .1}
+	finish { ambient .1}
 }
