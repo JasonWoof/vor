@@ -1114,18 +1114,25 @@ int gameloop() {
 			yship += yscroll;
 			
 			// Move all the rocks
-			for(i = 0; i<MAXROCKS; i++) if(rock[i].active) {
-				rock[i].x += rock[i].xvel*movementrate;
-				rock[i].y += rock[i].yvel*movementrate + yscroll;
-				if(rock[i].dead && (rock[i].y < 0 || rock[i].y > YSIZE)) rock[i].active = 0;
-				if(rock[i].y > YSIZE) {
-					rock[i].y -= YSIZE;
-					rock[i].y -= rock[i].image->w;
-				} else if(rock[i].y < -rock[i].image->w) {
-					rock[i].y += YSIZE;
-					rock[i].y += rock[i].image->w;
+			for(i = 0; i < MAXROCKS; i++) {
+				if(rock[i].active) {
+					rock[i].x += rock[i].xvel*movementrate;
+					rock[i].y += rock[i].yvel*movementrate + yscroll;
+					if((rock[i].y > YSIZE && rock[i].y > 0) || (rock[i].y < -rock[i].image->h && rock[i].y < 0)) {
+						if(rock[i].dead) {
+							rock[i].dead = 0;
+							rock[i].active = 0;
+						} else {
+							// wrap
+							rock[i].y = (YSIZE - rock[i].image->h) - rock[i].y;
+							rock[i].y += (rock[i].yvel*movementrate + yscroll) * 2;
+						}
+					}
+					if(rock[i].x < -32.0 || rock[i].x > XSIZE + 32.0) {
+						rock[i].active = 0;
+						rock[i].dead = 0;
+					}
 				}
-				if(rock[i].x < -32.0) rock[i].active = 0;
 			}
 
 
