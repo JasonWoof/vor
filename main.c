@@ -208,7 +208,7 @@ int dotcollision(SDL_Surface *s) {
 	SDL_LockSurface(s);
 	rawpixel = (Uint16 *) s->pixels;
 	if(bangdotlife > 0 && bangdotlife<80) {
-		for(i = 0; i<nbangdots; i ++ ) {
+		for(i = 0; i<nbangdots; i++) {
 			if(bdot[i].x>0 && bdot[i].x<XSIZE && bdot[i].y>0 && bdot[i].y<YSIZE) {
 				r = &rawpixel[(int)(s->pitch/2*(int)(bdot[i].y)) + (int)(bdot[i].x)];
 			if(*r != (bdot[i].c ? bdot[i].c : heatcolor[bangdotlife*2]))
@@ -249,10 +249,10 @@ void read_high_score_table() {
 	int i;
 	if(f = hs_fopen("r")) {
 		// If the file exists, read from it
-		for(i = 0; i<8; i ++ ) {
+		for(i = 0; i<8; i++) {
 			char s[1024];
 			int highscore;
-			if(fscanf (f, "%d %[^\n]", &highscore, s)!= 2) {
+			if(fscanf (f, "%d %[^\n]", &highscore, s) != 2) {
 				break;
 			}
 			if(high[i].allocated) {
@@ -270,7 +270,7 @@ void write_high_score_table() {
 	int i;
 	if(f = hs_fopen("w")) {
 		// If the file exists, write to it
-		for(i = 0; i<8; i ++ ) {
+		for(i = 0; i<8; i++) {
 			fprintf (f, "%d %s\n", high[i].score, high[i].name);
 		}
 		fclose(f);
@@ -283,7 +283,7 @@ void snprintscore(char *s, size_t n, int score) {
 	if(min) {
 		snprintf(s, n, "%2d:%.2d.%d", min, sec, tenths);
 	} else {
-		snprintf(s, n, "  %2d.%d", sec, tenths);
+		snprintf(s, n, " %2d.%d", sec, tenths);
 	}
 }
 float rnd() {
@@ -291,13 +291,13 @@ float rnd() {
 }
 void init_engine_dots() {
 	int i;
-	for(i = 0; i<MAXENGINEDOTS; i ++ ) {
+	for(i = 0; i<MAXENGINEDOTS; i++) {
 		edot[i].active = 0;
 	}
 }
 void init_space_dots() {
 	int i,intensity;
-	for(i = 0; i<MAXSPACEDOTS; i ++ ) {
+	for(i = 0; i<MAXSPACEDOTS; i++) {
 		float r;
 
 		sdot[i].x = rnd()*(XSIZE-5);
@@ -321,7 +321,7 @@ int drawlaser() {
 	xc = XSIZE;
 	// let xc = x coordinate of the collision between the laser and a space rock
 	// 1. Calculate xc and determine the asteroid that was hit
-	for(i = 0; i<MAXROCKS; i ++ ) {
+	for(i = 0; i<MAXROCKS; i++) {
 		if(rock[i].active) {
 			if(yship + 12>rock[i].y && yship + 12<rock[i].y + rock[i].image->h && xship + 32<rock[i].x + (rock[i].image->w/2) && rock[i].x + (rock[i].image->w/2) < xc) {
 				xc = rock[i].x + (rock[i].image->w/2);
@@ -330,7 +330,7 @@ int drawlaser() {
 		}
 	}
 
-	if(hitrock>= 0) {
+	if(hitrock >= 0) {
 		rock[hitrock].heat += movementrate*3;
 	}
 
@@ -365,13 +365,13 @@ int makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int p
 	SDL_LockSurface(s);
 	rawpixel = (Uint16 *) s->pixels;
 
-	//for(n = 0; n<= power/2; n ++ ) {
+	//for(n = 0; n <= power/2; n++) {
 
 	endcount = 0;
 	while (endcount<3) {
 
-	for(x = 0; x<s->w; x ++ ) {
-		for(y = 0; y<s->h; y ++ ) {
+	for(x = 0; x<s->w; x++) {
+		for(y = 0; y<s->h; y++) {
 			c = rawpixel[s->pitch/2*y + x];
 			if(c && c != SDL_MapRGB(s->format,0,255,0)) {
 
@@ -390,7 +390,7 @@ int makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int p
 				bdot[bd2].decay = rnd()*3 + 1;
 				bdot[bd2].active = 1;
 
-				bd2 ++ ;
+				bd2++;
 				bd2 %= MAXBANGDOTS;
 
 				// If the circular buffer is filled, who cares? They've had their chance.
@@ -400,7 +400,7 @@ int makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int p
 		}
 	}
 
-	if(SDL_GetTicks() - begin_generate > 7) endcount ++ ;
+	if(SDL_GetTicks() - begin_generate > 7) endcount++;
 
 	}
 exitloop:
@@ -417,11 +417,11 @@ void draw_bang_dots(SDL_Surface *s) {
 
 	first_i = -1;
 
-	for(i = bd1; (bd1 <= bd2)?(i<bd2):(i >= bd1 && i < bd2); last_i =  ++i) {
+	for(i = bd1; (bd1 <= bd2)?(i<bd2):(i >= bd1 && i < bd2); last_i = ++i) {
 
 		i %= MAXBANGDOTS;
 
-		if(bdot[i].x<= 0 || bdot[i].x>= XSIZE || bdot[i].y<= 0 || bdot[i].y>= YSIZE) {
+		if(bdot[i].x <= 0 || bdot[i].x >= XSIZE || bdot[i].y <= 0 || bdot[i].y >= YSIZE) {
 			// If the dot has drifted outside the perimeter, kill it
 			bdot[i].active = 0;
 		}
@@ -431,7 +431,7 @@ void draw_bang_dots(SDL_Surface *s) {
 			first_i = i;
 			//last_i = i + 1;
 			rawpixel[(int)(s->pitch/2*(int)(bdot[i].y)) + (int)(bdot[i].x)] = bdot[i].c ? bdot[i].c : heatcolor[(int)(bdot[i].life*3)];
-			bdot[i].life-= bdot[i].decay;
+			bdot[i].life -= bdot[i].decay;
 			bdot[i].x += bdot[i].dx*movementrate;
 			bdot[i].y += bdot[i].dy*movementrate + yscroll;
 
@@ -440,7 +440,7 @@ void draw_bang_dots(SDL_Surface *s) {
 		}
 	}
 
-	if(first_i>= 0) {
+	if(first_i >= 0) {
 		bd1 = first_i;
 		bd2 = last_i;
 	}
@@ -457,7 +457,7 @@ void draw_space_dots(SDL_Surface *s) {
 	Uint16 *rawpixel;
 	rawpixel = (Uint16 *) s->pixels;
 
-	for(i = 0; i<MAXSPACEDOTS; i ++ ) {
+	for(i = 0; i<MAXSPACEDOTS; i++) {
 		if(sdot[i].y<0) {
 			sdot[i].y = 0;
 		}
@@ -480,11 +480,11 @@ void draw_engine_dots(SDL_Surface *s) {
 	Uint16 *rawpixel;
 	rawpixel = (Uint16 *) s->pixels;
 
-	for(i = 0; i<MAXENGINEDOTS; i ++ ) {
+	for(i = 0; i<MAXENGINEDOTS; i++) {
 		if(edot[i].active) {
 			edot[i].x += edot[i].dx*movementrate;
 			edot[i].y += edot[i].dy*movementrate + yscroll;
-			if((edot[i].life-= movementrate*3)<0 || edot[i].y<0 || edot[i].y>YSIZE) {
+			if((edot[i].life -= movementrate*3)<0 || edot[i].y<0 || edot[i].y>YSIZE) {
 				edot[i].active = 0;
 			} else if(edot[i].x<0 || edot[i].x>XSIZE) {
 				edot[i].active = 0;
@@ -505,7 +505,7 @@ void create_engine_dots(int newdots) {
 	if(!tail_plume) return;
 
 	if(state == GAMEPLAY) {
-		for(i = 0; i<newdots*movementrate; i ++ ) {
+		for(i = 0; i<newdots*movementrate; i++) {
 			if(dotptr->active == 0) {
 				theta = rnd()*M_PI*2;
 				r = rnd();
@@ -519,8 +519,8 @@ void create_engine_dots(int newdots) {
 				dotptr->dy = 1*dy + yvel;
 				dotptr->life = 45 + rnd(1)*5;
 
-				dotptr ++ ;
-				if(dotptr-edot>= MAXENGINEDOTS) {
+				dotptr++;
+				if(dotptr-edot >= MAXENGINEDOTS) {
 					dotptr = edot;
 				}
 			}
@@ -534,9 +534,9 @@ void create_engine_dots2(int newdots, int m) {
 
 	// Don't create fresh engine dots when
 	// the game is not being played and a demo is not beng shown
-	if(state!= GAMEPLAY && state!= DEMO) return;
+	if(state != GAMEPLAY && state != DEMO) return;
 
-	for(i = 0; i<newdots; i ++ ) {
+	for(i = 0; i<newdots; i++) {
 		if(dotptr->active == 0) {
 			theta = rnd()*M_PI*2;
 			theta2 = rnd()*M_PI*2;
@@ -553,7 +553,7 @@ void create_engine_dots2(int newdots, int m) {
 
 			switch(m) {
 				case 0:
-					dotptr->x-= 14;
+					dotptr->x -= 14;
 					dotptr->dx = -20*adx + xvel;
 					dotptr->dy = 2*dy + yvel;
 					dotptr->life = 60 * adx;
@@ -575,8 +575,8 @@ void create_engine_dots2(int newdots, int m) {
 					dotptr->life = 60 * ady;
 				break;
 			}
-			dotptr ++ ;
-			if(dotptr-edot>= MAXENGINEDOTS) {
+			dotptr++;
+			if(dotptr-edot >= MAXENGINEDOTS) {
 				dotptr = edot;
 			}
 		}
@@ -610,7 +610,7 @@ int drawdots(SDL_Surface *s) {
 	create_engine_dots(200);
 
 	// Create engine dots out the side we're moving from
-	for(m = 0; m<4; m ++ ) {
+	for(m = 0; m<4; m++) {
 		if(maneuver & 1<<m) { // 'maneuver' is a bit field
 			create_engine_dots2(80,m);
 		}
@@ -671,7 +671,7 @@ int init(int fullscreen) {
 	if(oss_sound_flag) {
 
 	// Initialise SDL with audio and video
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)!= 0) {
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
 		oss_sound_flag = 0;
 		printf ("Can't open sound, starting without it\n");
 		atexit(SDL_Quit);
@@ -683,7 +683,7 @@ int init(int fullscreen) {
 
 	} else {
 		// Initialise with video only
-		CONDERROR(SDL_Init(SDL_INIT_VIDEO)!= 0);
+		CONDERROR(SDL_Init(SDL_INIT_VIDEO) != 0);
 		atexit(SDL_Quit);
 	}
 
@@ -701,7 +701,7 @@ int init(int fullscreen) {
 	NULLERROR(surf_screen);
 
 	// Set the heat color from the range 0 (cold) to 300 (blue-white)
-	for(i = 0; i<W*3; i ++ ) {
+	for(i = 0; i<W*3; i++) {
 		heatcolor[i] = SDL_MapRGB(
 			surf_screen->format,
 			(i<W)?(i*M/W):(M),(i<W)?0:(i<2*W)?((i-W)*M/W):M,(i<2*W)?0:((i-W)*M/W) // Got that?
@@ -738,12 +738,12 @@ int init(int fullscreen) {
 	// Create the array of black points;
 	SDL_LockSurface(surf_ship);
 	raw_pixels = (Uint16 *) surf_ship->pixels;
-	for(i = 0; i<surf_ship->w; i ++ ) {
-		for(j = 0; j<surf_ship->h; j ++ ) {
+	for(i = 0; i<surf_ship->w; i++) {
+		for(j = 0; j<surf_ship->h; j++) {
 			if(raw_pixels[j*(surf_ship->pitch)/2 + i] == 0) {
 				blackptr->x = i;
 				blackptr->y = j;
-				blackptr ++ ;
+				blackptr++;
 			}
 		}
 	}
@@ -754,7 +754,7 @@ int init(int fullscreen) {
 	init_space_dots();
 
 	// Load all our lovely rocks
-	for(i = 0; i<NROCKS; i ++ ) {
+	for(i = 0; i<NROCKS; i++) {
 		char a[100];
 
 		sprintf(a,load_file("sprites/rock%d.png"),i);
@@ -846,7 +846,7 @@ int draw() {
 	}
 
 	// Draw all the rocks, in all states
-	for(i = 0; i<MAXROCKS; i ++ ) {
+	for(i = 0; i<MAXROCKS; i++) {
 		if(rock[i].active) {
 
 			src.w = rock[i].image->w;
@@ -865,10 +865,10 @@ int draw() {
 				SDL_Surface *deadrock;
 				deadrock = surf_deadrock[rock[i].type_number];
 				SDL_SetAlpha(deadrock,SDL_SRCALPHA,rock[i].heat*255/rock[i].image->h);
-				dest.x = (int) rock[i].x;  // kludge
+				dest.x = (int) rock[i].x; // kludge
 				SDL_BlitSurface(deadrock,&src,surf_screen,&dest);
 				if(rnd()<0.3) {
-					rock[i].heat-= movementrate;
+					rock[i].heat -= movementrate;
 				}
 			}
 
@@ -997,7 +997,7 @@ int draw() {
 		case HIGH_SCORE_DISPLAY:
 			// Display de list o high scores mon.
 			PutString(surf_screen,180,50,"High scores");
-			for(i = 0; i<8; i ++ ) {
+			for(i = 0; i<8; i++) {
 				char s[1024];
 				sprintf(s, "#%1d",i + 1);
 				PutString(surf_screen, 150, 50 + (i + 2)*font_height,s);
@@ -1018,15 +1018,15 @@ int draw() {
 			Uint16 c;
 
 			if(initialshield>0) {
-				initialshield-= movementrate;
+				initialshield -= movementrate;
 				c = SDL_MapRGB(surf_screen->format,0,255,255);
 			} else {
 				c = heatcolor[(int)shieldlevel];
-				shieldlevel-= movementrate;
+				shieldlevel -= movementrate;
 			}
 
 			shieldpulse += 0.2;
-			for(p = black_point; p<blackptr; p ++ ) { 
+			for(p = black_point; p<blackptr; p++) { 
 				x = p->x + (int)xship + (rnd() + rnd()-1)*sin(shieldpulse)*4 + 1;
 				y = p->y + (int)yship + (rnd() + rnd()-1)*sin(shieldpulse)*4 + 1;
 				if(x>0 && y>0 && x<XSIZE && y<YSIZE) {
@@ -1037,7 +1037,7 @@ int draw() {
 		} else {
 			// When the shields are off, check that the black points 
 			// on the ship are still black, and not covered up by rocks
-			for(p = black_point; p<blackptr; p ++ ) { 
+			for(p = black_point; p<blackptr; p++) { 
 				offset = surf_screen->pitch/2 * (p->y + (int)yship) + p->x + (int)xship;
 				if(raw_pixels[offset]) {
 					// Set the bang flag
@@ -1054,7 +1054,7 @@ int draw() {
 
 	// Draw all the little ships
 	if(state == GAMEPLAY || state == DEAD_PAUSE || state == GAME_OVER)
-	for(i = 0; i<nships-1; i ++ ) {
+	for(i = 0; i<nships-1; i++) {
 		src.w = surf_life->w;
 		src.h = surf_life->h;
 		dest.w = src.w;
@@ -1119,12 +1119,12 @@ int gameloop() {
 						name[0] = 0;
 						state_timeout = 5.0e6;
 
-						if(score>= high[7].score) {
+						if(score >= high[7].score) {
 							// Read the high score table from the storage file
 							read_high_score_table();
 
 							// Find ranking of this score, store as scorerank
-							for(i = 0; i<8; i ++ ) {
+							for(i = 0; i<8; i++) {
 							if(high[i].score <= score) {
 								scorerank = i;
 								break;
@@ -1132,7 +1132,7 @@ int gameloop() {
 							}
 
 							// Move all lower scores down a notch
-							for(i = 7; i>= scorerank; i--)
+							for(i = 7; i >= scorerank; i--)
 							high[i] = high[i-1];
 
 							// Insert blank high score
@@ -1158,10 +1158,10 @@ int gameloop() {
 				}
 			}
 
-			if(--countdown<= 0 && (rnd()*100.0<(rockrate += 0.025))) {
+			if(--countdown <= 0 && (rnd()*100.0<(rockrate += 0.025))) {
 				// Create a rock
-				rockptr ++ ;
-				if(rockptr-rock>= MAXROCKS) {
+				rockptr++;
+				if(rockptr-rock >= MAXROCKS) {
 					rockptr = rock;
 				}
 				if(!rockptr->active) {
@@ -1200,7 +1200,7 @@ int gameloop() {
 			yship += yscroll;
 			
 			// Move all the rocks
-			for(i = 0; i<MAXROCKS; i ++ ) if(rock[i].active) {
+			for(i = 0; i<MAXROCKS; i++) if(rock[i].active) {
 				rock[i].x += rock[i].xvel*movementrate;
 				rock[i].y += rock[i].yvel*movementrate + yscroll;
 			if(rock[i].y > YSIZE) {
@@ -1236,7 +1236,7 @@ int gameloop() {
 					play_sound(0);
 				}
 				makebangdots(xship,yship,xvel,yvel,surf_ship,30);
-				if(--nships<= 0) {
+				if(--nships <= 0) {
 					gameover = 1;
 					state = GAME_OVER;
 					state_timeout = 200.0;
@@ -1252,7 +1252,7 @@ int gameloop() {
 			SDL_PumpEvents();
 			keystate = SDL_GetKeyState(NULL);
 
-			if(state!= HIGH_SCORE_ENTRY && (keystate[SDLK_q] || keystate[SDLK_ESCAPE])) {
+			if(state != HIGH_SCORE_ENTRY && (keystate[SDLK_q] || keystate[SDLK_ESCAPE])) {
 				return 0;
 			}
 
@@ -1292,10 +1292,10 @@ int gameloop() {
 			if(!gameover) {
 
 				if(!paused) {
-					if(keystate[SDLK_UP] | keystate[SDLK_c])		{ yvel -= 1.5*movementrate; maneuver|= 1<<3;}
-					if(keystate[SDLK_DOWN] | keystate[SDLK_t])		{ yvel += 1.5*movementrate; maneuver|= 1<<1;}
-					if(keystate[SDLK_LEFT] | keystate[SDLK_h])		{ xvel -= 1.5*movementrate; maneuver|= 1<<2;}
-					if(keystate[SDLK_RIGHT] | keystate[SDLK_n])		{ xvel += 1.5*movementrate; maneuver|= 1;}
+					if(keystate[SDLK_UP] | keystate[SDLK_c])		{ yvel -= 1.5*movementrate; maneuver |= 1<<3;}
+					if(keystate[SDLK_DOWN] | keystate[SDLK_t])		{ yvel += 1.5*movementrate; maneuver |= 1<<1;}
+					if(keystate[SDLK_LEFT] | keystate[SDLK_h])		{ xvel -= 1.5*movementrate; maneuver |= 1<<2;}
+					if(keystate[SDLK_RIGHT] | keystate[SDLK_n])		{ xvel += 1.5*movementrate; maneuver |= 1;}
 					if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
 				}
 
@@ -1341,7 +1341,7 @@ main(int argc, char **argv) {
 	friction = 0;
 	oss_sound_flag = 1;
 
-	while ((x = getopt(argc,argv,"efhsp"))>= 0) {
+	while ((x = getopt(argc,argv,"efhsp")) >= 0) {
 		switch(x) {
 			case 'e': // engine
 				tail_plume = 1;
@@ -1351,11 +1351,11 @@ main(int argc, char **argv) {
 			break;
 			case 'h': // help
 				printf("Variations on RockDodger\n"
-					  " -e Big tail [E]ngine\n"
-					  " -f [F]ull screen\n"
-					  " -h This [H]elp message\n"
-					  " -p Stupid original [P]hysics (friction)\n"
-					  " -s [S]ilent (no sound)\n");
+				       " -e Big tail [E]ngine\n"
+				       " -f [F]ull screen\n"
+				       " -h This [H]elp message\n"
+				       " -p Stupid original [P]hysics (friction)\n"
+				       " -s [S]ilent (no sound)\n");
 				exit(0);
 			break;
 			case 'p': // physics
@@ -1373,7 +1373,7 @@ main(int argc, char **argv) {
 	}
 
 	while(1) {
-		for(i = 0; i<MAXROCKS; i ++ ) {
+		for(i = 0; i<MAXROCKS; i++) {
 			rock[i].active = 0;
 		}
 		rockrate = 54.0;
