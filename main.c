@@ -107,7 +107,6 @@ struct spacedot sdot[MAXSPACEDOTS];
 // Other global variables
 char topline[1024];
 char *initerror = "";
-char name[1024], debug1[1024];
 
 float xship,yship = 240.0;	// X position, 0..XSIZE
 float xvel,yvel;	// Change in X position per tick.
@@ -123,15 +122,12 @@ int maneuver = 0;
 int sound_flag = 1, music_flag = 0;
 int tail_plume = 0; // display big engine at the back?
 int friction = 0;	// should there be friction?
-int scorerank;
-float fadetimer = 0,faderate;
+float fadetimer = 0, faderate;
 
-int pausedown = 0,paused = 0;
+int pausedown = 0, paused = 0;
 
 // bangdot start (bd1) and end (bd2) position:
 int bd1 = 0, bd2 = 0;
-
-int xoffset[NROCKS][MAXROCKHEIGHT];
 
 enum states {
 	TITLE_PAGE,
@@ -145,8 +141,6 @@ enum states {
 enum states state = TITLE_PAGE;
 float state_timeout = 600.0;
 
-const int fakesin[] = {0,1,0,-1};
-const int fakecos[] = {1,0,-1,0};
 #define NSEQUENCE 2
 char *sequence[] = {
 	"Press SPACE to start",
