@@ -29,13 +29,14 @@ char *wav_file[] = {
 	"sounds/bzboom.wav"
 };
 
-char *tune_file[] = {/*{{{*/
+char *tune_file[] = {
     "music/magic.mod",
     "music/getzznew.mod",
     "music/4est_fulla3s.mod"
-};/*}}}*/
+};
 
-int init_sound() {/*{{{*/
+int
+init_sound() {
     // Return 1 if the sound is ready to roll, and 0 if not.
 
     int i;
@@ -71,9 +72,10 @@ int init_sound() {/*{{{*/
     }
 
     return 1;
-}/*}}}*/
+}
 
-void play_sound(int i)  {/*{{{*/
+void
+play_sound(int i)  {
 	if(!sound_flag) return;
 #ifdef DEBUG
     printf ("play sound %d on first free channel\n",i);
@@ -86,7 +88,8 @@ int playing=-1;
 
 #undef DEBUG
 
-void play_tune(int i) {/*{{{*/
+void
+play_tune(int i) {/*{{{*/
 	if(!sound_flag || !music_flag) return;
     if (playing==i)
 	return;
@@ -104,7 +107,7 @@ void play_tune(int i) {/*{{{*/
     Mix_VolumeMusic(music_volume[i]);
 
     playing = i;
-}/*}}}*/
+}
 
 /*
  *

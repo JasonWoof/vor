@@ -24,7 +24,6 @@
 extern int font_height;
 void clearBuffer();
 
-// includes {{{
 #include "config.h"
 #include "file.h"
 #include "sound.h"
@@ -39,13 +38,9 @@ void clearBuffer();
 #include <unistd.h>
 
 #include "SFont.h"
-// }}}
-// constants {{{
-// }}}
-// macros {{{
+
 #define CONDERROR(a) if((a)) {initerror = strdup(SDL_GetError());return 1;}
 #define NULLERROR(a) CONDERROR((a) == NULL)
-// }}}
 
 // ************************************* STRUCTS
 struct rock_struct {
@@ -86,7 +81,7 @@ struct spacedot {
 	float x,y,dx;
 	Uint16 color;
 };
-// High score table {{{
+// High score table
 struct highscore {
 	int score;
 	char *name;
@@ -101,10 +96,9 @@ struct highscore {
 	{2000,"Pad",0},
 	{1500,"Pad",0}
 };
-// }}}
 
 // ************************************* VARS
-// SDL_Surface global variables {{{
+// SDL_Surface global variables
 SDL_Surface 
 	*surf_screen,	// Screen
 	*surf_b_variations, // "variations" banner
@@ -117,15 +111,15 @@ SDL_Surface
 	*surf_rock[NROCKS],	// THE ROCKS
 	*surf_deadrock[NROCKS],	// THE DEAD ROCKS
 	*surf_font_big;	// The big font
-// }}}
-// Structure global variables {{{
+
+// Structure global variables
 struct enginedots edot[MAXENGINEDOTS], *dotptr = edot;
 struct rock_struct rock[MAXROCKS], *rockptr = rock;
 struct black_point_struct black_point[MAXBLACKPOINTS], *blackptr = black_point;
 struct bangdots bdot[MAXBANGDOTS], *bdotptr = bdot;
 struct spacedot sdot[MAXSPACEDOTS];
-// }}}
-// Other global variables {{{
+
+// Other global variables
 char topline[1024];
 char *initerror = "";
 char name[1024], debug1[1024];
@@ -180,7 +174,6 @@ Uint16 heatcolor[W*3];
 char *data_dir;
 extern char *optarg;
 extern int optind, opterr, optopt;
-// }}}
 
 float dist_sq(float x1, float y1, float x2, float y2)
 {
@@ -189,7 +182,8 @@ float dist_sq(float x1, float y1, float x2, float y2)
 
 // ************************************* FUNCS
 
-void read_high_score_table() {
+void
+read_high_score_table() {
 	FILE *f;
 	int i;
 	
@@ -213,7 +207,8 @@ void read_high_score_table() {
 	}
 }
 
-void write_high_score_table() {
+void
+write_high_score_table() {
 	FILE *f;
 	int i;
 	
@@ -226,7 +221,9 @@ void write_high_score_table() {
 		fclose(f);
 	}
 }
-void snprintscore(char *s, size_t n, int score) {
+
+void
+snprintscore(char *s, size_t n, int score) {
 	int min = score/60000;
 	int sec = score/1000%60;
 	int tenths = score%1000/100;
@@ -236,16 +233,22 @@ void snprintscore(char *s, size_t n, int score) {
 		snprintf(s, n, " %2d.%d", sec, tenths);
 	}
 }
-float rnd() {
+
+float
+rnd() {
 	return (float)random()/(float)RAND_MAX;
 }
-void init_engine_dots() {
+
+void
+init_engine_dots() {
 	int i;
 	for(i = 0; i<MAXENGINEDOTS; i++) {
 		edot[i].active = 0;
 	}
 }
-void init_space_dots() {
+
+void
+init_space_dots() {
 	int i,intensity;
 	for(i = 0; i<MAXSPACEDOTS; i++) {
 		float r;
@@ -263,7 +266,8 @@ void init_space_dots() {
 	}
 }
 
-void makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int power) {
+void
+makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int power) {
 
 	// TODO - stop generating dots after a certain amount of time has passed, to cope with slower CPUs.
 	// TODO - generate and display dots in a circular buffer
@@ -319,7 +323,8 @@ void makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int 
 
 }
 
-void draw_bang_dots(SDL_Surface *s) {
+void
+draw_bang_dots(SDL_Surface *s) {
 	int i;
 	int first_i, last_i;
 	Uint16 *rawpixel;
@@ -362,7 +367,8 @@ void draw_bang_dots(SDL_Surface *s) {
 }
 
 
-void draw_space_dots(SDL_Surface *s) {
+void
+draw_space_dots(SDL_Surface *s) {
 	int i;
 	Uint16 *rawpixel;
 	rawpixel = (Uint16 *) s->pixels;
@@ -385,7 +391,8 @@ void draw_space_dots(SDL_Surface *s) {
 	}
 }
 
-void draw_engine_dots(SDL_Surface *s) {
+void
+draw_engine_dots(SDL_Surface *s) {
 	int i;
 	Uint16 *rawpixel;
 	rawpixel = (Uint16 *) s->pixels;
@@ -408,7 +415,8 @@ void draw_engine_dots(SDL_Surface *s) {
 	}
 }
 
-void create_engine_dots(int newdots) {
+void
+create_engine_dots(int newdots) {
 	int i;
 	double theta,r,dx,dy;
 
@@ -438,7 +446,8 @@ void create_engine_dots(int newdots) {
 	}
 }
 
-void create_engine_dots2(int newdots, int m) {
+void
+create_engine_dots2(int newdots, int m) {
 	int i;
 	double theta, theta2, dx, dy, adx, ady;
 
@@ -493,7 +502,8 @@ void create_engine_dots2(int newdots, int m) {
 	}
 }
 
-void drawdots(SDL_Surface *s) {
+void
+drawdots(SDL_Surface *s) {
 	int m, scorepos, n;
 
 	SDL_LockSurface(s);
@@ -533,7 +543,8 @@ void drawdots(SDL_Surface *s) {
 	SDL_UnlockSurface(s);
 }
 
-int init(int fullscreen) {
+int
+init(int fullscreen) {
 
 	int i,j;
 	SDL_Surface *temp;
@@ -646,7 +657,9 @@ int init(int fullscreen) {
 
 	return 0;
 }
-int draw() {
+
+int
+draw() {
 	int i;
 	SDL_Rect src,dest;
 	struct black_point_struct *p;
@@ -665,38 +678,6 @@ int draw() {
 	// Draw a fully black background
 	SDL_FillRect(surf_screen,NULL,0);
 
-
-#ifdef DEBUG
-	// DEBUG {{{
-	// Show the current state
-	switch (state) {
-		case TITLE_PAGE:
-			statedisplay = "title_page";
-		break;
-		case GAMEPLAY:
-			statedisplay = "gameplay";
-		break;
-		case DEAD_PAUSE:
-			statedisplay = "dead_pause";
-		break;
-		case GAME_OVER:
-			statedisplay = "game_over";
-		break;
-		case HIGH_SCORE_ENTRY:
-			statedisplay = "high_score_entry";
-		break;
-		case HIGH_SCORE_DISPLAY:
-			statedisplay = "high_score_display";
-		break;
-		case DEMO:
-			statedisplay = "demo";
-		break;
-	}
-	snprintf(buf,1024, "mode = %s", statedisplay);
-	PutString(surf_screen,0,YSIZE-50,buf);
-	// }}}
-#endif
-	
 	// Draw the background dots
 	drawdots(surf_screen);
 
@@ -908,7 +889,8 @@ int draw() {
 	return bang;
 }
 
-int gameloop() {
+int
+gameloop() {
 	int i = 0;
 	Uint8 *keystate;
 

@@ -7,7 +7,8 @@ SFont_FontInfo InternalFont;
 int alpha=127;
 int font_height;
 
-Uint32 GetPixel(SDL_Surface *Surface, Sint32 X, Sint32 Y)
+Uint32
+GetPixel(SDL_Surface *Surface, Sint32 X, Sint32 Y)
 {
 
    Uint8  *bits;
@@ -46,7 +47,8 @@ Uint32 GetPixel(SDL_Surface *Surface, Sint32 X, Sint32 Y)
     return -1;
 }
 
-void InitFont2(SFont_FontInfo *Font)
+void
+InitFont2(SFont_FontInfo *Font)
 {
     int x = 0, i = 0;
 
@@ -70,13 +72,15 @@ void InitFont2(SFont_FontInfo *Font)
     SDL_SetColorKey(Font->Surface, SDL_SRCCOLORKEY, GetPixel(Font->Surface, 0, Font->Surface->h-1));
 }
 
-void InitFont(SDL_Surface *Font)
+void
+InitFont(SDL_Surface *Font)
 {
     InternalFont.Surface=Font;
     InitFont2(&InternalFont);
 }
 
-int SFont_wide(char *text) {
+int
+SFont_wide(char *text) {
     int i=0,xwide=0;
     int ofs;
     SFont_FontInfo *Font = &InternalFont;
@@ -93,11 +97,13 @@ int SFont_wide(char *text) {
     return xwide;
 }
 
-int SFont_height() {
+int
+SFont_height() {
     return InternalFont.Surface->h-1;
 }
 
-void PutString2(SDL_Surface *Surface, SFont_FontInfo *Font, int x, int y, char *text)
+void
+PutString2(SDL_Surface *Surface, SFont_FontInfo *Font, int x, int y, char *text)
 {
     int ofs;
     int i=0;
@@ -130,7 +136,8 @@ void PutString2(SDL_Surface *Surface, SFont_FontInfo *Font, int x, int y, char *
 // Return a new surface, with the text on it.
 // This surface is new, fresh, and must eventually be freed.
 // Create the new surface with the same colour system as a parent surface.
-SDL_Surface *new_Surface_PutString(SDL_Surface *parent, char *text) {
+SDL_Surface *
+new_Surface_PutString(SDL_Surface *parent, char *text) {
 
      Uint32 rmask = parent->format->Rmask;
      Uint32 gmask = parent->format->Gmask;
@@ -146,11 +153,13 @@ SDL_Surface *new_Surface_PutString(SDL_Surface *parent, char *text) {
     );
 }
 
-void PutString(SDL_Surface *Surface, int x, int y, char *text) {
+void
+PutString(SDL_Surface *Surface, int x, int y, char *text) {
     PutString2(Surface, &InternalFont, x, y, text);
 }
 
-int TextWidth2(SFont_FontInfo *Font, char *text)
+int
+TextWidth2(SFont_FontInfo *Font, char *text)
 {
     int x=0,i=0;
     unsigned char ofs = 0;
@@ -166,21 +175,25 @@ int TextWidth2(SFont_FontInfo *Font, char *text)
     return x+Font->CharPos[ofs+2]-Font->CharPos[ofs+1];
 }
 
-int TextWidth(char *text)
+int
+TextWidth(char *text)
 {
     return TextWidth2(&InternalFont, text);
 }
 
-void TextAlpha(int a) {
+void
+TextAlpha(int a) {
     alpha = a;
 }
 
-void XCenteredString2(SDL_Surface *Surface, SFont_FontInfo *Font, int y, char *text)
+void
+XCenteredString2(SDL_Surface *Surface, SFont_FontInfo *Font, int y, char *text)
 {
     PutString2(Surface, &InternalFont, Surface->w/2-TextWidth(text)/2, y, text);
 }
 
-void XCenteredString(SDL_Surface *Surface, int y, char *text)
+void
+XCenteredString(SDL_Surface *Surface, int y, char *text)
 {
     XCenteredString2(Surface, &InternalFont, y, text);
 }
@@ -188,7 +201,8 @@ void XCenteredString(SDL_Surface *Surface, int y, char *text)
 SDL_Surface *Back;
 char tmp[1024];
 
-void clearBuffer() {
+void
+clearBuffer() {
     SDL_Event event;
 
     // Delete the event buffer
@@ -198,7 +212,8 @@ void clearBuffer() {
     SDL_EnableUNICODE(1);
 }
 
-int SFont_Input2( SDL_Surface *Dest, SFont_FontInfo *Font, int x, int y, int PixelWidth, char *text)
+int
+SFont_Input2( SDL_Surface *Dest, SFont_FontInfo *Font, int x, int y, int PixelWidth, char *text)
 {
     SDL_Event event;
     int ch;
@@ -262,7 +277,8 @@ int SFont_Input2( SDL_Surface *Dest, SFont_FontInfo *Font, int x, int y, int Pix
 	return 0;
 }
 
-int SFont_Input( SDL_Surface *Dest, int x, int y, int PixelWidth, char *text)
+int
+SFont_Input( SDL_Surface *Dest, int x, int y, int PixelWidth, char *text)
 {
     
     Back = SDL_AllocSurface(Dest->flags,
