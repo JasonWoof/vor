@@ -216,7 +216,7 @@ makebangdots(int xbang, int ybang, int dx, int dy, SDL_Surface *s, int power) {
 		for(x = 0; x<s->w; x++) {
 			for(y = 0; y<s->h; y++) {
 				c = rawpixel[s->pitch/2*y + x];
-				if(c && c != SDL_MapRGB(s->format,0,255,0)) {
+				if(c && c != s->format->colorkey) {
 
 					theta = rnd()*M_PI*2;
 
