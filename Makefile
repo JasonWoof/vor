@@ -42,12 +42,18 @@ main.o file.o: file.h
 vor: $(objects)
 	$(CC) $(ldflags) -o $@ $^ $(LIBRARIES)
 
-data/sprites/ship.png: ship.pov
-	povray -GA -D +A +UA +W32 +H24 ship.pov >/dev/null 2>/dev/null
-	mv ship.png data/sprites/
+pnmoutline: pnmoutline.c
+	$(CC) -lnetpbm -o $@ $<
+
+data/sprites/ship.png: ship.pov pnmoutline Makefile
+	povray -GA -D +A +UA +W32 +H32 $< >/dev/null 2>/dev/null
+	pngtopnm ship.png >ship.pnm
+	./pnmoutline <ship.pnm >data/sprites/ship.pnm
+	pnmtopng -transparent =white data/sprites/ship.pnm >$@
+	rm ship.png ship.pnm data/sprites/ship.pnm
 
 clean:
-	rm -f *.o vor data/sprites/ship.png
+	rm -f *.o vor pnmoutline data/sprites/ship.png
 
 install:	all
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
