@@ -30,7 +30,7 @@ INSTALL_DATA = $(INSTALL) -m 644
 DATA_PREFIX = /usr/share/vor
 PROGRAM_PREFIX = /usr/games/bin
 
-all: vor
+all: vor data/sprites/ship.png
 
 %.o: %.c
 	$(CC) $(cflags) -c -o $@ $<
@@ -42,8 +42,12 @@ main.o file.o: file.h
 vor: $(objects)
 	$(CC) $(ldflags) -o $@ $^ $(LIBRARIES)
 
+data/sprites/ship.png: ship.pov
+	povray -GA -D +A +UA +W32 +H24 ship.pov >/dev/null 2>/dev/null
+	mv ship.png data/sprites/
+
 clean:
-	rm -f *.o vor
+	rm -f *.o vor data/sprites/ship.png
 
 install:	all
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
