@@ -25,6 +25,7 @@ extern int font_height;
 void clearBuffer();
 
 // includes {{{
+#include "config.h"
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include <stdio.h>
@@ -40,20 +41,6 @@ void clearBuffer();
 #include "SFont.h"
 // }}}
 // constants {{{
-#define XSIZE 640
-#define YSIZE 480
-#define NROCKS 6	// Number of rock image files, not number of rocks visible
-#define MAXROCKS 120 // MAX Rocks
-#define MAXROCKHEIGHT 100
-#define ROCKRATE 2
-#define MAXBLACKPOINTS 500
-#define MAXENGINEDOTS 5000
-#define MAXBANGDOTS 50000
-#define MAXSPACEDOTS 2000
-#define W 100
-#define M 255
-#define BIG_FONT_FILE "fonts/score.png"
-#define STARTSPACE 430 // pixels from the left which will be cleared of rocks when you die
 // }}}
 // macros {{{
 #define CONDERROR(a) if((a)) {initerror = strdup(SDL_GetError());return 1;}
@@ -146,15 +133,12 @@ float xship,yship = 240.0;	// X position, 0..XSIZE
 float xvel,yvel;	// Change in X position per tick.
 float rockrate,rockspeed;
 float movementrate;
-float shieldlevel, shieldpulse = 0;
 float yscroll;
 
 int nships,score,initticks,ticks_since_last, last_ticks;
-int initialshield, gameover, fast;
+int gameover;
 int countdown = 0;
 int maneuver = 0;
-int laser = 0;
-int shieldsup = 0;
 int oss_sound_flag = 0;
 int tail_plume = 0; // display big engine at the back?
 int friction = 0;	// should there be friction?
@@ -196,32 +180,12 @@ extern char *optarg;
 extern int optind, opterr, optopt;
 // }}}
 
-// ************************************* FUNCS
-#ifdef DOTCOLLISION
-int dotcollision(SDL_Surface *s) {
-	int i,j,m;
-	Uint16 *rawpixel, *r;
-
-	/*
-	 * Kill all the dots which collide with other objects.
-	 * This does not work, it's probably in the wrong place or something.
-	 */
-	SDL_LockSurface(s);
-	rawpixel = (Uint16 *) s->pixels;
-	if(bangdotlife > 0 && bangdotlife<80) {
-		for(i = 0; i<nbangdots; i++) {
-			if(bdot[i].x>0 && bdot[i].x<XSIZE && bdot[i].y>0 && bdot[i].y<YSIZE) {
-				r = &rawpixel[(int)(s->pitch/2*(int)(bdot[i].y)) + (int)(bdot[i].x)];
-			if(*r != (bdot[i].c ? bdot[i].c : heatcolor[bangdotlife*2]))
-				bdot[i].active = 0;
-			}
-		}
-	}
-	SDL_UnlockSurface(s);
-
-	return;
+float dist_sq(float x1, float y1, float x2, float y2)
+{
+	return (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
 }
-#endif
+
+// ************************************* FUNCS
 
 FILE *hs_fopen(char *mode) {
 	FILE *f;
@@ -313,43 +277,6 @@ void init_space_dots() {
 
 	}
 }
-
-int drawlaser() {
-	int i,xc,hitrock;
-	Uint16 c, *rawpixel;
-
-	hitrock = -1;
-	xc = XSIZE;
-	// let xc = x coordinate of the collision between the laser and a space rock
-	// 1. Calculate xc and determine the asteroid that was hit
-	for(i = 0; i<MAXROCKS; i++) {
-		if(rock[i].active) {
-			if(yship + 12>rock[i].y && yship + 12<rock[i].y + rock[i].image->h && xship + 32<rock[i].x + (rock[i].image->w/2) && rock[i].x + (rock[i].image->w/2) < xc) {
-				xc = rock[i].x + (rock[i].image->w/2);
-				hitrock = i;
-			}
-		}
-	}
-
-	if(hitrock >= 0) {
-		rock[hitrock].heat += movementrate*3;
-	}
-
-	// Plot a number of random dots between xship and XSIZE
-	SDL_LockSurface(surf_screen);
-	rawpixel = (Uint16 *) surf_screen->pixels;
-	c = SDL_MapRGB(surf_ship->format,rnd()*128,128 + rnd()*120,rnd()*128);
-
-	for(i = 0; i<(xc-xship)*5; i += 10) {
-		int x,y;
-		x = rnd()*(xc-(xship + 32)) + xship + 32;
-		y = yship + 12 + (rnd()-0.5)*1.5;
-		rawpixel[surf_screen->pitch/2*y + x] = c;
-	}
-
-	SDL_UnlockSurface(surf_screen);
-}
-
 
 int makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int power) {
 
@@ -830,11 +757,6 @@ int draw() {
 	// Draw the background dots
 	drawdots(surf_screen);
 
-	// If it's firing, draw the laser
-	if(laser) {
-		drawlaser();
-	}
-
 	// Draw ship
 	if(!gameover && (state == GAMEPLAY || state == DEMO) ) {
 		src.w = surf_ship->w;
@@ -1011,47 +933,19 @@ int draw() {
 	}
 
 	if(!gameover && state == GAMEPLAY) {
-		// Show the freaky shields
 		SDL_LockSurface(surf_screen);
 		raw_pixels = (Uint16 *) surf_screen->pixels;
-		if(initialshield>0 || shieldsup && shieldlevel>0) {
-			int x,y,l;
-			Uint16 c;
-
-			if(initialshield>0) {
-				initialshield -= movementrate;
-				c = SDL_MapRGB(surf_screen->format,0,255,255);
-			} else {
-				c = heatcolor[(int)shieldlevel];
-				shieldlevel -= movementrate;
-			}
-
-			shieldpulse += 0.2;
-			for(p = black_point; p<blackptr; p++) { 
-				x = p->x + (int)xship + (rnd() + rnd()-1)*sin(shieldpulse)*4 + 1;
-				y = p->y + (int)yship + (rnd() + rnd()-1)*sin(shieldpulse)*4 + 1;
-				if(x>0 && y>0 && x<XSIZE && y<YSIZE) {
-					offset = surf_screen->pitch/2 * y + x;
-					raw_pixels[offset] = c;
-				}
-			}
-		} else {
-			// When the shields are off, check that the black points 
-			// on the ship are still black, and not covered up by rocks
-			for(p = black_point; p<blackptr; p++) { 
-				offset = surf_screen->pitch/2 * (p->y + (int)yship) + p->x + (int)xship;
-				if(raw_pixels[offset]) {
-					// Set the bang flag
-					bang = 1;
-				}
+		// Check that the black points on the ship are
+		// still black, and not covered up by rocks.
+		for(p = black_point; p<blackptr; p++) { 
+			offset = surf_screen->pitch/2 * (p->y + (int)yship) + p->x + (int)xship;
+			if(raw_pixels[offset]) {
+				// Set the bang flag
+				bang = 1;
 			}
 		}
 		SDL_UnlockSurface(surf_screen);
 	}
-
-#ifdef DOTCOLLISION
-	dotcollision(surf_screen); // Kill dots that are not on their spots
-#endif
 
 	// Draw all the little ships
 	if(state == GAMEPLAY || state == DEAD_PAUSE || state == GAME_OVER)
@@ -1107,14 +1001,12 @@ int gameloop() {
 						// Create a new ship and start all over again
 						state = GAMEPLAY;
 						play_tune(1);
-						initialshield = 0;
 						xship = 10;
 						yship = YSIZE/2;
 						xvel = 3;
 						yvel = 0;
-						shieldlevel = 3*W;
 						for(i = 0; i<MAXROCKS; i++ ) {
-							if(rock[i].x < STARTSPACE) {
+							if(dist_sq(xship, yship, rock[i].x, rock[i].y) < START_RAD_SQ) {
 								rock[i].active = 0;
 							}
 						}
@@ -1283,13 +1175,10 @@ int gameloop() {
 				yvel = 0;
 				xship = 0;
 				yship = YSIZE/2;
-				shieldlevel = 3*W;
-				initialshield = 0;
 
 			}
 
 			maneuver = 0;
-			laser = 0;
 		} else {
 			SDL_PumpEvents();
 			keystate = SDL_GetKeyState(NULL);
@@ -1329,7 +1218,6 @@ int gameloop() {
 
 			}
 			else {
-				shieldsup = 0;
 				paused = 0;
 				pausedown = 0;
 			}
@@ -1358,10 +1246,10 @@ main(int argc, char **argv) {
 			break;
 			case 'h': // help
 				printf("Variations on RockDodger\n"
-				       " -e Big tail [E]ngine\n"
+				       " -e big tail [E]ngine\n"
 				       " -f [F]ull screen\n"
-				       " -h This [H]elp message\n"
-				       " -p Stupid original [P]hysics (friction)\n"
+				       " -h this [H]elp message\n"
+				       " -p original [P]hysics (friction)\n"
 				       " -s [S]ilent (no sound)\n");
 				exit(0);
 			break;

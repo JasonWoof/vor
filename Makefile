@@ -15,16 +15,8 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-VERSION=0.1
-PACKAGENAME=vor
-NEWD=$(PACKAGENAME)-$(VERSION)
-TMP=/tmp
-OPTIONS=-DVERSION=\"$(VERSION)\"
-SOUNDSOURCE=sound
-
-SOUNDLIBRARIES=-lSDL_mixer
-
-LIBRARIES=`sdl-config --libs` -lSDL_image $(SOUNDLIBRARIES)
+ldflags := $(shell sdl-config --libs) -lSDL_image -lSDL_mixer
+cflags := -g $(shell sdl-config --cflags)
 
 INSTALL = install
 INSTALL_PROGRAM = $(INSTALL) -o games -g games
@@ -35,11 +27,11 @@ PROGRAM_PREFIX = /usr/games/bin
 
 all: vor
 
-.c.o:
-	cc -c -g $? `sdl-config --cflags` $(OPTIONS)
+%.o: %.c
+	$(CC) $(cflags) -c -o $@ $^
 
-vor:	SFont.o $(SOUNDSOURCE).o main.o
-	cc -o $@ $+ $(LIBRARIES)
+vor: SFont.o sound.o main.o
+	$(CC) $(ldflags) -o $@ $^ $(LIBRARIES)
 
 clean:
 	rm -f *.o vor
