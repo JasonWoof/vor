@@ -23,6 +23,8 @@ my_objects := file.o score.o sound.o main.o $(if $(DEBUG),debug.o)
 libs := SFont.o
 objects := $(libs) $(my_objects)
 
+graphics := data/sprites/ship.png data/sprites/rock00.png data/sprites/rock01.png data/sprites/rock02.png data/sprites/rock03.png data/sprites/rock04.png data/sprites/rock05.png data/sprites/rock06.png data/sprites/rock07.png data/sprites/rock08.png data/sprites/rock09.png data/sprites/rock10.png data/sprites/rock11.png data/sprites/rock12.png data/sprites/rock13.png data/sprites/rock14.png data/sprites/rock15.png data/sprites/rock16.png data/sprites/rock17.png data/sprites/rock18.png data/sprites/rock19.png data/sprites/rock20.png data/sprites/rock21.png data/sprites/rock22.png data/sprites/rock23.png data/sprites/rock24.png data/sprites/rock25.png data/sprites/rock26.png data/sprites/rock27.png data/sprites/rock28.png data/sprites/rock29.png data/sprites/rock30.png data/sprites/rock31.png data/sprites/rock32.png data/sprites/rock33.png data/sprites/rock34.png data/sprites/rock35.png data/sprites/rock36.png data/sprites/rock37.png data/sprites/rock38.png data/sprites/rock39.png data/sprites/rock40.png data/sprites/rock41.png data/sprites/rock42.png data/sprites/rock43.png data/sprites/rock44.png data/sprites/rock45.png data/sprites/rock46.png data/sprites/rock47.png data/sprites/rock48.png data/sprites/rock49.png
+
 INSTALL = install
 INSTALL_PROGRAM = $(INSTALL) -o games -g games
 INSTALL_DATA = $(INSTALL) -m 644
@@ -30,7 +32,8 @@ INSTALL_DATA = $(INSTALL) -m 644
 DATA_PREFIX = /usr/share/vor
 PROGRAM_PREFIX = /usr/games/bin
 
-all: vor data/sprites/ship.png
+
+all: vor $(graphics)
 
 %.o: %.c
 	$(CC) $(cflags) -c -o $@ $<
@@ -51,6 +54,12 @@ data/sprites/ship.png: ship.pov pnmoutline Makefile
 	./pnmoutline <ship.pnm >data/sprites/ship.pnm
 	pnmtopng -transparent =white data/sprites/ship.pnm >$@
 	rm ship.png ship.pnm data/sprites/ship.pnm
+
+data/sprites/rock%.png: rocks.pov Makefile
+	povray -Irocks.pov -D +H52 +W52 +K`echo "$@" | grep -o '[0-9][0-9]'` +Fp -O$@.pnm
+	pnmcrop < $@.pnm > $@-c.pnm
+	pnmtopng -transparent black < $@-c.pnm > $@
+	rm $@.pnm $@-c.pnm
 
 clean:
 	rm -f *.o vor pnmoutline data/sprites/ship.png

@@ -11,7 +11,7 @@
 #define YSIZE 480
 
 // number of rock image files.
-#define NROCKS 6
+#define NROCKS 50
 // image file containing font for score stuff.
 #define BIG_FONT_FILE "fonts/score.png"
 
