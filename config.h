@@ -1,6 +1,8 @@
 #ifndef VOR_CONFIG_H
 #define VOR_CONFIG_H
 
+#define debug(x) if(DEBUG) { x; }
+
 #define VERSION "0.1"
 #define DATA_PREFIX "/usr/share/vor"
 

@@ -55,8 +55,6 @@ read_high_score_table()
 	if(f) {
 		// If the file exists, read from it
 		for(i = 0; i<N_SCORES; i++) {
-			g_scores[i].score = 0;
-			g_scores[i].name[0] = 0;
 			fscanf(f, "%d %31[^\n]", &g_scores[i].score, g_scores[i].name);
 		}
 		fclose(f);

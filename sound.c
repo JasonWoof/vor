@@ -1,4 +1,5 @@
 #include "sound.h"
+#include "config.h"
 
 extern int sound_flag, music_flag;
 
@@ -40,9 +41,7 @@ init_sound() {
     // Return 1 if the sound is ready to roll, and 0 if not.
 
     int i;
-#ifdef DEBUG
-    printf ("Initialise sound\n");
-#endif
+    debug(printf ("Initialise sound\n"));
 
     // Initialise output with SDL_mixer
     if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, AUDIO_S16, MIX_DEFAULT_CHANNELS, 4096) < 0) {
@@ -50,14 +49,14 @@ init_sound() {
 	return 0;
     }
 
-#ifdef DEBUG
-    // What kind of sound did we get?  Ah who cares. As long as it can play
-    // some basic bangs and simple music.
-    Mix_QuerySpec(&audio_rate, &audio_format, &audio_channels);
-    printf("Opened audio at %d Hz %d bit %s\n", audio_rate,
-	    (audio_format&0xFF),
-	    (audio_channels > 1) ? "stereo" : "mono");
-#endif
+	debug(
+			// What kind of sound did we get?  Ah who cares. As long as it can play
+			// some basic bangs and simple music.
+			Mix_QuerySpec(&audio_rate, &audio_format, &audio_channels);
+			printf("Opened audio at %d Hz %d bit %s\n", audio_rate,
+				(audio_format&0xFF),
+				(audio_channels > 1) ? "stereo" : "mono");
+			) 
 
     // Preload all the tunes into memory
     for (i=0; i<NUM_TUNES; i++) {
@@ -77,16 +76,12 @@ init_sound() {
 void
 play_sound(int i)  {
 	if(!sound_flag) return;
-#ifdef DEBUG
-    printf ("play sound %d on first free channel\n",i);
-#endif
+    debug(printf ("play sound %d on first free channel\n",i));
     Mix_PlayChannel(-1, wav[i], 0);
 }/*}}}*/
 
 int playing=-1;
 
-
-#undef DEBUG
 
 void
 play_tune(int i) {/*{{{*/
@@ -95,14 +90,12 @@ play_tune(int i) {/*{{{*/
 	return;
     if (playing) {
 	Mix_FadeOutMusic(1500);
-#ifdef DEBUG
-	printf("Stop playing %d\n",playing);
-#endif
+	debug(printf("Stop playing %d\n",playing));
     }
-#ifdef DEBUG
-    printf ("Play music %d\n",i);
-    printf ("volume %d\n",music_volume[i]);
-#endif
+	debug(
+			printf ("Play music %d\n",i);
+			printf ("volume %d\n",music_volume[i]);
+			)
     Mix_FadeInMusic(music[i],-1,2000);
     Mix_VolumeMusic(music_volume[i]);
 

@@ -82,7 +82,10 @@ find_score_file(void)
 {
 	g_score_file = add_path("scores");
 	g_score_mode = 0111;
-	if(is_file(g_score_file)) return true;
+	if(is_file(g_score_file)) {
+		g_score_file = strdup(g_score_file);
+		return true;
+	}
 
 	g_score_file = malloc(MAX_PATH_LEN);
 	snprintf(g_score_file, MAX_PATH_LEN,

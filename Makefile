@@ -15,10 +15,11 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+debug := $(if $(DEBUG),1,0)
 ldflags := $(shell sdl-config --libs) -lSDL_image -lSDL_mixer
-cflags := $(shell sdl-config --cflags) -Wall
+cflags := $(shell sdl-config --cflags) -Wall -DDEBUG=$(debug)
 
-my_objects := file.o score.o sound.o main.o
+my_objects := file.o score.o sound.o main.o $(if $(DEBUG),debug.o)
 libs := SFont.o
 objects := $(libs) $(my_objects)
 

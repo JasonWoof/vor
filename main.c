@@ -19,7 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#undef DEBUG
+#ifdef DEBUG
+#include "debug.h"
+#endif
 
 #include "config.h"
 #include "file.h"
@@ -562,13 +564,13 @@ init(int fullscreen) {
 
 	// Load all our lovely rocks
 	for(i = 0; i<NROCKS; i++) {
-		char a[100];
+		char a[MAX_PATH_LEN];
 
-		sprintf(a,add_path("sprites/rock%d.png"),i);
+		snprintf(a,MAX_PATH_LEN,add_path("sprites/rock%d.png"),i);
 		NULLERROR(temp = IMG_Load(a));
 		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
 
-		sprintf(a,add_path("sprites/deadrock%d.png"),i);
+		snprintf(a,MAX_PATH_LEN,add_path("sprites/deadrock%d.png"),i);
 		NULLERROR(temp = IMG_Load(a));
 		NULLERROR(surf_deadrock[i] = SDL_DisplayFormat(temp));
 	}
@@ -725,6 +727,7 @@ draw() {
 		case HIGH_SCORE_DISPLAY:
 			// Display de list o high scores mon.
 			display_scores(surf_screen, 150,50);
+			break;
 		case GAMEPLAY:
 		case DEAD_PAUSE:
 			; // no action necessary
