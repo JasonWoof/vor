@@ -61,7 +61,7 @@ find_data_dir(void)
 	char *data_options[3] = {
 		"./data",
 		getenv("VOR_DATA"),
-		"/usr/share/vor"
+		DATA_PREFIX
 	};
 
 	for(i=0; i<3; i++) {

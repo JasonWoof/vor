@@ -2,6 +2,7 @@
 #define VOR_CONFIG_H
 
 #define VERSION "0.1"
+#define DATA_PREFIX "/usr/share/vor"
 
 // screen size
 #define XSIZE 640

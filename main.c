@@ -21,11 +21,9 @@
 
 #undef DEBUG
 
-extern int font_height;
-void clearBuffer();
-
 #include "config.h"
 #include "file.h"
+#include "score.h"
 #include "sound.h"
 
 #include <math.h>
@@ -81,21 +79,6 @@ struct spacedot {
 	float x,y,dx;
 	Uint16 color;
 };
-// High score table
-struct highscore {
-	int score;
-	char *name;
-	int allocated;
-} high[] = {
-	{13000,"Pad",0},
-	{12500,"Pad",0},
-	{6500,"Pad",0},
-	{5000,"Pad",0},
-	{3000,"Pad",0},
-	{2500,"Pad",0},
-	{2000,"Pad",0},
-	{1500,"Pad",0}
-};
 
 // ************************************* VARS
 // SDL_Surface global variables
@@ -111,6 +94,8 @@ SDL_Surface
 	*surf_rock[NROCKS],	// THE ROCKS
 	*surf_deadrock[NROCKS],	// THE DEAD ROCKS
 	*surf_font_big;	// The big font
+
+SFont_Font *g_font;
 
 // Structure global variables
 struct enginedots edot[MAXENGINEDOTS], *dotptr = edot;
@@ -181,58 +166,6 @@ float dist_sq(float x1, float y1, float x2, float y2)
 }
 
 // ************************************* FUNCS
-
-void
-read_high_score_table() {
-	FILE *f;
-	int i;
-	
-	f = open_score_file("r");
-	if(f) {
-		// If the file exists, read from it
-		for(i = 0; i<8; i++) {
-			char s[1024];
-			int highscore;
-			if(fscanf (f, "%d %[^\n]", &highscore, s) != 2) {
-				break;
-			}
-			if(high[i].allocated) {
-				free(high[i].name);
-			}
-			high[i].name = strdup(s);
-			high[i].score = highscore;
-			high[i].allocated = 1;
-		}
-		fclose(f);
-	}
-}
-
-void
-write_high_score_table() {
-	FILE *f;
-	int i;
-	
-	f = open_score_file("w");
-	if(f) {
-		// If the file exists, write to it
-		for(i = 0; i<8; i++) {
-			fprintf (f, "%d %s\n", high[i].score, high[i].name);
-		}
-		fclose(f);
-	}
-}
-
-void
-snprintscore(char *s, size_t n, int score) {
-	int min = score/60000;
-	int sec = score/1000%60;
-	int tenths = score%1000/100;
-	if(min) {
-		snprintf(s, n, "%2d:%.2d.%d", min, sec, tenths);
-	} else {
-		snprintf(s, n, " %2d.%d", sec, tenths);
-	}
-}
 
 float
 rnd() {
@@ -504,7 +437,7 @@ create_engine_dots2(int newdots, int m) {
 
 void
 drawdots(SDL_Surface *s) {
-	int m, scorepos, n;
+	int m;
 
 	SDL_LockSurface(s);
 	// Draw the background stars aka space dots
@@ -514,10 +447,8 @@ drawdots(SDL_Surface *s) {
 	if(1 || state == GAMEPLAY || state == DEAD_PAUSE || state == GAME_OVER ) {
 		SDL_UnlockSurface(s);
 
-		scorepos = XSIZE-250;
-		n = snprintf(topline, 50, "Time: ");
-		snprintscore(topline + n, 50-n, score);
-		PutString(s,scorepos,0,topline);
+		snprintscore_line(topline, 50, score);
+		SFont_Write(s,g_font,XSIZE-250,0,topline);
 
 		SDL_LockSurface(s);
 	}
@@ -526,8 +457,7 @@ drawdots(SDL_Surface *s) {
 	draw_engine_dots(s);
 
 	// Create more engine dots comin out da back
-	if(!gameover)
-	create_engine_dots(200);
+	if(!gameover) create_engine_dots(200);
 
 	// Create engine dots out the side we're moving from
 	for(m = 0; m<4; m++) {
@@ -609,7 +539,7 @@ init(int fullscreen) {
 	NULLERROR(surf_b_over = SDL_DisplayFormat(temp));
 
 	surf_font_big = IMG_Load(load_file(BIG_FONT_FILE));
-	InitFont(surf_font_big);
+	g_font = SFont_InitFont(surf_font_big);
 
 	// Load the spaceship graphic.
 	NULLERROR(temp = IMG_Load(load_file("sprites/ship.png")));
@@ -775,62 +705,33 @@ draw() {
 			SDL_BlitSurface(surf_b_rockdodger,&src,surf_screen,&dest);
 
 			text = "Version " VERSION;
-			x = (XSIZE-SFont_wide(text))/2 + sin(fadetimer/4.5)*10;
-			PutString(surf_screen,x,YSIZE-50 + sin(fadetimer/2)*5,text);
+			x = (XSIZE-SFont_TextWidth(g_font,text))/2 + sin(fadetimer/4.5)*10;
+			SFont_Write(surf_screen,g_font,x,YSIZE-50 + sin(fadetimer/2)*5,text);
 
 			text = sequence[(int)(fadetimer/40)%NSEQUENCE];
 			//text = "Press SPACE to start!";
-			x = (XSIZE-SFont_wide(text))/2 + cos(fadetimer/4.5)*10;
-			PutString(surf_screen,x,YSIZE-100 + cos(fadetimer/3)*5,text);
+			x = (XSIZE-SFont_TextWidth(g_font,text))/2 + cos(fadetimer/4.5)*10;
+			SFont_Write(surf_screen,g_font,x,YSIZE-100 + cos(fadetimer/3)*5,text);
 		break;
 
 		case HIGH_SCORE_ENTRY:
+			play_tune(2);
+			if(!process_score_input()) {  // done inputting name
 
-			if(score >= high[7].score) {
-				play_tune(2);
-				if(SFont_Input (surf_screen, 330, 50 + (scorerank + 2)*font_height, 300, name)) {
-					// Insert name into high score table
-
-					// Lose the lowest name forever (loser!)
-					//if(high[7].allocated)
-					//	free(high[7].name);			// THIS WAS CRASHING SO I REMOVED IT
-
-					// Insert new high score
-					high[scorerank].score = score;
-					high[scorerank].name = strdup(name);	// MEMORY NEVER FREED!
-					high[scorerank].allocated = 1;
-			
-					// Set the global name string to "", ready for the next winner
-					name[0] = 0;
-			
-					// Change state to briefly show high scores page
-					state = HIGH_SCORE_DISPLAY;
-					state_timeout = 200;
-
-					// Write the high score table to the file
-					write_high_score_table();
-			
-					// Play the title page tune
-					play_tune(0);
-				}
-			} else {
+				// Change state to briefly show high scores page
 				state = HIGH_SCORE_DISPLAY;
-				state_timeout = 400;
-			}
-		// FALL THROUGH
+				state_timeout = 200;
 
+				// Write the high score table to the file
+				write_high_score_table();
+		
+				// Play the title page tune
+				play_tune(0);
+			}
+		// FALL THROUGH TO
 		case HIGH_SCORE_DISPLAY:
 			// Display de list o high scores mon.
-			PutString(surf_screen,180,50,"High scores");
-			for(i = 0; i<8; i++) {
-				char s[1024];
-				sprintf(s, "#%1d",i + 1);
-				PutString(surf_screen, 150, 50 + (i + 2)*font_height,s);
-				snprintscore(s, 1024, high[i].score);
-				PutString(surf_screen, 200, 50 + (i + 2)*font_height,s);
-				sprintf(s, "%3s", high[i].name);
-				PutString(surf_screen, 330, 50 + (i + 2)*font_height,s);
-			}
+			display_scores(surf_screen, 150,50);
 
 	}
 
@@ -906,45 +807,29 @@ gameloop() {
 						state = GAMEPLAY;
 						play_tune(1);
 						xship -= 50;
-					break;
+						break;
 					case GAME_OVER:
 						state = HIGH_SCORE_ENTRY;
-						clearBuffer();
-						name[0] = 0;
 						state_timeout = 5.0e6;
-
-						if(score >= high[7].score) {
-							// Read the high score table from the storage file
-							read_high_score_table();
-
-							// Find ranking of this score, store as scorerank
-							for(i = 0; i<8; i++) {
-							if(high[i].score <= score) {
-								scorerank = i;
-								break;
-							}
-							}
-
-							// Move all lower scores down a notch
-							for(i = 7; i >= scorerank; i--)
-							high[i] = high[i-1];
-
-							// Insert blank high score
-							high[scorerank].score = score;
-							high[scorerank].name = "";
-							high[scorerank].allocated = 0;
+						if(new_high_score(score)) {
+							SDL_Event e;
+							SDL_EnableUNICODE(1);
+							while(SDL_PollEvent(&e))
+								;
+						} else {
+							state = HIGH_SCORE_DISPLAY;
+							state_timeout = 400;
 						}
-
-					break;
+						break;
 					case HIGH_SCORE_DISPLAY:
 						state = TITLE_PAGE;
 						state_timeout = 500.0;
-					break;
+						break;
 					case HIGH_SCORE_ENTRY:
 						// state = TITLE_PAGE;
 						// play_tune(1);
 						// state_timeout = 100.0;
-					break;
+						break;
 					case TITLE_PAGE:
 						state = HIGH_SCORE_DISPLAY;
 						state_timeout = 200.0;

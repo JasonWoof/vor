@@ -16,9 +16,9 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ldflags := $(shell sdl-config --libs) -lSDL_image -lSDL_mixer
-cflags := -g $(shell sdl-config --cflags) -Wall
+cflags := $(shell sdl-config --cflags) -Wall
 
-my_objects := sound.o file.o main.o
+my_objects := file.o score.o sound.o main.o
 libs := SFont.o
 objects := $(libs) $(my_objects)
 
