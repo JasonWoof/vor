@@ -1,18 +1,4 @@
 // pass in a random seed (integer) to this file with +K
-//
-// Here's some that came out nice:
-// povray -Irocks.pov +D +P +H52 +W52 +K1
-// povray -Irocks.pov +D +P +H52 +W52 +K2
-// povray -Irocks.pov +D +P +H52 +W52 +K4
-// povray -Irocks.pov +D +P +H52 +W52 +K16
-// povray -Irocks.pov +D +P +H52 +W52 +K18
-// povray -Irocks.pov +D +P +H52 +W52 +K49
-// povray -Irocks.pov +D +P +H52 +W52 +K56
-// povray -Irocks.pov +D +P +H52 +W52 +K57
-// povray -Irocks.pov +D +P +H52 +W52 +K58
-// povray -Irocks.pov +D +P +H52 +W52 +K59
-// povray -Irocks.pov +D +P +H52 +W52 +K61
-
 
 #include "colors.inc"
 
@@ -20,11 +6,13 @@
 
 #macro rnd() (rand(RS)) #end
 
+#declare rsize = 1 + rnd();
+
 camera
 {
 	up <0, 1, 0>
 	right <1, 0, 0>
-	location <0, 0, -2>
+	location <0, 0, -4 / rsize>
 	angle 30
 	look_at <0, 0, 0>
 
@@ -40,36 +28,36 @@ light_source { <-500, 500, -700> White }
 
 
 blob{
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
-	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
+	sphere { <0.5 - rnd(), 0.5 - rnd(), 0.5 - rnd()>, .1 + rnd(), 1 }
 	threshold 2
 	texture{
 		pigment{ color rgb <53 / 55, 44 / 55, 36 / 55>}
 	}
-	normal{bumps 1 scale .08}
+	normal{ bumps 1 scale (0.16 / rsize) }
 
 	finish {//phong .2
 		ambient .1}
