@@ -142,7 +142,7 @@ int nships,score,initticks,ticks_since_last, last_ticks;
 int gameover;
 int countdown = 0;
 int maneuver = 0;
-int oss_sound_flag = 0;
+int sound_flag = 1, music_flag = 0;
 int tail_plume = 0; // display big engine at the back?
 int friction = 0;	// should there be friction?
 int scorerank;
@@ -599,26 +599,23 @@ int init(int fullscreen) {
 		}
 	}
 
-	if(oss_sound_flag) {
-
-	// Initialise SDL with audio and video
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-		oss_sound_flag = 0;
-		printf ("Can't open sound, starting without it\n");
-		atexit(SDL_Quit);
+	if(sound_flag) {
+		// Initialize SDL with audio and video
+		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+			sound_flag = 0;
+			printf ("Can't open sound, starting without it\n");
+			atexit(SDL_Quit);
+		} else {
+			atexit(SDL_Quit);
+			atexit(SDL_CloseAudio);
+			sound_flag = init_sound();
+		}
 	} else {
-		atexit(SDL_Quit);
-		atexit(SDL_CloseAudio);
-		oss_sound_flag = init_sound();
-	}
-
-	} else {
-		// Initialise with video only
+		// Initialize with video only
 		CONDERROR(SDL_Init(SDL_INIT_VIDEO) != 0);
 		atexit(SDL_Quit);
 	}
 
-	if(oss_sound_flag)
 	play_tune(0);
 
 	// Attempt to get the required video size
@@ -627,7 +624,7 @@ int init(int fullscreen) {
 	surf_screen = SDL_SetVideoMode(XSIZE,YSIZE,16,flag);
 
 	// Set the title bar text
-	SDL_WM_SetCaption("Rock Dodgers", "rockdodgers");
+	SDL_WM_SetCaption("Variations on Rockdodger", "VoR");
 
 	NULLERROR(surf_screen);
 
@@ -1051,7 +1048,7 @@ int gameloop() {
 				}
 			} else {
 				if(state == DEAD_PAUSE) {
-					float blast_radius = START_RAD * state_timeout / 20.0;
+					float blast_radius = BLAST_RADIUS * state_timeout / 20.0;
 					if(xship < 60) xship = 60;
 					for(i = 0; i<MAXROCKS; i++ ) {
 						float dx, dy, n;
@@ -1128,7 +1125,7 @@ int gameloop() {
 							rock[i].y += (rock[i].yvel*movementrate + yscroll) * 1.01;
 						}
 					}
-					if(rock[i].x < -32.0 || rock[i].x > XSIZE + 32.0) {
+					if(rock[i].x < -rock[i].image->w || rock[i].x > XSIZE) {
 						rock[i].active = 0;
 						rock[i].dead = 0;
 					}
@@ -1152,10 +1149,8 @@ int gameloop() {
 
 
 			if(draw() && state == GAMEPLAY) {
-				if(oss_sound_flag) {
-					// Play the explosion sound
-					play_sound(0);
-				}
+				// Play the explosion sound
+				play_sound(0);
 				makebangdots(xship,yship,xvel,yvel,surf_ship,30);
 				if(--nships <= 0) {
 					gameover = 1;
@@ -1259,9 +1254,10 @@ main(int argc, char **argv) {
 	fullscreen = 0;
 	tail_plume = 0;
 	friction = 0;
-	oss_sound_flag = 1;
+	sound_flag = 1;
+	music_flag = 0;
 
-	while ((x = getopt(argc,argv,"efhsp")) >= 0) {
+	while ((x = getopt(argc,argv,"efhmps")) >= 0) {
 		switch(x) {
 			case 'e': // engine
 				tail_plume = 1;
@@ -1274,15 +1270,19 @@ main(int argc, char **argv) {
 				       " -e big tail [E]ngine\n"
 				       " -f [F]ull screen\n"
 				       " -h this [H]elp message\n"
+				       " -m enable [M]usic\n"
 				       " -p original [P]hysics (friction)\n"
 				       " -s [S]ilent (no sound)\n");
 				exit(0);
 			break;
+			case 'm': // music
+				music_flag = 1;
 			case 'p': // physics
 				friction = 1;
 			break;
 			case 's': // silent
-				oss_sound_flag = 0;
+				sound_flag = 0;
+				music_flag = 0;
 			break;
 		}
 	}

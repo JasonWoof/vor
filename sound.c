@@ -4,6 +4,8 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
 
+extern int sound_flag, music_flag;
+
 #define CONDERROR(a) if ((a)) {fprintf(stderr,"Error: %s\n",SDL_GetError());exit(1);}
 #define NULLERROR(a) CONDERROR((a)==NULL)
 
@@ -76,6 +78,7 @@ int init_sound() {/*{{{*/
 }/*}}}*/
 
 void play_sound(int i)  {/*{{{*/
+	if(!sound_flag) return;
 #ifdef DEBUG
     printf ("play sound %d on first free channel\n",i);
 #endif
@@ -88,6 +91,7 @@ int playing=-1;
 #undef DEBUG
 
 void play_tune(int i) {/*{{{*/
+	if(!sound_flag || !music_flag) return;
     if (playing==i)
 	return;
     if (playing) {
