@@ -1118,7 +1118,7 @@ int gameloop() {
 				if(rock[i].active) {
 					rock[i].x += rock[i].xvel*movementrate;
 					rock[i].y += rock[i].yvel*movementrate + yscroll;
-					if((rock[i].y > YSIZE && rock[i].y > 0) || (rock[i].y < -rock[i].image->h && rock[i].y < 0)) {
+					if((rock[i].y > YSIZE && rock[i].yvel > 0) || (rock[i].y < -rock[i].image->h && rock[i].yvel < 0)) {
 						if(rock[i].dead) {
 							rock[i].dead = 0;
 							rock[i].active = 0;
