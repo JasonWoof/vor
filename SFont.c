@@ -1,4 +1,5 @@
 #include <SDL/SDL.h>
+#include <stdlib.h>
 #include "SFont.h"
 #include "string.h"
 
@@ -83,12 +84,11 @@ int SFont_wide(char *text) {
     while (text[i]) {
         if (text[i]==' ') {
             xwide += (int)(Font->CharPos[2]-Font->CharPos[1]);
-	}
-	else {
-	    ofs = (text[i]-33)*2+1;
+		} else {
+			ofs = (text[i]-33)*2+1;
             xwide += (int)(Font->CharPos[ofs+1]-Font->CharPos[ofs]);
-	}
-	i++;
+		}
+		i++;
     }
     return xwide;
 }
@@ -156,14 +156,12 @@ int TextWidth2(SFont_FontInfo *Font, char *text)
     unsigned char ofs = 0;
     while (text[i]!='\0') {
         if (text[i]==' ') {
-	    x+=Font->CharPos[2]-Font->CharPos[1];
-	    i++;
-	}
-	else {
-	    ofs=(text[i]-33)*2+1;
-	    x+=Font->CharPos[ofs+1]-Font->CharPos[ofs];
-	    i++;
-	}
+			x+=Font->CharPos[2]-Font->CharPos[1];
+		} else {
+			ofs=(text[i]-33)*2+1;
+			x+=Font->CharPos[ofs+1]-Font->CharPos[ofs];
+		}
+		i++;
     }
     return x+Font->CharPos[ofs+2]-Font->CharPos[ofs+1];
 }

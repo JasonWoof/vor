@@ -1,3 +1,6 @@
+#ifndef VOR_CONFIG_H
+#define VOR_CONFIG_H
+
 #define VERSION "0.1"
 
 // screen size
@@ -19,3 +22,19 @@
 #define W 100
 #define M 255
 #define BLAST_RADIUS 200 // radius^2 (pixels) which will be cleared of rocks when you die
+
+#define MAX_PATH_LEN 1024
+
+#ifndef true
+#define true 1
+#endif
+
+#ifndef false
+#define false 0
+#endif
+
+#ifndef NULL
+#define NULL 0
+#endif
+
+#endif // VOR_CONFIG_H

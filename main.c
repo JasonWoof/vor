@@ -26,16 +26,16 @@ void clearBuffer();
 
 // includes {{{
 #include "config.h"
+#include "file.h"
+#include "sound.h"
+
+#include <math.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <stdarg.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include "SFont.h"
@@ -58,7 +58,6 @@ struct rock_struct {
 	           // to make room for a new ship appearing.
 	SDL_Surface *image;
 	int type_number;
-	float heat;
 }; 
 struct black_point_struct {
 	int x,y;
@@ -190,32 +189,12 @@ float dist_sq(float x1, float y1, float x2, float y2)
 
 // ************************************* FUNCS
 
-FILE *hs_fopen(char *mode) {
-	FILE *f;
-	mode_t mask;
-	mask = umask(0111);
-	if(f = fopen("/usr/share/vor/.highscore",mode)) {
-		umask(mask);
-		return f;
-	}
-	else {
-		char s[1024];
-		umask(0177);
-		sprintf(s,"%s/.vor-high",getenv("HOME"));
-		if(f = fopen(s,mode)) {
-			umask(mask);
-			return f;
-		}
-		else {
-			umask(mask);
-			return 0;
-		}
-	}
-}
 void read_high_score_table() {
 	FILE *f;
 	int i;
-	if(f = hs_fopen("r")) {
+	
+	f = open_score_file("r");
+	if(f) {
 		// If the file exists, read from it
 		for(i = 0; i<8; i++) {
 			char s[1024];
@@ -233,10 +212,13 @@ void read_high_score_table() {
 		fclose(f);
 	}
 }
+
 void write_high_score_table() {
 	FILE *f;
 	int i;
-	if(f = hs_fopen("w")) {
+	
+	f = open_score_file("w");
+	if(f) {
 		// If the file exists, write to it
 		for(i = 0; i<8; i++) {
 			fprintf (f, "%d %s\n", high[i].score, high[i].name);
@@ -281,14 +263,14 @@ void init_space_dots() {
 	}
 }
 
-int makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int power) {
+void makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int power) {
 
 	// TODO - stop generating dots after a certain amount of time has passed, to cope with slower CPUs.
 	// TODO - generate and display dots in a circular buffer
 
-	int i,x,y,n,endcount;
+	int x,y,endcount;
 	Uint16 *rawpixel,c;
-	double theta,r,dx,dy;
+	double theta,r;
 	int begin_generate;
 
 	begin_generate = SDL_GetTicks();
@@ -300,41 +282,38 @@ int makebangdots(int xbang, int ybang, int xvel, int yvel, SDL_Surface *s, int p
 
 	endcount = 0;
 	while (endcount<3) {
+		for(x = 0; x<s->w; x++) {
+			for(y = 0; y<s->h; y++) {
+				c = rawpixel[s->pitch/2*y + x];
+				if(c && c != SDL_MapRGB(s->format,0,255,0)) {
 
-	for(x = 0; x<s->w; x++) {
-		for(y = 0; y<s->h; y++) {
-			c = rawpixel[s->pitch/2*y + x];
-			if(c && c != SDL_MapRGB(s->format,0,255,0)) {
+					theta = rnd()*M_PI*2;
 
-				theta = rnd()*M_PI*2;
+					r = 1-(rnd()*rnd());
 
-				r = 1-(rnd()*rnd());
+					bdot[bd2].dx = (power/50.0)*45.0*cos(theta)*r + xvel;
+					bdot[bd2].dy = (power/50.0)*45.0*sin(theta)*r + yvel;
+					bdot[bd2].x = x + xbang;
+					bdot[bd2].y = y + ybang;
 
-				bdot[bd2].dx = (power/50.0)*45.0*cos(theta)*r + xvel;
-				bdot[bd2].dy = (power/50.0)*45.0*sin(theta)*r + yvel;
-				bdot[bd2].x = x + xbang;
-				bdot[bd2].y = y + ybang;
+					// Replace the last few bang dots with the pixels from the exploding object
+					bdot[bd2].c = (endcount>0)?c:0;
+					bdot[bd2].life = 100;
+					bdot[bd2].decay = rnd()*3 + 1;
+					bdot[bd2].active = 1;
 
-				// Replace the last few bang dots with the pixels from the exploding object
-				bdot[bd2].c = (endcount>0)?c:0;
-				bdot[bd2].life = 100;
-				bdot[bd2].decay = rnd()*3 + 1;
-				bdot[bd2].active = 1;
+					bd2++;
+					bd2 %= MAXBANGDOTS;
 
-				bd2++;
-				bd2 %= MAXBANGDOTS;
+					// If the circular buffer is filled, who cares? They've had their chance.
+					//if(bd2 == bd1-1) goto exitloop;
 
-				// If the circular buffer is filled, who cares? They've had their chance.
-				//if(bd2 == bd1-1) goto exitloop;
-
+				}
 			}
 		}
-	}
 
-	if(SDL_GetTicks() - begin_generate > 7) endcount++;
-
+		if(SDL_GetTicks() - begin_generate > 7) endcount++;
 	}
-exitloop:
 
 	SDL_UnlockSurface(s);
 
@@ -514,7 +493,7 @@ void create_engine_dots2(int newdots, int m) {
 	}
 }
 
-int drawdots(SDL_Surface *s) {
+void drawdots(SDL_Surface *s) {
 	int m, scorepos, n;
 
 	SDL_LockSurface(s);
@@ -554,19 +533,6 @@ int drawdots(SDL_Surface *s) {
 	SDL_UnlockSurface(s);
 }
 
-char * load_file(char *s) {
-	static char retval[1024];
-	snprintf(retval, 1024, "%s/%s", data_dir, s);
-	return retval;
-}
-
-
-int missing(char *dirname) {
-	struct stat buf;
-	stat(dirname, &buf);
-	return (!S_ISDIR(buf.st_mode));
-}
-
 int init(int fullscreen) {
 
 	int i,j;
@@ -574,30 +540,9 @@ int init(int fullscreen) {
 	Uint16 *raw_pixels;
 	Uint32 flag;
 
-	read_high_score_table();
-
 	// Where are our data files?
-	// default: ./data
-	// second alternative: RD_DATADIR
-	// final alternative: /usr/share/vor
-	data_dir = strdup("./data");
-	if(missing(data_dir)) {
-		char *env;
-		env = getenv("RD_DATADIR");
-		if(env != NULL) {
-			data_dir = strdup(env);
-			if(missing(data_dir)) {
-				fprintf (stderr,"Cannot find data directory $RD_DATADIR\n");
-				exit(-1);
-			}
-		} else {
-			data_dir = strdup("/usr/share/vor");
-			if(missing(data_dir)) {
-				fprintf (stderr,"Cannot find data in %s\n", data_dir);
-				exit(-2);
-			}
-		}
-	}
+	if(!find_files()) exit(1);
+	read_high_score_table();
 
 	if(sound_flag) {
 		// Initialize SDL with audio and video
@@ -702,7 +647,7 @@ int init(int fullscreen) {
 	return 0;
 }
 int draw() {
-	int i,n;
+	int i;
 	SDL_Rect src,dest;
 	struct black_point_struct *p;
 	Uint16 *raw_pixels;
@@ -710,8 +655,6 @@ int draw() {
 	char *text;
 	float fadegame,fadeover;
 
-	char *statedisplay, buf[1024];
-	
 	bang = 0;
 
 	src.x = 0;
@@ -781,28 +724,6 @@ int draw() {
 
 			// Draw the rock
 			SDL_BlitSurface(rock[i].image,&src,surf_screen,&dest);
-
-			// Draw the heated part of the rock, in an alpha which reflects the
-			// amount of heat in the rock.
-			if(rock[i].heat>0) {
-				SDL_Surface *deadrock;
-				deadrock = surf_deadrock[rock[i].type_number];
-				SDL_SetAlpha(deadrock,SDL_SRCALPHA,rock[i].heat*255/rock[i].image->h);
-				dest.x = (int) rock[i].x; // kludge
-				SDL_BlitSurface(deadrock,&src,surf_screen,&dest);
-				if(rnd()<0.3) {
-					rock[i].heat -= movementrate;
-				}
-			}
-
-			// If the rock is heated past a certain point, the water content of
-			// the rock flashes to steam, releasing enough energy to destroy
-			// the rock in spectacular fashion.
-			if(rock[i].heat>rock[i].image->h) {
-				rock[i].active = 0;
-				play_sound(1 + (int)(rnd()*3));
-				makebangdots(rock[i].x,rock[i].y,rock[i].xvel,rock[i].yvel,rock[i].image,10);
-			}
 
 		}
 	}
@@ -986,6 +907,7 @@ int draw() {
 
 	return bang;
 }
+
 int gameloop() {
 	int i = 0;
 	Uint8 *keystate;
@@ -1077,7 +999,6 @@ int gameloop() {
 					rockptr->xvel = -(rockspeed)*(1 + rnd());
 					rockptr->yvel = rnd()-0.5;
 					rockptr->type_number = random() % NROCKS;
-					rockptr->heat = 0;
 					rockptr->image = surf_rock[rockptr->type_number];// [random()%NROCKS];
 					rockptr->active = 1;
 					rockptr->y = rnd()*(YSIZE + rockptr->image->h);
@@ -1248,6 +1169,8 @@ int gameloop() {
 		}
 	}
 }
+
+int
 main(int argc, char **argv) {
 	int i, x, fullscreen;
 
@@ -1292,20 +1215,14 @@ main(int argc, char **argv) {
 		return 1;
 	}
 
-	while(1) {
-		for(i = 0; i<MAXROCKS; i++) {
-			rock[i].active = 0;
-			rock[i].dead = 0;
-		}
-		rockrate = 54.0;
-		rockspeed = 5.0;
-		initticks = SDL_GetTicks();
-		if(gameloop() == 0) {
-			break;
-		}
-		printf ("score = %d\n",score);
-		SDL_Delay(1000);
+	for(i = 0; i<MAXROCKS; i++) {
+		rock[i].active = 0;
+		rock[i].dead = 0;
 	}
+	rockrate = 54.0;
+	rockspeed = 5.0;
+	initticks = SDL_GetTicks();
+	gameloop();
 
 	return 0;
 }

@@ -16,7 +16,11 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ldflags := $(shell sdl-config --libs) -lSDL_image -lSDL_mixer
-cflags := -g $(shell sdl-config --cflags)
+cflags := -g $(shell sdl-config --cflags) -Wall
+
+my_objects := sound.o file.o main.o
+libs := SFont.o
+objects := $(libs) $(my_objects)
 
 INSTALL = install
 INSTALL_PROGRAM = $(INSTALL) -o games -g games
@@ -28,9 +32,13 @@ PROGRAM_PREFIX = /usr/games/bin
 all: vor
 
 %.o: %.c
-	$(CC) $(cflags) -c -o $@ $^
+	$(CC) $(cflags) -c -o $@ $<
 
-vor: SFont.o sound.o main.o
+$(my_objects): config.h
+
+main.o file.o: file.h
+
+vor: $(objects)
 	$(CC) $(ldflags) -o $@ $^ $(LIBRARIES)
 
 clean:
@@ -54,8 +62,8 @@ install:	all
 	$(INSTALL_DATA) ./data/music/* $(DATA_PREFIX)/music/
 	$(INSTALL_DATA) ./data/sounds/* $(DATA_PREFIX)/sounds/
 	$(INSTALL_DATA) ./data/sprites/* $(DATA_PREFIX)/sprites/
-	touch $(DATA_PREFIX)/.highscore
-	chmod a+rw $(DATA_PREFIX)/.highscore
+	touch $(DATA_PREFIX)/scores
+	chmod a+rw $(DATA_PREFIX)/scores
 
 uninstall:
 	rm -f $(PROGRAM_PREFIX)/vor
@@ -66,7 +74,7 @@ uninstall:
 	rm -f $(DATA_PREFIX)/music/*
 	rm -f $(DATA_PREFIX)/sounds/*
 	rm -f $(DATA_PREFIX)/sprites/*
-	rm -f $(DATA_PREFIX)/.highscore
+	rm -f $(DATA_PREFIX)/scores $(DATA_PREFIX)/.highscore
 
 	if [ -d $(DATA_PREFIX)/banners ]; then rmdir $(DATA_PREFIX)/banners; fi
 	if [ -d $(DATA_PREFIX)/fonts ]; then rmdir $(DATA_PREFIX)/fonts; fi

@@ -1,8 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
+#include "sound.h"
 
 extern int sound_flag, music_flag;
 

@@ -34,6 +34,7 @@ void PutString2(SDL_Surface *Surface, SFont_FontInfo *Font, int x, int y, char *
 // Returns the width of "text" in pixels
 int TextWidth(char *text);
 int TextWidth2(SFont_FontInfo *Font, char *text);
+int SFont_wide(char *text);
 
 // Blits a string to with centered x position
 void XCenteredString (SDL_Surface *Surface, int y, char *text);
