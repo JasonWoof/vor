@@ -94,7 +94,6 @@ SDL_Surface
 	*surf_ship,		// Spaceship element
 	*surf_life,	// Indicator of number of ships remaining
 	*surf_rock[NROCKS],	// THE ROCKS
-	*surf_deadrock[NROCKS],	// THE DEAD ROCKS
 	*surf_font_big;	// The big font
 
 SFont_Font *g_font;
@@ -569,10 +568,6 @@ init(int fullscreen) {
 		snprintf(a,MAX_PATH_LEN,add_path("sprites/rock%d.png"),i);
 		NULLERROR(temp = IMG_Load(a));
 		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
-
-		snprintf(a,MAX_PATH_LEN,add_path("sprites/deadrock%d.png"),i);
-		NULLERROR(temp = IMG_Load(a));
-		NULLERROR(surf_deadrock[i] = SDL_DisplayFormat(temp));
 	}
 
 	// Remove the mouse cursor
