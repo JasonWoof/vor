@@ -1118,14 +1118,14 @@ int gameloop() {
 				if(rock[i].active) {
 					rock[i].x += rock[i].xvel*movementrate;
 					rock[i].y += rock[i].yvel*movementrate + yscroll;
-					if((rock[i].y > YSIZE && rock[i].yvel > 0) || (rock[i].y < -rock[i].image->h && rock[i].yvel < 0)) {
+					if(rock[i].y > YSIZE || rock[i].y < -rock[i].image->h) {
 						if(rock[i].dead) {
 							rock[i].dead = 0;
 							rock[i].active = 0;
 						} else {
 							// wrap
 							rock[i].y = (YSIZE - rock[i].image->h) - rock[i].y;
-							rock[i].y += (rock[i].yvel*movementrate + yscroll) * 2;
+							rock[i].y += (rock[i].yvel*movementrate + yscroll) * 1.01;
 						}
 					}
 					if(rock[i].x < -32.0 || rock[i].x > XSIZE + 32.0) {
