@@ -18,4 +18,4 @@
 #define MAXSPACEDOTS 2000
 #define W 100
 #define M 255
-#define START_RAD_SQ 40000 // radius^2 (pixels) which will be cleared of rocks when you die
+#define START_RAD 200 // radius^2 (pixels) which will be cleared of rocks when you die

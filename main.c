@@ -1002,15 +1002,8 @@ int gameloop() {
 						// Create a new ship and start all over again
 						state = GAMEPLAY;
 						play_tune(1);
-						xship = 10;
-						yship = YSIZE/2;
 						xvel = 3;
 						yvel = 0;
-						for(i = 0; i<MAXROCKS; i++ ) {
-							if(dist_sq(xship, yship, rock[i].x, rock[i].y) < START_RAD_SQ) {
-								rock[i].active = 0;
-							}
-						}
 					break;
 					case GAME_OVER:
 						state = HIGH_SCORE_ENTRY;
@@ -1054,6 +1047,20 @@ int gameloop() {
 						state = HIGH_SCORE_DISPLAY;
 						state_timeout = 200.0;
 					break;
+				}
+			} else {
+				if(state == DEAD_PAUSE) {
+					float blast_radius = START_RAD * state_timeout / 50.0;
+					for(i = 0; i<MAXROCKS; i++ ) {
+						float dx, dy, n;
+						dx = rock[i].x - xship;
+						dy = rock[i].y - yship;
+						n = sqrt(dx*dx + dy*dy);
+						if(n < blast_radius) {
+							rock[i].xvel += rockrate*dx/n;
+							rock[i].yvel += rockrate*dy/n;
+						}
+					}
 				}
 			}
 
@@ -1105,15 +1112,14 @@ int gameloop() {
 			for(i = 0; i<MAXROCKS; i++) if(rock[i].active) {
 				rock[i].x += rock[i].xvel*movementrate;
 				rock[i].y += rock[i].yvel*movementrate + yscroll;
-			if(rock[i].y > YSIZE) {
-				rock[i].y -= YSIZE;
-				rock[i].y -= rock[i].image->w;
-			} else if(rock[i].y < -rock[i].image->w) {
-				rock[i].y += YSIZE;
-				rock[i].y += rock[i].image->w;
-			}
-			if(rock[i].x<-32.0)
-				rock[i].active = 0;
+				if(rock[i].y > YSIZE) {
+					rock[i].y -= YSIZE;
+					rock[i].y -= rock[i].image->w;
+				} else if(rock[i].y < -rock[i].image->w) {
+					rock[i].y += YSIZE;
+					rock[i].y += rock[i].image->w;
+				}
+				if(rock[i].x < -32.0) rock[i].active = 0;
 			}
 
 
@@ -1148,7 +1154,10 @@ int gameloop() {
 				else {
 					state = DEAD_PAUSE;
 					state_timeout = 50.0;
-
+					xship = 10;
+					yship = YSIZE/2;
+					xvel = 0;
+					yvel = 0;
 				}
 			}
 
