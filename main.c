@@ -832,13 +832,32 @@ gameloop() {
 				}
 			} else {
 				if(state == DEAD_PAUSE) {
-					float blast_radius = BLAST_RADIUS * state_timeout / 20.0;
+					float blast_radius;
+					int fixonly;
+
+					if(state_timeout < DEAD_PAUSE_LENGTH - 20.0) {
+						blast_radius = BLAST_RADIUS * 1.3;
+						fixonly = 1;
+					} else {
+						blast_radius = BLAST_RADIUS * (DEAD_PAUSE_LENGTH - state_timeout) / 20.0;
+						fixonly = 0;
+					}
+
 					if(shipx < 60) shipx = 60;
 					for(i = 0; i<MAXROCKS; i++ ) {
 						float dx, dy, n;
 						if(rock[i].x <= 0) continue;
+
+						// This makes it so your explosion from dying magically doesn't leave
+						// any rocks that aren't moving much on the x axis. After the first
+						// 20 tics, only rocks that are barely moving will be pushed.
+						if(fixonly && (!rock[i].dead || rock[i].dx < -4 || rock[i].dx > 3)) {
+							continue;
+						}
+
 						dx = rock[i].x - shipx;
 						dy = rock[i].y - shipy;
+
 						n = sqrt(dx*dx + dy*dy);
 						if(n < blast_radius) {
 							n *= 20;
@@ -944,7 +963,7 @@ gameloop() {
 				}
 				else {
 					state = DEAD_PAUSE;
-					state_timeout = 20.0;
+					state_timeout = DEAD_PAUSE_LENGTH;
 					shipdx = 0;
 					shipdy = 0;
 				}

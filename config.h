@@ -24,7 +24,8 @@
 #define MAXSPACEDOTS 2000
 #define W 100
 #define M 255
-#define BLAST_RADIUS 200 // radius^2 (pixels) which will be cleared of rocks when you die
+#define BLAST_RADIUS 300 // radius^2 (pixels) which will be cleared of rocks when you die
+#define DEAD_PAUSE_LENGTH 40.0
 
 #define MAX_PATH_LEN 1024
 
