@@ -1055,10 +1055,11 @@ int gameloop() {
 					float blast_radius = START_RAD * state_timeout / 50.0;
 					for(i = 0; i<MAXROCKS; i++ ) {
 						float dx, dy, n;
-						dx = rock[i].x + 100;
+						if(rock[i].x <= 0) continue;
+						dx = rock[i].x + 70;
 						dy = rock[i].y - YSIZE/2;
 						n = sqrt(dx*dx + dy*dy);
-						if(n < blast_radius+100) {
+						if(n < blast_radius+70) {
 							n *= 50;
 							rock[i].xvel += rockrate*(dx+30)/n;
 							rock[i].yvel += rockrate*dy/n;
