@@ -1002,6 +1002,8 @@ int gameloop() {
 						// Create a new ship and start all over again
 						state = GAMEPLAY;
 						play_tune(1);
+						xship = 10;
+						yship = YSIZE/2;
 						xvel = 3;
 						yvel = 0;
 					break;
@@ -1053,12 +1055,14 @@ int gameloop() {
 					float blast_radius = START_RAD * state_timeout / 50.0;
 					for(i = 0; i<MAXROCKS; i++ ) {
 						float dx, dy, n;
-						dx = rock[i].x - xship;
-						dy = rock[i].y - yship;
+						dx = rock[i].x + 100;
+						dy = rock[i].y - YSIZE/2;
 						n = sqrt(dx*dx + dy*dy);
-						if(n < blast_radius) {
-							rock[i].xvel += rockrate*dx/n;
+						if(n < blast_radius+100) {
+							n *= 50;
+							rock[i].xvel += rockrate*(dx+30)/n;
 							rock[i].yvel += rockrate*dy/n;
+							if(rock[i].xvel <= 0) rock[i].xvel = 1;
 						}
 					}
 				}
@@ -1120,6 +1124,10 @@ int gameloop() {
 					rock[i].y += rock[i].image->w;
 				}
 				if(rock[i].x < -32.0) rock[i].active = 0;
+				if(rock[i].xvel > 0) {
+					if(rock[i].y < 0 || rock[i].y > YSIZE) rock[i].active = 0;
+					if(rock[i].x > XSIZE) rock[i].active = 0;
+				}
 			}
 
 
@@ -1154,10 +1162,6 @@ int gameloop() {
 				else {
 					state = DEAD_PAUSE;
 					state_timeout = 50.0;
-					xship = 10;
-					yship = YSIZE/2;
-					xvel = 0;
-					yvel = 0;
 				}
 			}
 
