@@ -31,7 +31,7 @@ char *g_score_file;
 mode_t g_score_mode;
 
 char *
-load_file(char *filename)
+add_path(char *filename)
 {
 	static char r[MAX_PATH_LEN];
 	snprintf(r, MAX_PATH_LEN, "%s/%s", g_data_dir, filename);
@@ -65,6 +65,7 @@ find_data_dir(void)
 	};
 
 	for(i=0; i<3; i++) {
+		if(!data_options[i]) continue;
 		g_data_dir = strdup(data_options[i]);
 		if(is_dir(g_data_dir)) return true;
 	}
@@ -79,7 +80,7 @@ find_data_dir(void)
 int
 find_score_file(void)
 {
-	g_score_file = load_file("scores");
+	g_score_file = add_path("scores");
 	g_score_mode = 0111;
 	if(is_file(g_score_file)) return true;
 

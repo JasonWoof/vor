@@ -111,7 +111,7 @@ char *initerror = "";
 float xship,yship = 240.0;	// X position, 0..XSIZE
 float xvel,yvel;	// Change in X position per tick.
 float rockrate,rockspeed;
-float movementrate;
+float movementrate;  // this controls the speed of everything that moves.
 float yscroll;
 float scrollvel;
 
@@ -517,30 +517,30 @@ init(int fullscreen) {
 	}
 
 	// Load the banners
-	NULLERROR(temp = IMG_Load(load_file("banners/variations.png")));
+	NULLERROR(temp = IMG_Load(add_path("banners/variations.png")));
 	NULLERROR(surf_b_variations = SDL_DisplayFormat(temp));
 
-	NULLERROR(temp = IMG_Load(load_file("banners/on.png")));
+	NULLERROR(temp = IMG_Load(add_path("banners/on.png")));
 	NULLERROR(surf_b_on = SDL_DisplayFormat(temp));
 
-	NULLERROR(temp = IMG_Load(load_file("banners/rockdodger.png")));
+	NULLERROR(temp = IMG_Load(add_path("banners/rockdodger.png")));
 	NULLERROR(surf_b_rockdodger = SDL_DisplayFormat(temp));
 
-	NULLERROR(temp = IMG_Load(load_file("banners/game.png")));
+	NULLERROR(temp = IMG_Load(add_path("banners/game.png")));
 	NULLERROR(surf_b_game = SDL_DisplayFormat(temp));
 
-	NULLERROR(temp = IMG_Load(load_file("banners/over.png")));
+	NULLERROR(temp = IMG_Load(add_path("banners/over.png")));
 	NULLERROR(surf_b_over = SDL_DisplayFormat(temp));
 
-	surf_font_big = IMG_Load(load_file(BIG_FONT_FILE));
+	surf_font_big = IMG_Load(add_path(BIG_FONT_FILE));
 	g_font = SFont_InitFont(surf_font_big);
 
 	// Load the spaceship graphic.
-	NULLERROR(temp = IMG_Load(load_file("sprites/ship.png")));
+	NULLERROR(temp = IMG_Load(add_path("sprites/ship.png")));
 	NULLERROR(surf_ship = SDL_DisplayFormat(temp));
 
 	// Load the life indicator (small ship) graphic.
-	NULLERROR(temp = IMG_Load(load_file("indicators/life.png")));
+	NULLERROR(temp = IMG_Load(add_path("indicators/life.png")));
 	NULLERROR(surf_life = SDL_DisplayFormat(temp));
 
 	// Create the array of black points;
@@ -565,11 +565,11 @@ init(int fullscreen) {
 	for(i = 0; i<NROCKS; i++) {
 		char a[100];
 
-		sprintf(a,load_file("sprites/rock%d.png"),i);
+		sprintf(a,add_path("sprites/rock%d.png"),i);
 		NULLERROR(temp = IMG_Load(a));
 		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
 
-		sprintf(a,load_file("sprites/deadrock%d.png"),i);
+		sprintf(a,add_path("sprites/deadrock%d.png"),i);
 		NULLERROR(temp = IMG_Load(a));
 		NULLERROR(surf_deadrock[i] = SDL_DisplayFormat(temp));
 	}

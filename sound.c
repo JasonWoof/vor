@@ -21,7 +21,7 @@ int audio_rate;
 Uint16 audio_format;
 int audio_channels;
 
-char *load_file(char *);
+char *add_path(char *);
 char *wav_file[] = {
     "sounds/booom.wav",
 	"sounds/cboom.wav",
@@ -61,14 +61,14 @@ init_sound() {
 
     // Preload all the tunes into memory
     for (i=0; i<NUM_TUNES; i++) {
-	if (!(music[i] = Mix_LoadMUS(load_file(tune_file[i])))) {
-	    printf ("Failed to load %s\n",load_file(tune_file[i]));
+	if (!(music[i] = Mix_LoadMUS(add_path(tune_file[i])))) {
+	    printf ("Failed to load %s\n",add_path(tune_file[i]));
 	}
     }
 
     // Preload all the wav files into memory
     for (i=0; i<NUM_SOUNDS; i++) {
-	wav[i] = Mix_LoadWAV(load_file(wav_file[i]));
+	wav[i] = Mix_LoadWAV(add_path(wav_file[i]));
     }
 
     return 1;

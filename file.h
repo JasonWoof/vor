@@ -26,7 +26,7 @@ extern char *g_data_dir;
 extern char *g_score_file;
 extern mode_t g_score_mode;
 
-char *load_file(char *filename);
+char *add_path(char *filename);
 int is_dir(char *dirname);
 int is_file(char *filename);
 int find_data_dir(void);
