@@ -1019,18 +1019,6 @@ gameloop() {
 				if(keystate[SDLK_p] | keystate[SDLK_s]) {
 					if(!pausedown) {
 						paused = !paused;
-						if(paused) {
-							SDL_Rect src,dest;
-							src.w = surf_b_variations->w;
-							src.h = surf_b_variations->h;
-							dest.w = src.w;
-							dest.h = src.h;
-							dest.x = (XSIZE-src.w)/2;
-							dest.y = (YSIZE-src.h)/2;
-							SDL_BlitSurface(surf_b_variations,&src,surf_screen,&dest);
-							// Update the surface
-							SDL_Flip(surf_screen);
-						}
 						pausedown = 1;
 					}
 				} else {
