@@ -1051,7 +1051,7 @@ int gameloop() {
 				}
 			} else {
 				if(state == DEAD_PAUSE) {
-					float blast_radius = START_RAD * state_timeout / 50.0;
+					float blast_radius = START_RAD * state_timeout / 20.0;
 					if(xship < 60) xship = 60;
 					for(i = 0; i<MAXROCKS; i++ ) {
 						float dx, dy, n;
@@ -1060,7 +1060,7 @@ int gameloop() {
 						dy = rock[i].y - yship;
 						n = sqrt(dx*dx + dy*dy);
 						if(n < blast_radius) {
-							n *= 50;
+							n *= 20;
 							rock[i].xvel += rockrate*(dx+30)/n;
 							rock[i].yvel += rockrate*dy/n;
 							rock[i].dead = 1;
@@ -1159,7 +1159,7 @@ int gameloop() {
 				}
 				else {
 					state = DEAD_PAUSE;
-					state_timeout = 50.0;
+					state_timeout = 20.0;
 					xvel = 0;
 					yvel = 0;
 				}
