@@ -43,7 +43,7 @@ struct highscore g_scores[N_SCORES] = {
 
 extern SFont_Font *g_font;
 
-int cur_score; // which score we're currently entering.
+int cur_score = -1; // which score we're currently entering.
 
 void
 read_high_score_table()
@@ -144,7 +144,8 @@ display_scores(SDL_Surface *s, uint32_t x, uint32_t y)
 		SFont_Write(s, g_font, x, y, t);
 		snprintscore(t, 1024, g_scores[i].score);
 		SFont_Write(s, g_font, x+50, y, t);
-		snprintf(t, 1024, "%s", g_scores[i].name);
+		if(i == cur_score) snprintf(t, 1024, "%s_", g_scores[i].name);
+		else snprintf(t, 1024, "%s", g_scores[i].name);
 		SFont_Write(s, g_font, x+180, y, t);
 	}
 }
@@ -162,12 +163,15 @@ process_score_input(void)
 	while(SDL_PollEvent(&e) && e.type == SDL_KEYDOWN) {
 		c = e.key.keysym.unicode;
 		k = e.key.keysym.sym;
-		if(k == SDLK_BACKSPACE && n > 0) name[n--]=0;
-		else if(e.key.keysym.sym == SDLK_RETURN) {
-			SDL_EnableUNICODE(0);
-			return false;
+		if(k == SDLK_BACKSPACE) {
+			if(n > 0) name[--n]=0;
+		} else {
+			if(k == SDLK_RETURN) {
+				SDL_EnableUNICODE(0);
+				cur_score = -1;
+				return false;
+			} else name[n++] = c;
 		}
-		else name[n++] = c;
 	}
 	return true;
 }

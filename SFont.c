@@ -1,7 +1,6 @@
 /*  SFont: a simple font library that uses special images as fonts
     Copyright (C) 2003 Karl Bartel
 
-    License: GPL or LGPL (at your choice)
     WWW: http://www.linux-games.com/sfont/
 
     This program is free software; you can redistribute it and/or modify        

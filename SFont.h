@@ -1,7 +1,6 @@
 /*  SFont: a simple font-library that uses special bitmaps as fonts
     Copyright (C) 2003 Karl Bartel
 
-    License: GPL or LGPL (at your choice)
     WWW: http://www.linux-games.com/sfont/
 
     This program is free software; you can redistribute it and/or modify        
@@ -38,10 +37,6 @@
 
 #include <SDL.h>
 
-#ifdef __cplusplus 
-extern "C" {
-#endif
-
 // Delcare one variable of this type for each font you are using.
 // To load the fonts, load the font image into YourFont->Surface
 // and call SFont_InitFont(YourFont);
@@ -75,9 +70,5 @@ int SFont_TextHeight(const SFont_Font* Font);
 // Blits a string to Surface with centered x position
 void SFont_WriteCenter(SDL_Surface *Surface, const SFont_Font* Font, int y,
 					   const char *text);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* SFONT_H */
