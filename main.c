@@ -135,8 +135,7 @@ enum states {
 	DEAD_PAUSE,
 	GAME_OVER,
 	HIGH_SCORE_ENTRY,
-	HIGH_SCORE_DISPLAY,
-	DEMO
+	HIGH_SCORE_DISPLAY
 };
 enum states state = TITLE_PAGE;
 float state_timeout = 600.0;
@@ -380,7 +379,7 @@ create_engine_dots2(int newdots, int m) {
 
 	// Don't create fresh engine dots when
 	// the game is not being played and a demo is not beng shown
-	if(state != GAMEPLAY && state != DEMO) return;
+	if(state != GAMEPLAY) return;
 
 	for(i = 0; i<newdots; i++) {
 		if(dotptr->active == 0) {
@@ -606,7 +605,7 @@ draw() {
 	drawdots(surf_screen);
 
 	// Draw ship
-	if(!gameover && (state == GAMEPLAY || state == DEMO) ) {
+	if(!gameover && state == GAMEPLAY ) {
 		src.w = surf_ship->w;
 		src.h = surf_ship->h;
 		dest.w = src.w;
@@ -726,7 +725,9 @@ draw() {
 		case HIGH_SCORE_DISPLAY:
 			// Display de list o high scores mon.
 			display_scores(surf_screen, 150,50);
-
+		case GAMEPLAY:
+		case DEAD_PAUSE:
+			; // no action necessary
 	}
 
 	if(!gameover && state == GAMEPLAY) {
@@ -827,7 +828,9 @@ gameloop() {
 					case TITLE_PAGE:
 						state = HIGH_SCORE_DISPLAY;
 						state_timeout = 200.0;
-					break;
+						break;
+					case GAMEPLAY:
+						; // no action necessary
 				}
 			} else {
 				if(state == DEAD_PAUSE) {
@@ -956,7 +959,7 @@ gameloop() {
 				return 0;
 			}
 
-			if(keystate[SDLK_SPACE] && (state == HIGH_SCORE_DISPLAY || state == TITLE_PAGE || state == DEMO)) {
+			if(keystate[SDLK_SPACE] && (state == HIGH_SCORE_DISPLAY || state == TITLE_PAGE)) {
 
 				for(i = 0; i<MAXROCKS; i++ ) {
 					rock[i].active = 0;
