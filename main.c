@@ -54,6 +54,8 @@ struct rock_struct {
 	// soon as it isn't we BLOW UP
 	float x,y,xvel,yvel;
 	int active;
+	int dead;  // has been blown out of the way
+	           // to make room for a new ship appearing.
 	SDL_Surface *image;
 	int type_number;
 	float heat;
@@ -1002,10 +1004,9 @@ int gameloop() {
 						// Create a new ship and start all over again
 						state = GAMEPLAY;
 						play_tune(1);
-						// xship = 10;
-						// yship = YSIZE/2;
-						xvel = 3;
-						yvel = 0;
+						xship -= 50;
+						// xvel = 3;
+						// yvel = 0;
 					break;
 					case GAME_OVER:
 						state = HIGH_SCORE_ENTRY;
@@ -1063,6 +1064,7 @@ int gameloop() {
 							n *= 50;
 							rock[i].xvel += rockrate*(dx+30)/n;
 							rock[i].yvel += rockrate*dy/n;
+							rock[i].dead = 1;
 						}
 					}
 				}
@@ -1116,6 +1118,7 @@ int gameloop() {
 			for(i = 0; i<MAXROCKS; i++) if(rock[i].active) {
 				rock[i].x += rock[i].xvel*movementrate;
 				rock[i].y += rock[i].yvel*movementrate + yscroll;
+				if(rock[i].dead && rock[i].y < 0 || rock[i].y > YSIZE) rock[i].active = 0;
 				if(rock[i].y > YSIZE) {
 					rock[i].y -= YSIZE;
 					rock[i].y -= rock[i].image->w;
@@ -1124,10 +1127,6 @@ int gameloop() {
 					rock[i].y += rock[i].image->w;
 				}
 				if(rock[i].x < -32.0) rock[i].active = 0;
-				if(rock[i].xvel > 0) {
-					if(rock[i].y < 0 || rock[i].y > YSIZE) rock[i].active = 0;
-					if(rock[i].x > XSIZE) rock[i].active = 0;
-				}
 			}
 
 
@@ -1162,6 +1161,8 @@ int gameloop() {
 				else {
 					state = DEAD_PAUSE;
 					state_timeout = 50.0;
+					xvel = 0;
+					yvel = 0;
 				}
 			}
 
@@ -1176,6 +1177,7 @@ int gameloop() {
 
 				for(i = 0; i<MAXROCKS; i++ ) {
 					rock[i].active = 0;
+					rock[i].dead = 0;
 				}
 
 				rockrate = 54.0;
@@ -1287,6 +1289,7 @@ main(int argc, char **argv) {
 	while(1) {
 		for(i = 0; i<MAXROCKS; i++) {
 			rock[i].active = 0;
+			rock[i].dead = 0;
 		}
 		rockrate = 54.0;
 		rockspeed = 5.0;
