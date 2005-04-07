@@ -45,9 +45,6 @@
 
 // ************************************* STRUCTS
 struct rock_struct {
-	// Array of black pixel coordinates. This is scanned 
-	// every frame to see if it's still black, and as
-	// soon as it isn't we BLOW UP
 	float x,y,dx,dy;
 	int active;
 	int dead;  // has been blown out of the way
@@ -56,9 +53,6 @@ struct rock_struct {
 	struct shape *shape;
 	int type_number;
 }; 
-struct black_point_struct {
-	int x,y;
-};
 struct bangdots {
 	// Bang dots have the same colour as shield dots.
 	// Bang dots get darker as they age.
@@ -105,7 +99,6 @@ SFont_Font *g_font;
 // Structure global variables
 struct enginedots edot[MAXENGINEDOTS], *dotptr = edot;
 struct rock_struct rock[MAXROCKS], *rockptr = rock;
-struct black_point_struct black_point[MAXBLACKPOINTS], *blackptr = black_point;
 struct bangdots bdot[MAXBANGDOTS], *bdotptr = bdot;
 struct spacedot sdot[MAXSPACEDOTS];
 
@@ -476,9 +469,8 @@ drawdots(SDL_Surface *s) {
 int
 init(int fullscreen) {
 
-	int i,j;
+	int i;
 	SDL_Surface *temp;
-	Uint16 *raw_pixels;
 	Uint32 flag;
 
 	// Where are our data files?
@@ -550,21 +542,6 @@ init(int fullscreen) {
 	NULLERROR(temp = IMG_Load(add_path("indicators/life.png")));
 	NULLERROR(surf_life = SDL_DisplayFormat(temp));
 
-	// Create the array of black points;
-	SDL_LockSurface(surf_ship);
-	raw_pixels = (Uint16 *) surf_ship->pixels;
-	for(i = 0; i<surf_ship->w; i++) {
-		for(j = 0; j<surf_ship->h; j++) {
-			if(raw_pixels[j*(surf_ship->pitch)/2 + i] == 0) {
-				blackptr->x = i;
-				blackptr->y = j;
-				blackptr++;
-			}
-		}
-	}
-
-	SDL_UnlockSurface(surf_ship);
-
 	init_engine_dots();
 	init_space_dots();
 
@@ -588,9 +565,7 @@ int
 draw() {
 	int i;
 	SDL_Rect src,dest;
-	struct black_point_struct *p;
-	Uint16 *raw_pixels;
-	int bang, offset, x;
+	int bang, x;
 	char *text;
 	float fadegame,fadeover;
 
@@ -741,20 +716,6 @@ draw() {
 					bang = 1;
 			}
 		}
-		/*
-		SDL_LockSurface(surf_screen);
-		raw_pixels = (Uint16 *) surf_screen->pixels;
-		// Check that the black points on the ship are
-		// still black, and not covered up by rocks.
-		for(p = black_point; p<blackptr; p++) { 
-			offset = surf_screen->pitch/2 * (p->y + (int)shipy) + p->x + (int)shipx;
-			if(raw_pixels[offset]) {
-				// Set the bang flag
-				bang = 1;
-			}
-		}
-		SDL_UnlockSurface(surf_screen);
-		*/
 	}
 
 	// Draw all the little ships
