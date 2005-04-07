@@ -2,8 +2,8 @@
 #include <stdint.h>
 
 struct shape {
-	uint32_t w, h;
-	uint32_t mw;
+	int w, h;
+	int mw;
 	uint32_t *mask;
 };
 

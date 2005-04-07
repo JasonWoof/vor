@@ -52,12 +52,11 @@ collide(int xdiff, int ydiff, struct shape *r, struct shape *s)
 	int xov, yov;
 
 	if(xdiff >= 0) xov = max(min(r->w-xdiff, s->w), 0);
-	else xov = -max(min(s->w+xdiff, r->w), 0);
+	else xov = min(-min(s->w+xdiff, r->w), 0);
 
 	if(ydiff >= 0) yov = max(min(r->h-ydiff, s->h), 0);
-	else yov = -max(min(s->h+ydiff, r->h), 0);
+	else yov = min(-min(s->h+ydiff, r->h), 0);
 
-	if(xov == 0 && yov == 0) return 0;
-
-	return 0;
+	if(xov == 0 || yov == 0) return 0;  // bboxes hit?
+	else return 1;
 }

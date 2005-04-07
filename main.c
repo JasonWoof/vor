@@ -113,6 +113,7 @@ struct spacedot sdot[MAXSPACEDOTS];
 char topline[1024];
 char *initerror = "";
 
+struct shape shipshape;
 float shipx,shipy = 240.0;	// X position, 0..XSIZE
 float shipdx,shipdy;	// Change in X position per tick.
 float rockrate,rockspeed;
@@ -543,6 +544,7 @@ init(int fullscreen) {
 	// Load the spaceship graphic.
 	NULLERROR(temp = IMG_Load(add_path("sprites/ship.png")));
 	NULLERROR(surf_ship = SDL_DisplayFormat(temp));
+	get_shape(surf_ship, &shipshape);
 
 	// Load the life indicator (small ship) graphic.
 	NULLERROR(temp = IMG_Load(add_path("indicators/life.png")));
@@ -734,6 +736,13 @@ draw() {
 	}
 
 	if(!gameover && state == GAMEPLAY) {
+		for(i=0; i<MAXROCKS; i++) {
+			if(rock[i].active) {
+				if(collide(shipx-rock[i].x, shipy-rock[i].y, rock[i].shape, &shipshape)) 
+					bang = 1;
+			}
+		}
+		/*
 		SDL_LockSurface(surf_screen);
 		raw_pixels = (Uint16 *) surf_screen->pixels;
 		// Check that the black points on the ship are
@@ -746,6 +755,7 @@ draw() {
 			}
 		}
 		SDL_UnlockSurface(surf_screen);
+		*/
 	}
 
 	// Draw all the little ships
@@ -886,6 +896,7 @@ gameloop() {
 					rockptr->dy = rnd()-0.5;
 					rockptr->type_number = random() % NROCKS;
 					rockptr->image = surf_rock[rockptr->type_number];// [random()%NROCKS];
+					rockptr->shape = &rock_shapes[rockptr->type_number];
 					rockptr->active = 1;
 					rockptr->y = rnd()*(YSIZE + rockptr->image->h);
 				}

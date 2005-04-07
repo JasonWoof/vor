@@ -17,7 +17,7 @@
 
 debug := $(if $(DEBUG),1,0)
 ldflags := $(shell sdl-config --libs) -lSDL_image -lSDL_mixer
-cflags := $(shell sdl-config --cflags) -Wall -DDEBUG=$(debug)
+cflags := $(shell sdl-config --cflags) -Wall -DDEBUG=$(debug) -ggdb
 
 my_objects := file.o score.o shape.o sound.o main.o $(if $(DEBUG),debug.o)
 libs := SFont.o
