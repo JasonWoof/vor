@@ -29,7 +29,7 @@ rocks += 20 21 22 23 24 25 26 27 28 29
 rocks += 30 31 32 33 34 35 36 37 38 39
 rocks += 40 41 42 43 44 45 46 47 48 49
 
-graphics := data/sprites/ship.png $(rocks:%=data/sprites/rock%.png)
+graphics := data/sprites/ship.png data/indicators/life.png $(rocks:%=data/sprites/rock%.png)
 
 INSTALL = install
 INSTALL_PROGRAM = $(INSTALL) -o games -g games

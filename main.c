@@ -26,6 +26,7 @@
 #include "config.h"
 #include "file.h"
 #include "score.h"
+#include "shape.h"
 #include "sound.h"
 
 #include <math.h>
@@ -52,6 +53,7 @@ struct rock_struct {
 	int dead;  // has been blown out of the way
 	           // to make room for a new ship appearing.
 	SDL_Surface *image;
+	struct shape *shape;
 	int type_number;
 }; 
 struct black_point_struct {
@@ -95,6 +97,8 @@ SDL_Surface
 	*surf_life,	// Indicator of number of ships remaining
 	*surf_rock[NROCKS],	// THE ROCKS
 	*surf_font_big;	// The big font
+
+struct shape rock_shapes[NROCKS];
 
 SFont_Font *g_font;
 
@@ -467,6 +471,7 @@ drawdots(SDL_Surface *s) {
 	SDL_UnlockSurface(s);
 }
 
+		char a[MAX_PATH_LEN];
 int
 init(int fullscreen) {
 
@@ -563,11 +568,11 @@ init(int fullscreen) {
 
 	// Load all our lovely rocks
 	for(i = 0; i<NROCKS; i++) {
-		char a[MAX_PATH_LEN];
 
 		snprintf(a,MAX_PATH_LEN,add_path("sprites/rock%02d.png"),i);
 		NULLERROR(temp = IMG_Load(a));
 		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
+		get_shape(surf_rock[i], &rock_shapes[i]);
 	}
 
 	// Remove the mouse cursor
