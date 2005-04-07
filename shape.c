@@ -6,7 +6,7 @@ get_shape(SDL_Surface *img, struct shape *s)
 {
 	int x, y;
 	uint16_t *px, transp;
-	uint32_t bits;
+	uint32_t bits, bit, *p;
 
 	if(img->format->BytesPerPixel != 2) {
 		fprintf(stderr, "get_shape(): not a 16-bit image!\n");
@@ -14,8 +14,8 @@ get_shape(SDL_Surface *img, struct shape *s)
 	}
 
 	s->w = img->w; s->h = img->h;
-	s->mw = ((img->w+31)>>5) * img->h;
-	s->mask = malloc(4*s->mw);
+	s->mw = ((img->w+31)>>5);
+	s->mask = malloc(4*s->mw*s->h);
 	if(!s->mask) {
 		fprintf(stderr, "can't malloc bitmask");
 		exit(1);
@@ -24,14 +24,14 @@ get_shape(SDL_Surface *img, struct shape *s)
 	SDL_LockSurface(img);
 	px = img->pixels;
 	transp = img->format->colorkey;
-	bits = 0;
+	p = s->mask;
 	for(y=0; y<img->h; y++) {
+		bit = 0;
 		for(x=0; x<img->w; x++) {
-			if(*px++ != transp) bits |= 1;
-			if(x == img->w-1 || !(x+1)%32) {
-				*(s->mask++) = bits;
-				bits = 0;
-			} else bits = bits << 1;
+			if(!bit) { bits = 0; bit = 0x80000000; }
+			if(*px++ != transp) bits |= bit;
+			bit >>= 1;
+			if(!bit || x == img->w - 1) { *(p++) = bits; }
 		}
 		px = (uint16_t *) ((uint8_t *) px + img->pitch - 2*img->w);
 	}
@@ -46,6 +46,64 @@ get_shape(SDL_Surface *img, struct shape *s)
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
+#ifndef abs
+#define abs(a) ((a)<=0 ? -(a) : (a))
+#endif
+
+int
+line_collide(int xov, struct shape *r, uint32_t *rbits, struct shape *s, uint32_t *sbits)
+{
+	int lshift, n, i, ret = 0;
+	uint32_t lbits;
+	struct shape *st;
+	uint32_t *bt;
+
+
+	if(xov < 0) {
+		st = r; r = s; s = st;
+		bt = rbits; rbits = sbits; sbits = bt;
+		xov = -xov;
+	}
+
+
+	lshift = (r->w - xov) & 31; 
+	rbits += (r->w - xov) >> 5;
+	n = (xov + 31) >> 5;
+	for(i=0; i<n-1; i++) {
+		lbits = *rbits++ << lshift;
+		lbits |= *rbits >> (32 - lshift);
+		if(lbits & *sbits++) ret = 1;
+	}
+	lbits = *rbits << lshift;
+	if(lbits & *sbits) ret = 1;
+
+	return ret;
+}
+
+int
+mask_collide(int xov, int yov, struct shape *r, struct shape *s)
+{
+	int y, ry, sy;
+	uint32_t *rbits, *sbits;
+
+	if(yov > 0) {
+		ry = r->h - yov; sy = 0;
+		rbits = r->mask + (r->h - yov) * r->mw;
+		sbits = s->mask;
+	} else {
+		ry = 0; sy = s->h + yov;
+		rbits = r->mask;
+		sbits = s->mask + (s->h + yov) * s->mw;
+	}
+
+	for(y=0; y<abs(yov); y++) {
+		if(line_collide(xov, r, rbits, s, sbits)) return 1;
+		rbits += r->mw; sbits += s->mw;
+	}
+
+	return 0;
+}
+
 int
 collide(int xdiff, int ydiff, struct shape *r, struct shape *s)
 {
@@ -58,5 +116,5 @@ collide(int xdiff, int ydiff, struct shape *r, struct shape *s)
 	else yov = min(-min(s->h+ydiff, r->h), 0);
 
 	if(xov == 0 || yov == 0) return 0;  // bboxes hit?
-	else return 1;
+	else return mask_collide(xov, yov, r, s);
 }

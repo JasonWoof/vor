@@ -570,7 +570,6 @@ init(int fullscreen) {
 
 	// Load all our lovely rocks
 	for(i = 0; i<NROCKS; i++) {
-
 		snprintf(a,MAX_PATH_LEN,add_path("sprites/rock%02d.png"),i);
 		NULLERROR(temp = IMG_Load(a));
 		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));

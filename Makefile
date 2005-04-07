@@ -51,9 +51,6 @@ main.o file.o: file.h
 vor: $(objects)
 	$(CC) $(ldflags) -o $@ $^ $(LIBRARIES)
 
-pnmoutline: pnmoutline.c
-	$(CC) -lnetpbm -o $@ $<
-
 include gfx.mk
 
 clean:

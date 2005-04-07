@@ -23,3 +23,27 @@ printf_surface(SDL_Surface *s, char *name)
 		printf("\tpitch = %d;\n", s->pitch);
 	printf("};\n");
 }
+
+void
+printb(uint32_t n, int bits)
+{
+	int i;
+
+	for(i=0; i<bits; i++) {
+		if(n & 0x80000000) putchar('1'); else putchar('0');
+		n = n << 1;
+	}
+}
+
+void
+print_mask(struct shape *s)
+{
+	int i, j;
+
+	for(i=0; i<s->h; i++) {
+		for(j=0; j<s->mw-1; j++) printb(s->mask[s->mw*i+j], 32);
+		printb(s->mask[s->mw*i+j], s->w % 32);
+		putchar('\n');
+	}
+	putchar('\n');
+}
