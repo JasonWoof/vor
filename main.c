@@ -745,7 +745,7 @@ draw() {
 		movementrate = 0;
 	}
 	else {
-		movementrate = ticks_since_last/50.0;
+		movementrate = GAMESPEED*ticks_since_last/50.0;
 		if(state == GAMEPLAY) {
 			score += ticks_since_last;
 		}

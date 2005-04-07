@@ -6,6 +6,11 @@
 #define VERSION "0.1"
 #define DATA_PREFIX "/usr/share/vor"
 
+// Speed of the game.  New players may like to try 3/4 or 2/3 speed.
+#define GAMESPEED 1.00
+// #define GAMESPEED (3.0/4.0)
+// #define GAMESPEED (2.0/3.0)
+
 // screen size
 #define XSIZE 640
 #define YSIZE 480
