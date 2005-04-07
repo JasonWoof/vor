@@ -54,7 +54,7 @@ vor: $(objects)
 include gfx.mk
 
 clean:
-	rm -f *.o vor pnmoutline $(graphics)
+	rm -f *.o vor $(graphics)
 
 install:	all
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
