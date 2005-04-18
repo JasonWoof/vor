@@ -1,0 +1,31 @@
+REQUIREMENTS
+
+	vor requires the following libraries to build/run:
+		sdl           http://www.libsdl.org/download-1.2.php
+		sdl_mixer     http://www.libsdl.org/projects/SDL_mixer/
+		sdl_image     http://www.libsdl.org/projects/SDL_image/
+	And the following to create the graphics:
+		povray        http://www.povray.org/
+		netpbm        http://netpbm.sourceforge.net/
+
+BUILDING
+	
+	"cd" to the vor source directory and type "make" at the command prompt.
+
+RUNNING
+
+	"./vor"
+
+	After building you should have an executable called "vor" in the
+	current (source) directory. You can run this here, "./vor"
+
+INSTALLING
+
+	Just type "make install" at the command prompt.
+
+	By default it puts executable in /usr/games/bin and the data in
+	/usr/share/vor. If you'd like to change either, edit the Makefile
+	before building. If you change these settings in the Makefile after
+	building, you'll have to "make clean" and build again before
+	installing.
+
