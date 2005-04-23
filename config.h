@@ -46,4 +46,7 @@
 #define NULL 0
 #endif
 
+#define CONDERROR(a) if((a)) {initerror = strdup(SDL_GetError());return 1;}
+#define NULLERROR(a) CONDERROR((a) == NULL)
+
 #endif // VOR_CONFIG_H

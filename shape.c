@@ -13,6 +13,7 @@ get_shape(SDL_Surface *img, struct shape *s)
 		exit(1);
 	}
 
+	s->area = 0;
 	s->w = img->w; s->h = img->h;
 	s->mw = ((img->w+31)>>5);
 	s->mask = malloc(4*s->mw*s->h);
@@ -29,7 +30,7 @@ get_shape(SDL_Surface *img, struct shape *s)
 		bit = 0;
 		for(x=0; x<img->w; x++) {
 			if(!bit) { bits = 0; bit = 0x80000000; }
-			if(*px++ != transp) bits |= bit;
+			if(*px++ != transp) { bits |= bit; s->area++; }
 			bit >>= 1;
 			if(!bit || x == img->w - 1) { *(p++) = bits; }
 		}
