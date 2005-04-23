@@ -111,11 +111,6 @@ char *data_dir;
 extern char *optarg;
 extern int optind, opterr, optopt;
 
-float dist_sq(float x1, float y1, float x2, float y2)
-{
-	return (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
-}
-
 // ************************************* FUNCS
 
 float
@@ -775,6 +770,8 @@ gameloop() {
 				// Play the explosion sound
 				play_sound(0);
 				makebangdots(shipx,shipy,shipdx,shipdy,surf_ship,30);
+				shipdx = 0;
+				shipdy = 0;
 				if(--nships <= 0) {
 					gameover = 1;
 					state = GAME_OVER;
@@ -785,8 +782,6 @@ gameloop() {
 				else {
 					state = DEAD_PAUSE;
 					state_timeout = DEAD_PAUSE_LENGTH;
-					shipdx = 0;
-					shipdy = 0;
 				}
 			}
 
