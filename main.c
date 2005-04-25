@@ -788,10 +788,6 @@ gameloop() {
 			SDL_PumpEvents();
 			keystate = SDL_GetKeyState(NULL);
 
-			if(state != HIGH_SCORE_ENTRY && (keystate[SDLK_q] || keystate[SDLK_ESCAPE])) {
-				return 0;
-			}
-
 			if(keystate[SDLK_SPACE] && (state == HIGH_SCORE_DISPLAY || state == TITLE_PAGE)) {
 
 				reset_rocks();
@@ -845,6 +841,11 @@ gameloop() {
 				state_timeout = -1;
 			}
 		}
+
+		if(state != HIGH_SCORE_ENTRY && (keystate[SDLK_q] || keystate[SDLK_ESCAPE])) {
+			return 0;
+		}
+
 	}
 }
 
