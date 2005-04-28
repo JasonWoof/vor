@@ -229,7 +229,7 @@ blast_rocks(float x, float y, float radius, int onlyslow)
 		n = sqrt(dx*dx + dy*dy);
 		if(n < radius) {
 			n *= 20;
-			rock[i].dx += 54.0*(dx+30)/n;
+			rock[i].dx += 54.0*dx/n;
 			rock[i].dy += 54.0*dy/n;
 		}
 	}

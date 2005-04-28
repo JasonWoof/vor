@@ -132,8 +132,8 @@ init_space_dots() {
 	for(i = 0; i<MAXSPACEDOTS; i++) {
 		sdot[i].x = rnd()*(XSIZE-5);
 		sdot[i].y = rnd()*(YSIZE-5);
-		sdot[i].z = 4*rnd();
-		b = (4 - sdot[i].z) * 255.0 / 4;
+		sdot[i].z = MAXDUSTDEPTH*sqrt(rnd());
+		b = (MAXDUSTDEPTH - sdot[i].z) * 255.0 / MAXDUSTDEPTH;
 		sdot[i].color = SDL_MapRGB(surf_screen->format, b, b, b);
 	}
 }
@@ -753,12 +753,13 @@ gameloop() {
 			if(shipx<0 || shipx>XSIZE-surf_ship->w) {
 				// BOUNCE from left and right wall
 				shipx -= shipdx*gamerate;
-				shipdx *= -0.99;
+				shipdx *= -99;
 			}
 
 			// BOUNCE Y
 			if(shipy<0 || shipy>YSIZE-surf_ship->h) {
 				// BOUNCE from top and bottom wall
+				printf("bouncing top/bottom.\n");
 				shipy -= shipdy;
 				shipdy *= -0.99;
 			}
@@ -768,7 +769,7 @@ gameloop() {
 				// Play the explosion sound
 				play_sound(0);
 				make_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship,30);
-				shipdx = screendx;
+				shipdx = 0;
 				shipdy = 0;
 				if(--nships <= 0) {
 					gameover = 1;
@@ -797,9 +798,9 @@ gameloop() {
 				play_tune(1);
 
 				gameover = 0;
-				shipx = 2*XSIZE/3;
+				shipx = XSIZE/2;
 				shipy = YSIZE/2;
-				shipdx = screendx;
+				shipdx = 0;
 				shipdy = 0;
 			}
 
