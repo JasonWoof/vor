@@ -68,9 +68,11 @@ void
 rock_timer_increments(float *ti)
 {
 	float dx0,dx1, dy0,dy1;
+	float hfactor, vfactor;
 	int i;
 
 	for(i=0; i<4; i++) ti[i] = 0;
+	hfactor = nrocks/KH; vfactor = nrocks/KV;
 
 	dx0 = -RDX - screendx; dx1 = RDX - screendx;
 	dy0 = -RDY - screendy; dy1 = RDY - screendy;
@@ -84,6 +86,8 @@ rock_timer_increments(float *ti)
 			}
 		} else ti[LEFT] = (dx0+dx1)/2;
 	}
+	ti[LEFT] *= hfactor;
+	ti[RIGHT] *= hfactor;
 
 	if(dy0 != 0) {
 		if(dy0 < 0) {
@@ -94,6 +98,8 @@ rock_timer_increments(float *ti)
 			}
 		} else ti[TOP] = (dy0+dy1)/2;
 	}
+	ti[TOP] *= vfactor;
+	ti[BOTTOM] *= vfactor;
 }
 
 void
@@ -146,7 +152,7 @@ new_rocks(void)
 					j++;
 				} while(x < -rockptr->image->w || x >= XSIZE
 						|| y < -rockptr->image->h || y >= YSIZE);
-				if(j > 1) printf("had to try %d times.\n", j);
+				if(j > 1) fprintf(stderr, "had to try %d times.\n", j);
 
 				rockptr->active = 1;
 			}
