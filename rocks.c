@@ -107,7 +107,6 @@ new_rocks(void)
 {
 	int i,j;
 	float ti[4];
-	float x, y;
 
 	rock_timer_increments(ti);
 
@@ -143,16 +142,8 @@ new_rocks(void)
 						break;
 				}
 
-				j=0;
-				do {
-					rockptr->dx = RDX*crnd();
-					rockptr->dy = RDY*crnd();
-					x = (rockptr->dx-screendx)*gamerate;
-					y = (rockptr->dy-screendy)*gamerate;
-					j++;
-				} while(x < -rockptr->image->w || x >= XSIZE
-						|| y < -rockptr->image->h || y >= YSIZE);
-				if(j > 1) fprintf(stderr, "had to try %d times.\n", j);
+				rockptr->dx = RDX*crnd();
+				rockptr->dy = RDY*crnd();
 
 				rockptr->active = 1;
 			}

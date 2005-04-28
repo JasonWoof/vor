@@ -26,7 +26,7 @@ struct enginedots {
 struct spacedot {
 	// Space dots are harmless background items
 	// All are active. When one falls off the edge, another is created at the start.
-	float x,y,dx;
+	float x,y,z;
 	Uint16 color;
 };
 
@@ -61,6 +61,7 @@ extern struct shape shipshape;
 extern float shipx,shipy;	// X position, 0..XSIZE
 extern float shipdx,shipdy;	// Change in X position per tick.
 extern float screendx, screendy;
+extern float xscroll, yscroll;
 extern float gamerate;  // this controls the speed of everything that moves.
 extern float yscroll;
 extern float scrollvel;

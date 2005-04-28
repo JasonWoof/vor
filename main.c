@@ -68,7 +68,7 @@ char topline[1024];
 char *initerror = "";
 
 struct shape shipshape;
-float shipx,shipy = 240.0;	// X position, 0..XSIZE
+float shipx = 320.0, shipy = 240.0;	// X position, 0..XSIZE
 float shipdx,shipdy;	// Change in X position per tick.
 float screendx = 7.5, screendy = 0.0;
 float xscroll, yscroll;
@@ -128,25 +128,18 @@ init_engine_dots() {
 
 void
 init_space_dots() {
-	int i,intensity;
+	int i,b;
 	for(i = 0; i<MAXSPACEDOTS; i++) {
-		float r;
-
 		sdot[i].x = rnd()*(XSIZE-5);
 		sdot[i].y = rnd()*(YSIZE-5);
-
-		r = rnd()*rnd();
-
-		sdot[i].dx = -r*4;
-		// -1/((1-r) + .3);
-		intensity = (int)(r*180 + 70);
-		sdot[i].color = SDL_MapRGB(surf_screen->format,intensity,intensity,intensity);
-
+		sdot[i].z = 4*rnd();
+		b = (4 - sdot[i].z) * 255.0 / 4;
+		sdot[i].color = SDL_MapRGB(surf_screen->format, b, b, b);
 	}
 }
 
 void
-makebangdots(int xbang, int ybang, int dx, int dy, SDL_Surface *s, int power) {
+make_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s, int power) {
 
 	// TODO - stop generating dots after a certain amount of time has passed, to cope with slower CPUs.
 	// TODO - generate and display dots in a circular buffer
@@ -226,8 +219,8 @@ draw_bang_dots(SDL_Surface *s) {
 			//last_i = i + 1;
 			rawpixel[(int)(s->pitch/2*(int)(bdot[i].y)) + (int)(bdot[i].x)] = bdot[i].c ? bdot[i].c : heatcolor[(int)(bdot[i].life*3)];
 			bdot[i].life -= bdot[i].decay;
-			bdot[i].x += bdot[i].dx*gamerate;
-			bdot[i].y += bdot[i].dy*gamerate-yscroll;
+			bdot[i].x += bdot[i].dx*gamerate - xscroll;
+			bdot[i].y += bdot[i].dy*gamerate - yscroll;
 
 			if(bdot[i].life<0)
 			bdot[i].active = 0;
@@ -257,16 +250,12 @@ draw_space_dots(SDL_Surface *s) {
 			sdot[i].y = 0;
 		}
 		rawpixel[(int)(s->pitch/2*(int)sdot[i].y) + (int)(sdot[i].x)] = sdot[i].color;
-		sdot[i].x += sdot[i].dx*gamerate;
-		sdot[i].y -= yscroll;
-		if(sdot[i].y > YSIZE) {
-			sdot[i].y -= YSIZE;
-		} else if(sdot[i].y < 0) {
-			sdot[i].y += YSIZE;
-		}
-		if(sdot[i].x<0) {
-			sdot[i].x = XSIZE;
-		}
+		sdot[i].x -= xscroll / (1 + sdot[i].z);
+		sdot[i].y -= yscroll / (1 + sdot[i].z);
+		if(sdot[i].y >= XSIZE) sdot[i].x -= XSIZE;
+		else if(sdot[i].x < 0) sdot[i].x = XSIZE-1;
+		if(sdot[i].y > YSIZE) sdot[i].y -= YSIZE;
+		else if(sdot[i].y < 0) sdot[i].y += YSIZE-1;
 	}
 }
 
@@ -278,7 +267,7 @@ draw_engine_dots(SDL_Surface *s) {
 
 	for(i = 0; i<MAXENGINEDOTS; i++) {
 		if(edot[i].active) {
-			edot[i].x += edot[i].dx*gamerate;
+			edot[i].x += edot[i].dx*gamerate - xscroll;
 			edot[i].y += edot[i].dy*gamerate - yscroll;
 			if((edot[i].life -= gamerate*3)<0 || edot[i].y<0 || edot[i].y>YSIZE) {
 				edot[i].active = 0;
@@ -738,15 +727,23 @@ gameloop() {
 
 			// SCROLLING
 			tmp = shipy - (YSIZE / 2);
-			tmp += 25 * shipdy;
+			tmp += shipdy * 25;
 			tmp /= -25;
 			tmp = ((screendy * (gamerate - 12)) + (tmp * gamerate)) / 12;
 			screendy = -tmp;
+			if(state == GAMEPLAY) {
+				tmp = shipx - (XSIZE / 2);
+				tmp += shipdx * 25;
+				tmp /= -25;
+				tmp = ((screendx * (gamerate - 12)) + (tmp * gamerate)) / 12;
+				screendx = -tmp;
+			} else screendx = 7.5;
+
 			xscroll = screendx * gamerate;
 			yscroll = screendy * gamerate;
 
 			// INERTIA
-			shipx += shipdx*gamerate;
+			shipx += shipdx*gamerate - xscroll;
 			shipy += shipdy*gamerate - yscroll;
 			
 			move_rocks();
@@ -770,8 +767,8 @@ gameloop() {
 			if(draw() && state == GAMEPLAY) {
 				// Play the explosion sound
 				play_sound(0);
-				makebangdots(shipx,shipy,shipdx,shipdy,surf_ship,30);
-				shipdx = 0;
+				make_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship,30);
+				shipdx = screendx;
 				shipdy = 0;
 				if(--nships <= 0) {
 					gameover = 1;
@@ -800,9 +797,9 @@ gameloop() {
 				play_tune(1);
 
 				gameover = 0;
-				shipx = 0;
+				shipx = 2*XSIZE/3;
 				shipy = YSIZE/2;
-				shipdx = -1;
+				shipdx = screendx;
 				shipdy = 0;
 			}
 
