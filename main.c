@@ -70,9 +70,9 @@ char *initerror = "";
 struct shape shipshape;
 float shipx,shipy = 240.0;	// X position, 0..XSIZE
 float shipdx,shipdy;	// Change in X position per tick.
+float screendx = 7.5, screendy = 0.0;
+float xscroll, yscroll;
 float gamerate;  // this controls the speed of everything that moves.
-float yscroll;
-float scrollvel;
 
 int nships,score,initticks,ticks_since_last, last_ticks;
 int gameover;
@@ -227,7 +227,7 @@ draw_bang_dots(SDL_Surface *s) {
 			rawpixel[(int)(s->pitch/2*(int)(bdot[i].y)) + (int)(bdot[i].x)] = bdot[i].c ? bdot[i].c : heatcolor[(int)(bdot[i].life*3)];
 			bdot[i].life -= bdot[i].decay;
 			bdot[i].x += bdot[i].dx*gamerate;
-			bdot[i].y += bdot[i].dy*gamerate + yscroll;
+			bdot[i].y += bdot[i].dy*gamerate-yscroll;
 
 			if(bdot[i].life<0)
 			bdot[i].active = 0;
@@ -258,7 +258,7 @@ draw_space_dots(SDL_Surface *s) {
 		}
 		rawpixel[(int)(s->pitch/2*(int)sdot[i].y) + (int)(sdot[i].x)] = sdot[i].color;
 		sdot[i].x += sdot[i].dx*gamerate;
-		sdot[i].y += yscroll;
+		sdot[i].y -= yscroll;
 		if(sdot[i].y > YSIZE) {
 			sdot[i].y -= YSIZE;
 		} else if(sdot[i].y < 0) {
@@ -279,7 +279,7 @@ draw_engine_dots(SDL_Surface *s) {
 	for(i = 0; i<MAXENGINEDOTS; i++) {
 		if(edot[i].active) {
 			edot[i].x += edot[i].dx*gamerate;
-			edot[i].y += edot[i].dy*gamerate + yscroll;
+			edot[i].y += edot[i].dy*gamerate - yscroll;
 			if((edot[i].life -= gamerate*3)<0 || edot[i].y<0 || edot[i].y>YSIZE) {
 				edot[i].active = 0;
 			} else if(edot[i].x<0 || edot[i].x>XSIZE) {
@@ -666,6 +666,7 @@ draw() {
 int
 gameloop() {
 	Uint8 *keystate;
+	float tmp;
 
 
 	for(;;) {
@@ -735,18 +736,18 @@ gameloop() {
 				shipdy *= pow((double)0.9,(double)gamerate);
 			}
 
+			// SCROLLING
+			tmp = shipy - (YSIZE / 2);
+			tmp += 25 * shipdy;
+			tmp /= -25;
+			tmp = ((screendy * (gamerate - 12)) + (tmp * gamerate)) / 12;
+			screendy = -tmp;
+			xscroll = screendx * gamerate;
+			yscroll = screendy * gamerate;
+
 			// INERTIA
 			shipx += shipdx*gamerate;
-			shipy += shipdy*gamerate;
-
-			// SCROLLING
-			yscroll = shipy - (YSIZE / 2);
-			yscroll += shipdy * 25;
-			yscroll /= -25;
-			yscroll = ((scrollvel * (12 - gamerate)) + (yscroll * gamerate)) / 12;
-			scrollvel = yscroll;
-			yscroll = yscroll*gamerate;
-			shipy += yscroll;
+			shipy += shipdy*gamerate - yscroll;
 			
 			move_rocks();
 

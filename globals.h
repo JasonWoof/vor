@@ -60,6 +60,7 @@ extern char *initerror;
 extern struct shape shipshape;
 extern float shipx,shipy;	// X position, 0..XSIZE
 extern float shipdx,shipdy;	// Change in X position per tick.
+extern float screendx, screendy;
 extern float gamerate;  // this controls the speed of everything that moves.
 extern float yscroll;
 extern float scrollvel;

@@ -19,23 +19,22 @@ struct rock_struct {
 
 struct rock_struct rock[MAXROCKS], *rockptr = rock;
 
-float rockrate;
-
 SDL_Surface *surf_rock[NROCKS];
 struct shape rock_shapes[NROCKS];
 
-float rockhtimer = 0;
-int nrocks = 41;
+// timers for rock generation.
+float rtimers[4];
+int nrocks;
+
+// constants for rock generation.
+#define KH 32.0  // 32 s for a speed=1 rock to cross the screen horizontally.
+#define KV 24.0  // 24 s for a speed=1 rock to cross the screen vertically.
+#define RDX 2.5  // range for rock dx values (+/-)
+#define RDY 2.5  // range for rock dy values (+/-)
 
 float rnd(void);
 
-// used for rock generation.
-#define KH (1.0/32.0)
-#define KV (1.0/24.0)
-#define RXMIN 5.0
-#define RXMAX 10.0
-#define RYMIN (-0.5)
-#define RYMAX 0.5
+#define crnd() (2*(rnd()-0.5))
 
 
 int
@@ -51,6 +50,7 @@ init_rocks(void)
 		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
 		get_shape(surf_rock[i], &rock_shapes[i]);
 	}
+	nrocks = 41;
 	return 0;
 }
 
@@ -59,33 +59,97 @@ reset_rocks(void)
 {
 	int i;
 
-	for(i = 0; i<MAXROCKS; i++ ) rock[i].active = 0;
+	for(i = 0; i<MAXROCKS; i++) rock[i].active = 0;
+}
 
-	rockrate = 54.0;
+enum { LEFT, RIGHT, TOP, BOTTOM };
+
+void
+rock_timer_increments(float *ti)
+{
+	float dx0,dx1, dy0,dy1;
+	int i;
+
+	for(i=0; i<4; i++) ti[i] = 0;
+
+	dx0 = -RDX - screendx; dx1 = RDX - screendx;
+	dy0 = -RDY - screendy; dy1 = RDY - screendy;
+
+	if(dx0 != 0) {
+		if(dx0 < 0) {
+			if(dx1 < 0) ti[RIGHT] = -(dx0+dx1)/2;
+			else {
+				ti[RIGHT] = -dx0/2;
+				ti[LEFT] = dx1/2;
+			}
+		} else ti[LEFT] = (dx0+dx1)/2;
+	}
+
+	if(dy0 != 0) {
+		if(dy0 < 0) {
+			if(dy1 < 0) ti[BOTTOM] = -(dy0+dy1)/2;
+			else {
+				ti[BOTTOM] = -dy0/2;
+				ti[TOP] = dy1/2;
+			}
+		} else ti[TOP] = (dy0+dy1)/2;
+	}
 }
 
 void
 new_rocks(void)
 {
-	int i = 0;
-	float hfactor = KH*nrocks*7.5;
+	int i,j;
+	float ti[4];
+	float x, y;
 
-	rockhtimer += hfactor*gamerate/20;
-	if(rockhtimer >= 1) {
-		while(rockptr->active && i<MAXROCKS) {
-			if(++rockptr - rock >= MAXROCKS) rockptr = rock;
-			i++;
-		}
-		if(!rockptr->active) {
-			rockhtimer -= 1;
-			rockptr->dx = -5.0*(1.0 + rnd());
-			rockptr->dy = rnd()-0.5;
-			rockptr->type_number = random() % NROCKS;
-			rockptr->image = surf_rock[rockptr->type_number];
-			rockptr->shape = &rock_shapes[rockptr->type_number];
-			rockptr->x = (float)XSIZE;
-			rockptr->y = rnd()*(YSIZE + rockptr->image->h);
-			rockptr->active = 1;
+	rock_timer_increments(ti);
+
+	for(i=0; i<4; i++) {
+		rtimers[i] += ti[i]*gamerate/20;
+		if(rtimers[i] >= 1) {
+			j=0;
+			while(rockptr->active && j<MAXROCKS) {
+				if(++rockptr - rock >= MAXROCKS) rockptr = rock;
+				j++;
+			}
+			if(!rockptr->active) {
+				rtimers[i] -= 1;
+				rockptr->type_number = random() % NROCKS;
+				rockptr->image = surf_rock[rockptr->type_number];
+				rockptr->shape = &rock_shapes[rockptr->type_number];
+				switch(i) {
+					case RIGHT:
+						rockptr->x = XSIZE;
+						rockptr->y = rnd()*(YSIZE + rockptr->image->h);
+						break;
+					case LEFT:
+						rockptr->x = -rockptr->image->w;
+						rockptr->y = rnd()*(YSIZE + rockptr->image->h);
+						break;
+					case BOTTOM:
+						rockptr->x = rnd()*(XSIZE + rockptr->image->w);
+						rockptr->y = YSIZE;
+						break;
+					case TOP:
+						rockptr->x = rnd()*(XSIZE + rockptr->image->w);
+						rockptr->y = -rockptr->image->h;
+						break;
+				}
+
+				j=0;
+				do {
+					rockptr->dx = RDX*crnd();
+					rockptr->dy = RDY*crnd();
+					x = (rockptr->dx-screendx)*gamerate;
+					y = (rockptr->dy-screendy)*gamerate;
+					j++;
+				} while(x < -rockptr->image->w || x >= XSIZE
+						|| y < -rockptr->image->h || y >= YSIZE);
+				if(j > 1) printf("had to try %d times.\n", j);
+
+				rockptr->active = 1;
+			}
 		}
 	}
 }
@@ -99,15 +163,13 @@ move_rocks(void)
 	for(i = 0; i < MAXROCKS; i++) {
 		if(rock[i].active) {
 			// move
-			rock[i].x += rock[i].dx*gamerate;
-			rock[i].y += rock[i].dy*gamerate + yscroll;
+			rock[i].x += (rock[i].dx-screendx)*gamerate;
+			rock[i].y += (rock[i].dy-screendy)*gamerate;
 			// clip
-			if(rock[i].y < -rock[i].image->h || rock[i].y > YSIZE) {
-				// rock[i].active = 0;
-				rock[i].y = (YSIZE - rock[i].image->h) - rock[i].y;
-				rock[i].y += (rock[i].dy*gamerate + yscroll) * 1.01;
+			if(rock[i].x < -rock[i].image->w || rock[i].x >= XSIZE
+					|| rock[i].y < -rock[i].image->h || rock[i].y >= YSIZE) {
+				rock[i].active = 0;
 			}
-			if(rock[i].x < -rock[i].image->w || rock[i].x > XSIZE) rock[i].active = 0;
 		}
 	}
 }
@@ -162,7 +224,7 @@ blast_rocks(float x, float y, float radius, int onlyslow)
 		// This makes it so your explosion from dying magically doesn't leave
 		// any rocks that aren't moving much on the x axis. If onlyslow is set,
 		// only rocks that are barely moving will be pushed.
-		if(onlyslow && (rock[i].dx < -4 || rock[i].dx > 3)) continue;
+		if(onlyslow && (rock[i].dx-screendx < -4 || rock[i].dx-screendx > 3)) continue;
 
 		dx = rock[i].x - x;
 		dy = rock[i].y - y;
@@ -170,8 +232,8 @@ blast_rocks(float x, float y, float radius, int onlyslow)
 		n = sqrt(dx*dx + dy*dy);
 		if(n < radius) {
 			n *= 20;
-			rock[i].dx += rockrate*(dx+30)/n;
-			rock[i].dy += rockrate*dy/n;
+			rock[i].dx += 54.0*(dx+30)/n;
+			rock[i].dy += 54.0*dy/n;
 		}
 	}
 }
