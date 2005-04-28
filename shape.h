@@ -6,7 +6,7 @@
 
 struct shape {
 	int w, h;
-	int mw;
+	int mw; // mask width (number of uint32's)
 	uint32_t *mask;
 	uint32_t area;
 };
