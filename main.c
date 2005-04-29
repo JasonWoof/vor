@@ -76,7 +76,7 @@ float gamerate;  // this controls the speed of everything that moves.
 
 float bangx, bangy, bangdx, bangdy;
 
-int nships,score,initticks,ticks_since_last, last_ticks;
+int nships,score,ticks_since_last, last_ticks;
 int gameover;
 int maneuver = 0;
 int sound_flag, music_flag;
@@ -897,7 +897,6 @@ main(int argc, char **argv) {
 	}
 
 	reset_rocks();
-	initticks = SDL_GetTicks();
 	gameloop();
 
 	return 0;

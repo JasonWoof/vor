@@ -19,6 +19,8 @@
 #define NROCKS 50
 // image file containing font for score stuff.
 #define BIG_FONT_FILE "fonts/score.png"
+#define I_ROCKS 25  // initial/final counts for rocks-on-screen.
+#define F_ROCKS 45
 
 #define MAXROCKS 120 // MAX Rocks
 #define MAXROCKHEIGHT 100

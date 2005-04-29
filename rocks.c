@@ -24,7 +24,10 @@ struct shape rock_shapes[NROCKS];
 
 // timers for rock generation.
 float rtimers[4];
-int nrocks;
+
+uint32_t nrocks;
+uint32_t nrocks_timer;
+uint32_t nrocks_inc_ticks = 2*60*1000/(F_ROCKS-I_ROCKS);
 
 // constants for rock generation.
 #define KH 32.0  // 32 s for a speed=1 rock to cross the screen horizontally.
@@ -50,7 +53,6 @@ init_rocks(void)
 		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
 		get_shape(surf_rock[i], &rock_shapes[i]);
 	}
-	nrocks = 41;
 	return 0;
 }
 
@@ -60,6 +62,8 @@ reset_rocks(void)
 	int i;
 
 	for(i = 0; i<MAXROCKS; i++) rock[i].active = 0;
+	nrocks = I_ROCKS;
+	nrocks_timer = 0;
 }
 
 enum { LEFT, RIGHT, TOP, BOTTOM };
@@ -107,6 +111,14 @@ new_rocks(void)
 {
 	int i,j;
 	float ti[4];
+
+	if(nrocks < F_ROCKS) {
+		nrocks_timer += ticks_since_last;
+		if(nrocks_timer >= nrocks_inc_ticks) {
+			nrocks_timer -= nrocks_inc_ticks;
+			nrocks++;
+		}
+	}
 
 	rock_timer_increments(ti);
 
