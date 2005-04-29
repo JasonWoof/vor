@@ -668,7 +668,6 @@ gameloop() {
 						// Create a new ship and start all over again
 						state = GAMEPLAY;
 						play_tune(1);
-						shipx -= 50;
 						break;
 					case GAME_OVER:
 						state = HIGH_SCORE_ENTRY;
@@ -725,27 +724,29 @@ gameloop() {
 				shipdy *= pow((double)0.9,(double)gamerate);
 			}
 
+			// INERTIA
+			shipx += shipdx*gamerate;
+			shipy += shipdy*gamerate;
+			
 			// SCROLLING
-			tmp = shipy - (YSIZE / 2);
-			tmp += shipdy * 25;
-			tmp /= -25;
-			tmp = ((screendy * (gamerate - 12)) + (tmp * gamerate)) / 12;
-			screendy = -tmp;
 			if(state == GAMEPLAY) {
+				tmp = shipy - (YSIZE / 2);
+				tmp += shipdy * 25;
+				tmp /= -25;
+				tmp = ((screendy * (gamerate - 12)) + (tmp * gamerate)) / 12;
+				screendy = -tmp;
 				tmp = shipx - (XSIZE / 2);
 				tmp += shipdx * 25;
 				tmp /= -25;
 				tmp = ((screendx * (gamerate - 12)) + (tmp * gamerate)) / 12;
 				screendx = -tmp;
-			} else screendx = 7.5;
+			} else if(state != DEAD_PAUSE) screendx = 7.5;
 
 			xscroll = screendx * gamerate;
 			yscroll = screendy * gamerate;
+			shipx -= xscroll;
+			shipy -= yscroll;
 
-			// INERTIA
-			shipx += shipdx*gamerate - xscroll;
-			shipy += shipdy*gamerate - yscroll;
-			
 			move_rocks();
 
 
@@ -759,7 +760,6 @@ gameloop() {
 			// BOUNCE Y
 			if(shipy<0 || shipy>YSIZE-surf_ship->h) {
 				// BOUNCE from top and bottom wall
-				printf("bouncing top/bottom.\n");
 				shipy -= shipdy;
 				shipdy *= -0.99;
 			}
@@ -769,9 +769,9 @@ gameloop() {
 				// Play the explosion sound
 				play_sound(0);
 				make_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship,30);
-				shipdx = 0;
-				shipdy = 0;
+				shipdx *= 0.5; shipdy *= 0.5;
 				if(--nships <= 0) {
+					shipdx = 0; shipdy = 0;
 					gameover = 1;
 					state = GAME_OVER;
 					state_timeout = 200.0;
@@ -798,10 +798,8 @@ gameloop() {
 				play_tune(1);
 
 				gameover = 0;
-				shipx = XSIZE/2;
-				shipy = YSIZE/2;
-				shipdx = 0;
-				shipdy = 0;
+				shipx = XSIZE/2; shipy = YSIZE/2;
+				shipdx = screendx; shipdy = screendy;
 			}
 
 			maneuver = 0;
