@@ -215,6 +215,8 @@ blast_rocks(float x, float y, float radius, int onlyslow)
 	int i;
 	float dx, dy, n;
 
+	if(onlyslow) return;
+
 	for(i = 0; i<MAXROCKS; i++ ) {
 		if(rock[i].x <= 0) continue;
 
@@ -228,7 +230,7 @@ blast_rocks(float x, float y, float radius, int onlyslow)
 
 		n = sqrt(dx*dx + dy*dy);
 		if(n < radius) {
-			n *= 20;
+			n *= 15;
 			rock[i].dx += 54.0*dx/n;
 			rock[i].dy += 54.0*dy/n;
 		}

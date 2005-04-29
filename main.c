@@ -68,11 +68,13 @@ char topline[1024];
 char *initerror = "";
 
 struct shape shipshape;
-float shipx = 320.0, shipy = 240.0;	// X position, 0..XSIZE
-float shipdx,shipdy;	// Change in X position per tick.
+float shipx = XSIZE/2, shipy = YSIZE/2;	// X position, 0..XSIZE
+float shipdx = 8, shipdy = 0;	// Change in X position per tick.
 float screendx = 7.5, screendy = 0.0;
 float xscroll, yscroll;
 float gamerate;  // this controls the speed of everything that moves.
+
+float bangx, bangy, bangdx, bangdy;
 
 int nships,score,initticks,ticks_since_last, last_ticks;
 int gameover;
@@ -250,8 +252,8 @@ draw_space_dots(SDL_Surface *s) {
 			sdot[i].y = 0;
 		}
 		rawpixel[(int)(s->pitch/2*(int)sdot[i].y) + (int)(sdot[i].x)] = sdot[i].color;
-		sdot[i].x -= xscroll / (1 + sdot[i].z);
-		sdot[i].y -= yscroll / (1 + sdot[i].z);
+		sdot[i].x -= xscroll / (1.3 + sdot[i].z);
+		sdot[i].y -= yscroll / (1.3 + sdot[i].z);
 		if(sdot[i].y >= XSIZE) sdot[i].x -= XSIZE;
 		else if(sdot[i].x < 0) sdot[i].x = XSIZE-1;
 		if(sdot[i].y > YSIZE) sdot[i].y -= YSIZE;
@@ -710,9 +712,9 @@ gameloop() {
 						blast_radius = BLAST_RADIUS * (DEAD_PAUSE_LENGTH - state_timeout) / 20.0;
 						fixonly = 0;
 					}
-					blast_rocks(shipx, shipy, blast_radius, fixonly);
+					blast_rocks(bangx, bangy, blast_radius, fixonly);
 
-					if(shipx < 60) shipx = 60;
+					if(bangx < 60) bangx = 60;
 				}
 			}
 
@@ -727,25 +729,27 @@ gameloop() {
 			// INERTIA
 			shipx += shipdx*gamerate;
 			shipy += shipdy*gamerate;
-			
+
 			// SCROLLING
-			if(state == GAMEPLAY) {
-				tmp = shipy - (YSIZE / 2);
-				tmp += shipdy * 25;
-				tmp /= -25;
-				tmp = ((screendy * (gamerate - 12)) + (tmp * gamerate)) / 12;
-				screendy = -tmp;
-				tmp = shipx - (XSIZE / 2);
-				tmp += shipdx * 25;
-				tmp /= -25;
-				tmp = ((screendx * (gamerate - 12)) + (tmp * gamerate)) / 12;
-				screendx = -tmp;
-			} else if(state != DEAD_PAUSE) screendx = 7.5;
+			tmp = shipy - (YSIZE / 2);
+			tmp += shipdy * 25;
+			tmp /= -25;
+			tmp = ((screendy * (gamerate - 12)) + (tmp * gamerate)) / 12;
+			screendy = -tmp;
+			tmp = shipx - (XSIZE / 3);
+			tmp += shipdx * 25;
+			tmp /= -25;
+			tmp = ((screendx * (gamerate - 12)) + (tmp * gamerate)) / 12;
+			screendx = -tmp;
 
 			xscroll = screendx * gamerate;
 			yscroll = screendy * gamerate;
 			shipx -= xscroll;
 			shipy -= yscroll;
+
+			// move bang center
+			bangx += bangdx*gamerate - xscroll;
+			bangy += bangdy*gamerate - yscroll;
 
 			move_rocks();
 
@@ -766,14 +770,15 @@ gameloop() {
 
 
 			if(draw() && state == GAMEPLAY) {
-				// Play the explosion sound
-				play_sound(0);
+				// Died
+				play_sound(0); // Play the explosion sound
+				bangx = shipx; bangy = shipy; bangdx = shipdx; bangdy = shipdy;
 				make_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship,30);
 				shipdx *= 0.5; shipdy *= 0.5;
 				if(--nships <= 0) {
-					shipdx = 0; shipdy = 0;
-					gameover = 1;
 					state = GAME_OVER;
+					gameover = 1;
+					shipdx = 8; shipdy = 0;
 					state_timeout = 200.0;
 					fadetimer = 0.0;
 					faderate = gamerate;
@@ -798,7 +803,7 @@ gameloop() {
 				play_tune(1);
 
 				gameover = 0;
-				shipx = XSIZE/2; shipy = YSIZE/2;
+				shipx = XSIZE/2.2; shipy = YSIZE/2;
 				shipdx = screendx; shipdy = screendy;
 			}
 
