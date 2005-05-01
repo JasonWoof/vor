@@ -53,8 +53,10 @@ SDL_Surface
 	*surf_b_over,	// Title element "over"
 	*surf_ship,		// Spaceship element
 	*surf_life,	// Indicator of number of ships remaining
+	*surf_speed, // Speed indicator
 	*surf_rock[NROCKS],	// THE ROCKS
 	*surf_font_big;	// The big font
+	
 
 SFont_Font *g_font;
 
@@ -76,7 +78,10 @@ float gamerate;  // this controls the speed of everything that moves.
 
 float bangx, bangy, bangdx, bangdy;
 
-int nships,score,ticks_since_last, last_ticks;
+float game_dist, avg_speed, cur_speed;
+uint16_t avg_speed_w, cur_speed_w; // [0, 74]
+
+int nships,score,game_ticks,ticks_since_last,last_ticks;
 int gameover;
 int maneuver = 0;
 int sound_flag, music_flag;
@@ -469,6 +474,9 @@ init(int fullscreen) {
 	NULLERROR(temp = IMG_Load(add_path("indicators/life.png")));
 	NULLERROR(surf_life = SDL_DisplayFormat(temp));
 
+	NULLERROR(temp = IMG_Load(add_path("indicators/speed.png")));
+	NULLERROR(surf_speed = SDL_DisplayFormat(temp));
+
 	init_engine_dots();
 	init_space_dots();
 
@@ -485,17 +493,12 @@ init(int fullscreen) {
 int
 draw() {
 	int i;
-	SDL_Rect src,dest;
+	SDL_Rect src, dest;
 	int bang, x;
 	char *text;
 	float fadegame,fadeover;
 
 	bang = 0;
-
-	src.x = 0;
-	src.y = 0;
-	dest.x = 0;
-	dest.y = 0;
 
 	// Draw a fully black background
 	SDL_FillRect(surf_screen,NULL,0);
@@ -505,13 +508,9 @@ draw() {
 
 	// Draw ship
 	if(!gameover && state == GAMEPLAY ) {
-		src.w = surf_ship->w;
-		src.h = surf_ship->h;
-		dest.w = src.w;
-		dest.h = src.h;
-		dest.x = (int)shipx;
-		dest.y = (int)shipy;
-		SDL_BlitSurface(surf_ship,&src,surf_screen,&dest);
+		dest.x = shipx;
+		dest.y = shipy;
+		SDL_BlitSurface(surf_ship,NULL,surf_screen,&dest);
 	}
 
 	draw_rocks();
@@ -519,13 +518,34 @@ draw() {
 	// Draw the life indicators.
 	if(state == GAMEPLAY || state == DEAD_PAUSE || state == GAME_OVER)
 	for(i = 0; i<nships-1; i++) {
-		src.w = surf_life->w;
-		src.h = surf_life->h;
-		dest.w = src.w;
-		dest.h = src.h;
-		dest.x = (i + 1)*(src.w + 10);
+		dest.x = (i + 1)*(surf_life->w + 10);
 		dest.y = 20;
-		SDL_BlitSurface(surf_life, &src, surf_screen, &dest);
+		SDL_BlitSurface(surf_life, NULL, surf_screen, &dest);
+	}
+
+	if(state == GAMEPLAY) {
+		// Update speeds.
+		cur_speed = shipdx;
+		if(shipdx < 0) cur_speed = 0;
+		if(shipdx > 20) cur_speed = 20;
+		game_dist += cur_speed*ticks_since_last;
+		game_ticks += ticks_since_last;
+		if(game_ticks < 2*1000) avg_speed = cur_speed;
+		else avg_speed = game_dist/game_ticks;
+		// printf("avg=%.2f, cur=%.2f.\n", avg_speed, cur_speed);
+		avg_speed_w = 10 + 64*avg_speed/20;
+		cur_speed_w = 10 + 64*cur_speed/20;
+	}
+
+	if(state == GAMEPLAY || state == DEAD_PAUSE) {
+		// Draw the speed indicators.
+		src.x = 0; src.y = 0;
+		src.h = surf_speed->h;
+		dest.x = 240;
+		src.w = avg_speed_w; dest.y = 10;
+		SDL_BlitSurface(surf_speed, &src, surf_screen, &dest);
+		src.w = cur_speed_w; dest.y = 20;
+		SDL_BlitSurface(surf_speed, &src, surf_screen, &dest);
 	}
 
 	// Draw the score
@@ -549,53 +569,33 @@ draw() {
 				fadeover = 1.0;
 			}
 
-			src.w = surf_b_game->w;
-			src.h = surf_b_game->h;
-			dest.w = src.w;
-			dest.h = src.h;
-			dest.x = (XSIZE-src.w)/2;
-			dest.y = (YSIZE-src.h)/2-40;
+			dest.x = (XSIZE-surf_b_game->w)/2;
+			dest.y = (YSIZE-surf_b_game->h)/2-40;
 			SDL_SetAlpha(surf_b_game, SDL_SRCALPHA, (int)(fadegame*(200 + 55*cos(fadetimer += gamerate/1.0))));
-			SDL_BlitSurface(surf_b_game,&src,surf_screen,&dest);
+			SDL_BlitSurface(surf_b_game,NULL,surf_screen,&dest);
 
-			src.w = surf_b_over->w;
-			src.h = surf_b_over->h;
-			dest.w = src.w;
-			dest.h = src.h;
-			dest.x = (XSIZE-src.w)/2;
-			dest.y = (YSIZE-src.h)/2 + 40;
+			dest.x = (XSIZE-surf_b_over->w)/2;
+			dest.y = (YSIZE-surf_b_over->h)/2 + 40;
 			SDL_SetAlpha(surf_b_over, SDL_SRCALPHA, (int)(fadeover*(200 + 55*sin(fadetimer))));
-			SDL_BlitSurface(surf_b_over,&src,surf_screen,&dest);
+			SDL_BlitSurface(surf_b_over,NULL,surf_screen,&dest);
 		break;
 
 		case TITLE_PAGE:
 
-			src.w = surf_b_variations->w;
-			src.h = surf_b_variations->h;
-			dest.w = src.w;
-			dest.h = src.h;
-			dest.x = (XSIZE-src.w)/2 + cos(fadetimer/6.5)*10;
-			dest.y = (YSIZE/2-src.h)/2 + sin(fadetimer/5.0)*10;
+			dest.x = (XSIZE-surf_b_variations->w)/2 + cos(fadetimer/6.5)*10;
+			dest.y = (YSIZE/2-surf_b_variations->h)/2 + sin(fadetimer/5.0)*10;
 			SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer += gamerate/2.0)));
-			SDL_BlitSurface(surf_b_variations,&src,surf_screen,&dest);
+			SDL_BlitSurface(surf_b_variations,NULL,surf_screen,&dest);
 
-			src.w = surf_b_on->w;
-			src.h = surf_b_on->h;
-			dest.w = src.w;
-			dest.h = src.h;
-			dest.x = (XSIZE-src.w)/2 + cos((fadetimer + 1.0)/6.5)*10;
-			dest.y = (YSIZE/2-src.h)/2 + surf_b_variations->h + 20 + sin((fadetimer + 1.0)/5.0)*10;
+			dest.x = (XSIZE-surf_b_on->w)/2 + cos((fadetimer + 1.0)/6.5)*10;
+			dest.y = (YSIZE/2-surf_b_on->h)/2 + surf_b_variations->h + 20 + sin((fadetimer + 1.0)/5.0)*10;
 			SDL_SetAlpha(surf_b_on, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-1.0)));
-			SDL_BlitSurface(surf_b_on,&src,surf_screen,&dest);
+			SDL_BlitSurface(surf_b_on,NULL,surf_screen,&dest);
 
-			src.w = surf_b_rockdodger->w;
-			src.h = surf_b_rockdodger->h;
-			dest.w = src.w;
-			dest.h = src.h;
-			dest.x = (XSIZE-src.w)/2 + cos((fadetimer + 2.0)/6.5)*10;
-			dest.y = (YSIZE/2-src.h)/2 + surf_b_variations->h + surf_b_on->h + 40 + sin((fadetimer + 2.0)/5)*10;
+			dest.x = (XSIZE-surf_b_rockdodger->w)/2 + cos((fadetimer + 2.0)/6.5)*10;
+			dest.y = (YSIZE/2-surf_b_rockdodger->h)/2 + surf_b_variations->h + surf_b_on->h + 40 + sin((fadetimer + 2.0)/5)*10;
 			SDL_SetAlpha(surf_b_rockdodger, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-2.0)));
-			SDL_BlitSurface(surf_b_rockdodger,&src,surf_screen,&dest);
+			SDL_BlitSurface(surf_b_rockdodger,NULL,surf_screen,&dest);
 
 			text = "Version " VERSION;
 			x = (XSIZE-SFont_TextWidth(g_font,text))/2 + sin(fadetimer/4.5)*10;
@@ -795,6 +795,8 @@ gameloop() {
 			if(keystate[SDLK_SPACE] && (state == HIGH_SCORE_DISPLAY || state == TITLE_PAGE)) {
 
 				reset_rocks();
+
+				game_ticks = 0;
 
 				nships = 4;
 				score = 0;

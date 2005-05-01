@@ -25,6 +25,8 @@ struct shape rock_shapes[NROCKS];
 // timers for rock generation.
 float rtimers[4];
 
+uint32_t rcnt;
+
 uint32_t nrocks;
 uint32_t nrocks_timer;
 uint32_t nrocks_inc_ticks = 2*60*1000/(F_ROCKS-I_ROCKS);
@@ -64,6 +66,7 @@ reset_rocks(void)
 	for(i = 0; i<MAXROCKS; i++) rock[i].active = 0;
 	nrocks = I_ROCKS;
 	nrocks_timer = 0;
+	rcnt = 0;
 }
 
 enum { LEFT, RIGHT, TOP, BOTTOM };
@@ -191,19 +194,20 @@ new_rocks(void)
 						rockptr->x = rnd()*(XSIZE + rockptr->image->w);
 						rockptr->y = YSIZE;
 
-						rockptr->dx = RDY*crnd();
+						rockptr->dx = RDX*crnd();
 						rockptr->dy = -weighted_rnd_range(rmin[i], rmax[i]) + screendy;
 						break;
 					case TOP:
 						rockptr->x = rnd()*(XSIZE + rockptr->image->w);
 						rockptr->y = -rockptr->image->h;
 
-						rockptr->dx = RDY*crnd();
+						rockptr->dx = RDX*crnd();
 						rockptr->dy = weighted_rnd_range(rmin[i], rmax[i]) + screendy;
 						break;
 				}
 
 				rockptr->active = 1;
+				rcnt++;
 			}
 		}
 	}
@@ -224,9 +228,12 @@ move_rocks(void)
 			if(rock[i].x < -rock[i].image->w || rock[i].x >= XSIZE
 					|| rock[i].y < -rock[i].image->h || rock[i].y >= YSIZE) {
 				rock[i].active = 0;
+				rcnt--;
 			}
 		}
 	}
+	// if(rcnt < nrocks) printf("-%d.\n", nrocks-rcnt);
+	// else printf("%d.\n", rcnt-nrocks);
 }
 
 void
