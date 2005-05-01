@@ -68,14 +68,20 @@ reset_rocks(void)
 
 enum { LEFT, RIGHT, TOP, BOTTOM };
 
+
+// compute the number of rocks/seccond that should be coming from each side
+
+// compute the speed ranges of rocks coming from each side
 void
-rock_timer_increments(float *ti)
+rock_sides(float *ti, float *speed_min, float *speed_max)
 {
 	float dx0,dx1, dy0,dy1;
 	float hfactor, vfactor;
 	int i;
 
 	for(i=0; i<4; i++) ti[i] = 0;
+	for(i=0; i<4; i++) speed_min[i] = 0;
+	for(i=0; i<4; i++) speed_max[i] = 0;
 	hfactor = nrocks/KH; vfactor = nrocks/KV;
 
 	dx0 = -RDX - screendx; dx1 = RDX - screendx;
@@ -83,27 +89,54 @@ rock_timer_increments(float *ti)
 
 	if(dx0 != 0) {
 		if(dx0 < 0) {
-			if(dx1 < 0) ti[RIGHT] = -(dx0+dx1)/2;
-			else {
+			speed_max[RIGHT] = -dx0;
+			if(dx1 < 0) {
+				// Rocks moving left only. So the RIGHT side of the screen
+				speed_min[RIGHT] = -dx1;
+				ti[RIGHT] = -(dx0+dx1)/2;
+			} else {
+				// Rocks moving left and right
+				speed_max[LEFT] = dx1;
 				ti[RIGHT] = -dx0/2;
 				ti[LEFT] = dx1/2;
 			}
-		} else ti[LEFT] = (dx0+dx1)/2;
+		} else {
+			// Rocks moving right only. So the LEFT side of the screen
+			speed_min[LEFT] = dx0;
+			speed_max[LEFT] = dx1;
+			ti[LEFT] = (dx0+dx1)/2;
+		}
 	}
 	ti[LEFT] *= hfactor;
 	ti[RIGHT] *= hfactor;
 
 	if(dy0 != 0) {
 		if(dy0 < 0) {
-			if(dy1 < 0) ti[BOTTOM] = -(dy0+dy1)/2;
-			else {
+			speed_max[BOTTOM] = -dy0;
+			if(dy1 < 0) {
+				// Rocks moving up only. So the BOTTOM of the screen
+				speed_min[BOTTOM] = -dy1;
+				ti[BOTTOM] = -(dy0+dy1)/2;
+			} else {
+				// Rocks moving up and down
+				speed_max[TOP] = dy1;
 				ti[BOTTOM] = -dy0/2;
 				ti[TOP] = dy1/2;
 			}
-		} else ti[TOP] = (dy0+dy1)/2;
+		} else {
+			// Rocks moving down only. so the TOP of the screen
+			speed_min[TOP] = dy0;
+			speed_max[TOP] = dy1;
+			ti[TOP] = (dy0+dy1)/2;
+		}
 	}
 	ti[TOP] *= vfactor;
 	ti[BOTTOM] *= vfactor;
+}
+
+float
+weighted_rnd_range(float min, float max) {
+	return sqrt(min * min + rnd() * (max * max - min * min));
 }
 
 void
@@ -111,6 +144,8 @@ new_rocks(void)
 {
 	int i,j;
 	float ti[4];
+	float rmin[4];
+	float rmax[4];
 
 	if(nrocks < F_ROCKS) {
 		nrocks_timer += ticks_since_last;
@@ -120,18 +155,20 @@ new_rocks(void)
 		}
 	}
 
-	rock_timer_increments(ti);
+	rock_sides(ti, rmin, rmax);
 
+	// loop through the four sides of the screen
 	for(i=0; i<4; i++) {
+		// see if we generate a rock for this side this frame
 		rtimers[i] += ti[i]*gamerate/20;
-		if(rtimers[i] >= 1) {
+		while(rtimers[i] >= 1) {
+			rtimers[i] -= 1;
 			j=0;
 			while(rockptr->active && j<MAXROCKS) {
 				if(++rockptr - rock >= MAXROCKS) rockptr = rock;
 				j++;
 			}
 			if(!rockptr->active) {
-				rtimers[i] -= 1;
 				rockptr->type_number = random() % NROCKS;
 				rockptr->image = surf_rock[rockptr->type_number];
 				rockptr->shape = &rock_shapes[rockptr->type_number];
@@ -139,23 +176,32 @@ new_rocks(void)
 					case RIGHT:
 						rockptr->x = XSIZE;
 						rockptr->y = rnd()*(YSIZE + rockptr->image->h);
+
+						rockptr->dx = -weighted_rnd_range(rmin[i], rmax[i]) + screendx;
+						rockptr->dy = RDY*crnd();
 						break;
 					case LEFT:
 						rockptr->x = -rockptr->image->w;
 						rockptr->y = rnd()*(YSIZE + rockptr->image->h);
+
+						rockptr->dx = weighted_rnd_range(rmin[i], rmax[i]) + screendx;
+						rockptr->dy = RDY*crnd();
 						break;
 					case BOTTOM:
 						rockptr->x = rnd()*(XSIZE + rockptr->image->w);
 						rockptr->y = YSIZE;
+
+						rockptr->dx = RDY*crnd();
+						rockptr->dy = -weighted_rnd_range(rmin[i], rmax[i]) + screendy;
 						break;
 					case TOP:
 						rockptr->x = rnd()*(XSIZE + rockptr->image->w);
 						rockptr->y = -rockptr->image->h;
+
+						rockptr->dx = RDY*crnd();
+						rockptr->dy = weighted_rnd_range(rmin[i], rmax[i]) + screendy;
 						break;
 				}
-
-				rockptr->dx = RDX*crnd();
-				rockptr->dy = RDY*crnd();
 
 				rockptr->active = 1;
 			}
