@@ -210,6 +210,7 @@ draw_bang_dots(SDL_Surface *s) {
 	rawpixel = (Uint16 *) s->pixels;
 
 	first_i = -1;
+	last_i = 0;
 
 	for(i = bd1; (bd1 <= bd2)?(i<bd2):(i >= bd1 && i < bd2); last_i = ++i) {
 
@@ -532,9 +533,9 @@ draw() {
 		game_ticks += ticks_since_last;
 		if(game_ticks < 2*1000) avg_speed = cur_speed;
 		else avg_speed = game_dist/game_ticks;
-		// printf("avg=%.2f, cur=%.2f.\n", avg_speed, cur_speed);
-		avg_speed_w = 10 + 64*avg_speed/20;
-		cur_speed_w = 10 + 64*cur_speed/20;
+		//printf("avg=%.2f, cur=%.2f. shipdx=%.2f\n", avg_speed, cur_speed, shipdx);
+		avg_speed_w = 2 + 64*avg_speed/20;
+		cur_speed_w = 2 + 64*cur_speed/20;
 	}
 
 	if(state == GAMEPLAY || state == DEAD_PAUSE) {
@@ -758,7 +759,7 @@ gameloop() {
 			if(shipx<0 || shipx>XSIZE-surf_ship->w) {
 				// BOUNCE from left and right wall
 				shipx -= shipdx*gamerate;
-				shipdx *= -99;
+				shipdx *= -0.99;
 			}
 
 			// BOUNCE Y
@@ -792,11 +793,13 @@ gameloop() {
 			SDL_PumpEvents();
 			keystate = SDL_GetKeyState(NULL);
 
+			// new game
 			if(keystate[SDLK_SPACE] && (state == HIGH_SCORE_DISPLAY || state == TITLE_PAGE)) {
 
 				reset_rocks();
 
 				game_ticks = 0;
+				game_dist = 0;
 
 				nships = 4;
 				score = 0;
