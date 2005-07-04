@@ -25,7 +25,9 @@ struct shape rock_shapes[NROCKS];
 // timers for rock generation.
 float rtimers[4];
 
-uint32_t rcnt;
+int32_t rcnt, lrcnt;
+int32_t rsum, rsamples;
+float ravg;
 
 uint32_t nrocks;
 uint32_t nrocks_timer;
@@ -66,7 +68,8 @@ reset_rocks(void)
 	for(i = 0; i<MAXROCKS; i++) rock[i].active = 0;
 	nrocks = I_ROCKS;
 	nrocks_timer = 0;
-	rcnt = 0;
+	rcnt = 0; lrcnt = -1;
+	rsum = 0; rsamples = 0;
 }
 
 enum { LEFT, RIGHT, TOP, BOTTOM };
@@ -232,8 +235,15 @@ move_rocks(void)
 			}
 		}
 	}
-	// if(rcnt < nrocks) printf("-%d.\n", nrocks-rcnt);
-	// else printf("%d.\n", rcnt-nrocks);
+	/*
+	if(lrcnt == -1 && rcnt == nrocks) lrcnt = 0;
+	if(rcnt != lrcnt && lrcnt != -1) {
+		lrcnt = rcnt;
+		rsum += rcnt-nrocks; rsamples++;
+		ravg = (float) rsum / rsamples;
+		printf("%.2f%%\n", 100.0 * ravg / nrocks);
+	}
+	*/
 }
 
 void
