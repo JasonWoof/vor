@@ -88,7 +88,7 @@ rock_sides(float *ti, float *speed_min, float *speed_max)
 	for(i=0; i<4; i++) ti[i] = 0;
 	for(i=0; i<4; i++) speed_min[i] = 0;
 	for(i=0; i<4; i++) speed_max[i] = 0;
-	hfactor = nrocks/KH; vfactor = nrocks/KV;
+	hfactor = (float)nrocks/KH; vfactor = (float)nrocks/KV;
 
 	dx0 = -RDX - screendx; dx1 = RDX - screendx;
 	dy0 = -RDY - screendy; dy1 = RDY - screendy;
