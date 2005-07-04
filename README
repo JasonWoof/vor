@@ -1,6 +1,6 @@
 Variations on Rockdodger
 
-vor is a quick action game where you drive a space ship and try to avoid
+VoR is a quick action game where you drive a space ship and try to avoid
 crashing into rocks. Current information about vor can be found on the
 homepage: http://herkamire.com/jason/vor
 
@@ -32,6 +32,7 @@ User-Visible Changes:
   * Moves like a real spacecraft; no more friction!
   * No more silly shields or lasers; just pure rockdodgin' fun!
   * Up/down scrolling; gives you more escape options.
+  * Scrolls to the right so you can zoom ahead.
   * Proper time display for score, not just raw milliseconds (bleh).
   * Ship explodes, blowing rocks away, rather than automagically vanishing
     them.
