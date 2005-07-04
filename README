@@ -22,7 +22,7 @@ Note: This is a fairly hard game, intended to be a quickie game for when you
 want to kill a few spare minutes. For reference, my best time [Josh Grams] is
 about 2 minutes in version 0.3. I'm not generally very good at video games, but
 I have been playing this one for quite a while now. However, you can make it
-substantially easier by slowing the game down. New in version 0.4, we have a
+substantially easier by slowing the game down. New in version 0.3, we have a
 command-line option --game-speed=N%.  New players may like to try it at 0.75 or
 even 0.66.
 
@@ -47,7 +47,6 @@ User-Visible Changes:
   * Fully random rock generation; rocks no longer wrap vertically.
   * Rocks' relative speeds are now uniform in all directions (i.e. much more
     up/down speed variation).  Noticeably hard...err...more "interesting".
-0.4:
   * Command-line option --game-speed.
 
 Internal Technical Changes:

@@ -3,7 +3,7 @@
 
 #define debug(x) if(DEBUG) { x; }
 
-#define VERSION "0.3"
+#define VERSION "0.4pre"
 #define DATA_PREFIX "/usr/share/vor"
 
 // screen size
