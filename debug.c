@@ -1,6 +1,8 @@
 #include "debug.h"
+#include "shape.h"
 
 #include <stdio.h>
+#include <stdint.h>
 
 void
 printf_surface(SDL_Surface *s, char *name)

@@ -1,7 +1,7 @@
 #include "sound.h"
 #include "config.h"
 
-extern int sound_flag, music_flag;
+extern int opt_sound, opt_music;
 
 #define TUNE_TITLE_PAGE		0
 #define TUNE_GAMEPLAY		1
@@ -72,7 +72,7 @@ init_sound() {
 
 void
 play_sound(int i)  {
-	if(!sound_flag) return;
+	if(!opt_sound) return;
 	debug(printf ("play sound %d on first free channel\n",i));
 	Mix_PlayChannel(-1, wav[i], 0);
 }/*}}}*/
@@ -82,7 +82,7 @@ int playing=-1;
 
 void
 play_tune(int i) {/*{{{*/
-	if(!music_flag) return;
+	if(!opt_music) return;
 	if (playing==i)
 	return;
 	if (playing) {

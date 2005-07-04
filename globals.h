@@ -53,6 +53,14 @@ extern struct enginedots edot[MAXENGINEDOTS], *dotptr;
 extern struct bangdots bdot[MAXBANGDOTS], *bdotptr;
 extern struct spacedot sdot[MAXSPACEDOTS];
 
+// command-line arguments
+extern int opt_fullscreen;
+extern int opt_sound;
+extern int opt_music;
+extern float opt_gamespeed;
+extern int opt_tail_engine;
+extern int opt_friction;
+
 // Other global variables
 extern char topline[1024];
 extern char *initerror;
@@ -69,9 +77,6 @@ extern float scrollvel;
 extern int nships,score,initticks,ticks_since_last, last_ticks;
 extern int gameover;
 extern int maneuver;
-extern int sound_flag, music_flag;
-extern int tail_plume; // display big engine at the back?
-extern int friction;	// should there be friction?
 extern float fadetimer, faderate;
 
 extern int pausedown, paused;

@@ -3,13 +3,8 @@
 
 #define debug(x) if(DEBUG) { x; }
 
-#define VERSION "0.3"
+#define VERSION "0.4pre"
 #define DATA_PREFIX "/usr/share/vor"
-
-// Speed of the game.  New players may like to try 3/4 or 2/3 speed.
-#define GAMESPEED 1.00
-// #define GAMESPEED (3.0/4.0)
-// #define GAMESPEED (2.0/3.0)
 
 // screen size
 #define XSIZE 640
@@ -23,9 +18,7 @@
 #define F_ROCKS 45
 
 #define MAXROCKS 120 // MAX Rocks
-#define MAXROCKHEIGHT 100
 #define ROCKRATE 2
-#define MAXBLACKPOINTS 500
 #define MAXENGINEDOTS 5000
 #define MAXBANGDOTS 50000
 #define MAXSPACEDOTS 2000

@@ -39,7 +39,12 @@ DATA_PREFIX = /usr/share/vor
 PROGRAM_PREFIX = /usr/games/bin
 
 
-all: vor $(graphics)
+
+.PHONY: all clean graphics maintainer-clean install uninstall
+
+all: graphics vor
+
+graphics: $(graphics)
 
 %.o: %.c
 	$(CC) $(cflags) -c -o $@ $<
@@ -54,7 +59,10 @@ vor: $(objects)
 include gfx.mk
 
 clean:
-	rm -f *.o vor $(graphics)
+	rm -f *.o vor
+
+maintainer-clean: clean
+	rm -f $(graphics)
 
 install:	all
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi

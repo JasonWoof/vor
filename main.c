@@ -31,6 +31,7 @@
 #include "shape.h"
 #include "sound.h"
 
+#include <argp.h>
 #include <math.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
@@ -38,7 +39,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "SFont.h"
 
@@ -68,6 +68,32 @@ struct spacedot sdot[MAXSPACEDOTS];
 char topline[1024];
 char *initerror = "";
 
+// Command-line argument parsing
+int opt_fullscreen;
+int opt_sound;
+int opt_music;
+float opt_gamespeed;
+int opt_tail_engine;
+int opt_friction;
+
+const char *argp_program_version = "Variations on Rockdodger " VERSION;
+const char *argp_program_bug_address = "<josh@qualdan.com>";
+static char doc[] = "VoR: Dodge the rocks until you die.";
+static struct argp_option opts[] = {
+	{0, 0, 0, 0, "Basic Options:", 0},
+	{"full-screen", 'f', 0, 0, "", 0},
+	{"music", 'm', 0, 0, "Enable music", 0},
+	{"silent", 's', 0, 0, "Turn off explosion sounds", 0},
+	{0, 0, 0, 0, "Gameplay Options:", 1},
+	{"game-speed", 'g', "N%", 0, "Game speed [50-100%]", 1},
+	{"engine", 'e', 0, 0, "Display large tail plume", 1},
+	{"old-physics", 'p', 0, 0, "Original physics (i.e. friction).", 1},
+	{0}
+};
+error_t parse_opt(int, char*, struct argp_state *);
+static struct argp argp = { opts, &parse_opt, 0, doc };
+
+
 struct shape shipshape;
 float shipx = XSIZE/2, shipy = YSIZE/2;	// X position, 0..XSIZE
 float shipdx = 7.5, shipdy = 0.0;	// Change in X position per tick.
@@ -77,12 +103,10 @@ float gamerate;  // this controls the speed of everything that moves.
 
 float bangx, bangy, bangdx, bangdy;
 
-int nships,score,game_ticks,ticks_since_last,last_ticks;
+int nships,score,ticks_since_last,last_ticks;
 int gameover;
 int maneuver = 0;
-int sound_flag, music_flag;
-int tail_plume; // display big engine at the back?
-int friction;	// should there be friction?
+
 float fadetimer = 0, faderate;
 
 int pausedown = 0, paused = 0;
@@ -104,7 +128,7 @@ float state_timeout = 600.0;
 #define NSEQUENCE 2
 char *sequence[] = {
 	"Press SPACE to start",
-	"http://qualdan.com/vor/"
+	"http://herkamire.com/jason/vor"
 };
 
 int bangdotlife, nbangdots;
@@ -115,6 +139,38 @@ extern char *optarg;
 extern int optind, opterr, optopt;
 
 // ************************************* FUNCS
+
+void
+init_opts(void)
+{
+	opt_fullscreen = 0;
+	opt_sound = 1;
+	opt_music = 0;
+	opt_gamespeed = 1.00; // Run game at full speed.
+	// These switch back to the old gameplay and are off by default.
+	opt_tail_engine = 0;
+	opt_friction = 0;
+}
+
+error_t
+parse_opt(int key, char *arg, struct argp_state *state)
+{
+	int i;
+
+	switch(key) {
+		case 'f': opt_fullscreen = 1; break;
+		case 'm': opt_music = 1; break;
+		case 's': opt_sound = 0; opt_music = 0; break;
+		case 'g': sscanf(arg, "%d%%", &i);
+				  if(i < 50) i = 50; else if(i > 100) i = 100;
+				  opt_gamespeed = (float)i / 100;
+				  break;
+		case 'e': opt_tail_engine = 1; break;
+		case 'p': opt_friction = 1; break;
+		default: break;
+	}
+	return 0;
+}
 
 float
 rnd() {
@@ -292,7 +348,7 @@ create_engine_dots(int newdots) {
 	int i;
 	double theta,r,dx,dy;
 
-	if(!tail_plume) return;
+	if(!opt_tail_engine) return;
 
 	if(state == GAMEPLAY) {
 		for(i = 0; i<newdots*gamerate; i++) {
@@ -396,7 +452,7 @@ drawdots(SDL_Surface *s) {
 }
 
 int
-init(int fullscreen) {
+init(void) {
 
 	int i;
 	SDL_Surface *temp;
@@ -406,16 +462,16 @@ init(int fullscreen) {
 	if(!find_files()) exit(1);
 	read_high_score_table();
 
-	if(sound_flag) {
+	if(opt_sound) {
 		// Initialize SDL with audio and video
 		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-			sound_flag = 0;
+			opt_sound = 0;
 			printf ("Can't open sound, starting without it\n");
 			atexit(SDL_Quit);
 		} else {
 			atexit(SDL_Quit);
 			atexit(SDL_CloseAudio);
-			sound_flag = init_sound();
+			opt_sound = init_sound();
 		}
 	} else {
 		// Initialize with video only
@@ -427,7 +483,7 @@ init(int fullscreen) {
 
 	// Attempt to get the required video size
 	flag = SDL_DOUBLEBUF | SDL_HWSURFACE;
-	if(fullscreen) flag |= SDL_FULLSCREEN;
+	if(opt_fullscreen) flag |= SDL_FULLSCREEN;
 	surf_screen = SDL_SetVideoMode(XSIZE,YSIZE,16,flag);
 
 	// Set the title bar text
@@ -610,7 +666,7 @@ draw() {
 		gamerate = 0;
 	}
 	else {
-		gamerate = GAMESPEED*ticks_since_last/50.0;
+		gamerate = opt_gamespeed*ticks_since_last/50.0;
 		if(state == GAMEPLAY) {
 			score += ticks_since_last;
 		}
@@ -690,7 +746,7 @@ gameloop() {
 			new_rocks();
 
 			// FRICTION?
-			if(friction) {
+			if(opt_friction) {
 				shipdx *= pow((double)0.9,(double)gamerate);
 				shipdy *= pow((double)0.9,(double)gamerate);
 			}
@@ -767,8 +823,6 @@ gameloop() {
 
 				reset_rocks();
 
-				game_ticks = 0;
-
 				nships = 4;
 				score = 0;
 
@@ -826,45 +880,11 @@ gameloop() {
 
 int
 main(int argc, char **argv) {
-	int x, fullscreen;
+	init_opts();
 
-	fullscreen = 0;
-	tail_plume = 0;
-	friction = 0;
-	sound_flag = 1;
-	music_flag = 0;
+	argp_parse(&argp, argc, argv, 0, 0, 0);
 
-	while ((x = getopt(argc,argv,"efhmps")) >= 0) {
-		switch(x) {
-			case 'e': // engine
-				tail_plume = 1;
-			break;
-			case 'f': // fullscreen
-				fullscreen = 1;
-			break;
-			case 'h': // help
-				printf("Variations on RockDodger\n"
-				       " -e big tail [E]ngine\n"
-				       " -f [F]ull screen\n"
-				       " -h this [H]elp message\n"
-				       " -m enable [M]usic\n"
-				       " -p original [P]hysics (friction)\n"
-				       " -s [S]ilent (no sound)\n");
-				exit(0);
-			break;
-			case 'm': // music
-				music_flag = 1;
-			case 'p': // physics
-				friction = 1;
-			break;
-			case 's': // silent
-				sound_flag = 0;
-				music_flag = 0;
-			break;
-		}
-	}
-
-	if(init(fullscreen)) {
+	if(init()) {
 		printf ("ta: '%s'\n",initerror);
 		return 1;
 	}

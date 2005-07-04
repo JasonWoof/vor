@@ -1,10 +1,12 @@
-Variations on Rockdodger
+Variations on Rockdodger 0.3
 
 VoR is a quick action game where you drive a space ship and try to avoid
 crashing into rocks. Current information about vor can be found on the
 homepage: http://herkamire.com/jason/vor
 
 See INSTALL for instructions on building, running and installing.
+
+VoR is released under the GNU GPL -- see file COPYING for details.
 
 Jason Woofenden and Josh Grams like Rock Dodgers
 (http://spacerocks.sourceforge.net/) very much: both playing it and hacking on
@@ -20,10 +22,9 @@ Note: This is a fairly hard game, intended to be a quickie game for when you
 want to kill a few spare minutes. For reference, my best time [Josh Grams] is
 about 2 minutes in version 0.3. I'm not generally very good at video games, but
 I have been playing this one for quite a while now. However, you can make it
-substantially easier by slowing the game down. New in version 0.2, we have a
-constant GAMESPEED in config.h. New players may like to try it at 3/4 or even
-2/3 speed.  It should probably be a command-line option, but I'm too lazy to
-fix that right now.
+substantially easier by slowing the game down. New in version 0.4, we have a
+command-line option --game-speed=N%.  New players may like to try it at 0.75 or
+even 0.66.
 
 Changes from Rock Dodgers
 
@@ -46,6 +47,8 @@ User-Visible Changes:
   * Fully random rock generation; rocks no longer wrap vertically.
   * Rocks' relative speeds are now uniform in all directions (i.e. much more
     up/down speed variation).  Noticeably hard...err...more "interesting".
+0.4:
+  * Command-line option --game-speed.
 
 Internal Technical Changes:
 
