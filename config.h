@@ -3,7 +3,7 @@
 
 #define debug(x) if(DEBUG) { x; }
 
-#define VERSION "0.1"
+#define VERSION "0.3pre"
 #define DATA_PREFIX "/usr/share/vor"
 
 // Speed of the game.  New players may like to try 3/4 or 2/3 speed.

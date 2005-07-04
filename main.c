@@ -53,7 +53,6 @@ SDL_Surface
 	*surf_b_over,	// Title element "over"
 	*surf_ship,		// Spaceship element
 	*surf_life,	// Indicator of number of ships remaining
-	*surf_speed, // Speed indicator
 	*surf_rock[NROCKS],	// THE ROCKS
 	*surf_font_big;	// The big font
 	
@@ -71,15 +70,12 @@ char *initerror = "";
 
 struct shape shipshape;
 float shipx = XSIZE/2, shipy = YSIZE/2;	// X position, 0..XSIZE
-float shipdx = 8, shipdy = 0;	// Change in X position per tick.
+float shipdx = 7.5, shipdy = 0.0;	// Change in X position per tick.
 float screendx = 7.5, screendy = 0.0;
 float xscroll, yscroll;
 float gamerate;  // this controls the speed of everything that moves.
 
 float bangx, bangy, bangdx, bangdy;
-
-float game_dist, avg_speed, cur_speed;
-uint16_t avg_speed_w, cur_speed_w; // [0, 74]
 
 int nships,score,game_ticks,ticks_since_last,last_ticks;
 int gameover;
@@ -475,9 +471,6 @@ init(int fullscreen) {
 	NULLERROR(temp = IMG_Load(add_path("indicators/life.png")));
 	NULLERROR(surf_life = SDL_DisplayFormat(temp));
 
-	NULLERROR(temp = IMG_Load(add_path("indicators/speed.png")));
-	NULLERROR(surf_speed = SDL_DisplayFormat(temp));
-
 	init_engine_dots();
 	init_space_dots();
 
@@ -494,7 +487,7 @@ init(int fullscreen) {
 int
 draw() {
 	int i;
-	SDL_Rect src, dest;
+	SDL_Rect dest;
 	int bang, x;
 	char *text;
 	float fadegame,fadeover;
@@ -522,31 +515,6 @@ draw() {
 		dest.x = (i + 1)*(surf_life->w + 10);
 		dest.y = 20;
 		SDL_BlitSurface(surf_life, NULL, surf_screen, &dest);
-	}
-
-	if(state == GAMEPLAY) {
-		// Update speeds.
-		cur_speed = shipdx;
-		if(shipdx < 0) cur_speed = 0;
-		if(shipdx > 20) cur_speed = 20;
-		game_dist += cur_speed*ticks_since_last;
-		game_ticks += ticks_since_last;
-		if(game_ticks < 2*1000) avg_speed = cur_speed;
-		else avg_speed = game_dist/game_ticks;
-		//printf("avg=%.2f, cur=%.2f. shipdx=%.2f\n", avg_speed, cur_speed, shipdx);
-		avg_speed_w = 2 + 64*avg_speed/20;
-		cur_speed_w = 2 + 64*cur_speed/20;
-	}
-
-	if(state == GAMEPLAY || state == DEAD_PAUSE) {
-		// Draw the speed indicators.
-		src.x = 0; src.y = 0;
-		src.h = surf_speed->h;
-		dest.x = 240;
-		src.w = avg_speed_w; dest.y = 10;
-		SDL_BlitSurface(surf_speed, &src, surf_screen, &dest);
-		src.w = cur_speed_w; dest.y = 20;
-		SDL_BlitSurface(surf_speed, &src, surf_screen, &dest);
 	}
 
 	// Draw the score
@@ -742,6 +710,7 @@ gameloop() {
 			tmp /= -25;
 			tmp = ((screendx * (gamerate - 12)) + (tmp * gamerate)) / 12;
 			screendx = -tmp;
+			if(screendx < 7.5) screendx=7.5;
 
 			xscroll = screendx * gamerate;
 			yscroll = screendy * gamerate;
@@ -758,15 +727,15 @@ gameloop() {
 			// BOUNCE X
 			if(shipx<0 || shipx>XSIZE-surf_ship->w) {
 				// BOUNCE from left and right wall
-				shipx -= shipdx*gamerate;
-				shipdx *= -0.99;
+				shipx -= (shipdx-screendx)*gamerate;
+				shipdx = 2*screendx-shipdx;
 			}
 
 			// BOUNCE Y
 			if(shipy<0 || shipy>YSIZE-surf_ship->h) {
 				// BOUNCE from top and bottom wall
-				shipy -= shipdy;
-				shipdy *= -0.99;
+				shipy -= (shipdy-screendy)*gamerate;
+				shipdy = 2*screendy-shipdy;
 			}
 
 
@@ -799,7 +768,6 @@ gameloop() {
 				reset_rocks();
 
 				game_ticks = 0;
-				game_dist = 0;
 
 				nships = 4;
 				score = 0;
