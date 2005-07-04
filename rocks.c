@@ -25,10 +25,6 @@ struct shape rock_shapes[NROCKS];
 // timers for rock generation.
 float rtimers[4];
 
-int32_t rcnt, lrcnt;
-int32_t rsum, rsamples;
-float ravg;
-
 uint32_t nrocks;
 uint32_t nrocks_timer;
 uint32_t nrocks_inc_ticks = 2*60*1000/(F_ROCKS-I_ROCKS);
@@ -68,8 +64,6 @@ reset_rocks(void)
 	for(i = 0; i<MAXROCKS; i++) rock[i].active = 0;
 	nrocks = I_ROCKS;
 	nrocks_timer = 0;
-	rcnt = 0; lrcnt = -1;
-	rsum = 0; rsamples = 0;
 }
 
 enum { LEFT, RIGHT, TOP, BOTTOM };
@@ -93,48 +87,44 @@ rock_sides(float *ti, float *speed_min, float *speed_max)
 	dx0 = -RDX - screendx; dx1 = RDX - screendx;
 	dy0 = -RDY - screendy; dy1 = RDY - screendy;
 
-	if(dx0 != 0) {
-		if(dx0 < 0) {
-			speed_max[RIGHT] = -dx0;
-			if(dx1 < 0) {
-				// Rocks moving left only. So the RIGHT side of the screen
-				speed_min[RIGHT] = -dx1;
-				ti[RIGHT] = -(dx0+dx1)/2;
-			} else {
-				// Rocks moving left and right
-				speed_max[LEFT] = dx1;
-				ti[RIGHT] = -dx0/2;
-				ti[LEFT] = dx1/2;
-			}
+	if(dx0 < 0) {
+		speed_max[RIGHT] = -dx0;
+		if(dx1 < 0) {
+			// Rocks moving left only. So the RIGHT side of the screen
+			speed_min[RIGHT] = -dx1;
+			ti[RIGHT] = -(dx0+dx1)/2;
 		} else {
-			// Rocks moving right only. So the LEFT side of the screen
-			speed_min[LEFT] = dx0;
+			// Rocks moving left and right
 			speed_max[LEFT] = dx1;
-			ti[LEFT] = (dx0+dx1)/2;
+			ti[RIGHT] = -dx0/2;
+			ti[LEFT] = dx1/2;
 		}
+	} else {
+		// Rocks moving right only. So the LEFT side of the screen
+		speed_min[LEFT] = dx0;
+		speed_max[LEFT] = dx1;
+		ti[LEFT] = (dx0+dx1)/2;
 	}
 	ti[LEFT] *= hfactor;
 	ti[RIGHT] *= hfactor;
 
-	if(dy0 != 0) {
-		if(dy0 < 0) {
-			speed_max[BOTTOM] = -dy0;
-			if(dy1 < 0) {
-				// Rocks moving up only. So the BOTTOM of the screen
-				speed_min[BOTTOM] = -dy1;
-				ti[BOTTOM] = -(dy0+dy1)/2;
-			} else {
-				// Rocks moving up and down
-				speed_max[TOP] = dy1;
-				ti[BOTTOM] = -dy0/2;
-				ti[TOP] = dy1/2;
-			}
+	if(dy0 < 0) {
+		speed_max[BOTTOM] = -dy0;
+		if(dy1 < 0) {
+			// Rocks moving up only. So the BOTTOM of the screen
+			speed_min[BOTTOM] = -dy1;
+			ti[BOTTOM] = -(dy0+dy1)/2;
 		} else {
-			// Rocks moving down only. so the TOP of the screen
-			speed_min[TOP] = dy0;
+			// Rocks moving up and down
 			speed_max[TOP] = dy1;
-			ti[TOP] = (dy0+dy1)/2;
+			ti[BOTTOM] = -dy0/2;
+			ti[TOP] = dy1/2;
 		}
+	} else {
+		// Rocks moving down only. so the TOP of the screen
+		speed_min[TOP] = dy0;
+		speed_max[TOP] = dy1;
+		ti[TOP] = (dy0+dy1)/2;
 	}
 	ti[TOP] *= vfactor;
 	ti[BOTTOM] *= vfactor;
@@ -210,7 +200,6 @@ new_rocks(void)
 				}
 
 				rockptr->active = 1;
-				rcnt++;
 			}
 		}
 	}
@@ -231,19 +220,9 @@ move_rocks(void)
 			if(rock[i].x < -rock[i].image->w || rock[i].x >= XSIZE
 					|| rock[i].y < -rock[i].image->h || rock[i].y >= YSIZE) {
 				rock[i].active = 0;
-				rcnt--;
 			}
 		}
 	}
-	/*
-	if(lrcnt == -1 && rcnt == nrocks) lrcnt = 0;
-	if(rcnt != lrcnt && lrcnt != -1) {
-		lrcnt = rcnt;
-		rsum += rcnt-nrocks; rsamples++;
-		ravg = (float) rsum / rsamples;
-		printf("%.2f%%\n", 100.0 * ravg / nrocks);
-	}
-	*/
 }
 
 void

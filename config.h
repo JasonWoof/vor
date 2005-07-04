@@ -17,6 +17,8 @@
 #define I_ROCKS 25  // initial/final counts for rocks-on-screen.
 #define F_ROCKS 45
 
+#define SCREENDXMIN 7.5
+
 #define MAXROCKS 120 // MAX Rocks
 #define ROCKRATE 2
 #define MAXENGINEDOTS 5000

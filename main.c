@@ -80,14 +80,14 @@ const char *argp_program_version = "Variations on Rockdodger " VERSION;
 const char *argp_program_bug_address = "<josh@qualdan.com>";
 static char doc[] = "VoR: Dodge the rocks until you die.";
 static struct argp_option opts[] = {
-	{0, 0, 0, 0, "Basic Options:", 0},
-	{"full-screen", 'f', 0, 0, "", 0},
-	{"music", 'm', 0, 0, "Enable music", 0},
-	{"silent", 's', 0, 0, "Turn off explosion sounds", 0},
-	{0, 0, 0, 0, "Gameplay Options:", 1},
-	{"game-speed", 'g', "N%", 0, "Game speed [50-100%]", 1},
-	{"engine", 'e', 0, 0, "Display large tail plume", 1},
-	{"old-physics", 'p', 0, 0, "Original physics (i.e. friction).", 1},
+	{0, 0, 0, 0, "Basic Options:"},
+	{"full-screen", 'f', 0, 0, ""},
+	{"music", 'm', 0, 0, "Enable music"},
+	{"silent", 's', 0, 0, "Turn off explosion sounds"},
+	{0, 0, 0, 0, "Gameplay Options:"},
+	{"game-speed", 'g', "N%", 0, "Game speed [50-100%]"},
+	{"engine", 'e', 0, 0, "Display large tail plume"},
+	{"old-physics", 'p', 0, 0, "Original physics (i.e. friction)."},
 	{0}
 };
 error_t parse_opt(int, char*, struct argp_state *);
@@ -96,8 +96,8 @@ static struct argp argp = { opts, &parse_opt, 0, doc };
 
 struct shape shipshape;
 float shipx = XSIZE/2, shipy = YSIZE/2;	// X position, 0..XSIZE
-float shipdx = 7.5, shipdy = 0.0;	// Change in X position per tick.
-float screendx = 7.5, screendy = 0.0;
+float shipdx = SCREENDXMIN, shipdy = 0.0;	// Change in X position per tick.
+float screendx = SCREENDXMIN, screendy = 0.0;
 float xscroll, yscroll;
 float gamerate;  // this controls the speed of everything that moves.
 
@@ -766,7 +766,7 @@ gameloop() {
 			tmp /= -25;
 			tmp = ((screendx * (gamerate - 12)) + (tmp * gamerate)) / 12;
 			screendx = -tmp;
-			if(screendx < 7.5) screendx=7.5;
+			if(screendx < SCREENDXMIN) screendx=SCREENDXMIN;
 
 			xscroll = screendx * gamerate;
 			yscroll = screendy * gamerate;
@@ -801,6 +801,7 @@ gameloop() {
 				bangx = shipx; bangy = shipy; bangdx = shipdx; bangdy = shipdy;
 				make_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship,30);
 				shipdx *= 0.5; shipdy *= 0.5;
+				if(shipdx < SCREENDXMIN) shipdx = SCREENDXMIN;
 				if(--nships <= 0) {
 					state = GAME_OVER;
 					gameover = 1;
