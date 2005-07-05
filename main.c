@@ -23,6 +23,7 @@
 #include "debug.h"
 #endif
 
+#include "args.h"
 #include "config.h"
 #include "file.h"
 #include "globals.h"
@@ -68,30 +69,6 @@ struct spacedot sdot[MAXSPACEDOTS];
 char topline[1024];
 char *initerror = "";
 
-// Command-line argument parsing
-int opt_fullscreen;
-int opt_sound;
-int opt_music;
-float opt_gamespeed;
-int opt_tail_engine;
-int opt_friction;
-
-const char *argp_program_version = "Variations on Rockdodger " VERSION;
-const char *argp_program_bug_address = "<josh@qualdan.com>";
-static char doc[] = "VoR: Dodge the rocks until you die.";
-static struct argp_option opts[] = {
-	{0, 0, 0, 0, "Basic Options:"},
-	{"full-screen", 'f', 0, 0, ""},
-	{"music", 'm', 0, 0, "Enable music"},
-	{"silent", 's', 0, 0, "Turn off explosion sounds"},
-	{0, 0, 0, 0, "Gameplay Options:"},
-	{"game-speed", 'g', "N%", 0, "Game speed [50-100%]"},
-	{"engine", 'e', 0, 0, "Display large tail plume"},
-	{"old-physics", 'p', 0, 0, "Original physics (i.e. friction)."},
-	{0}
-};
-error_t parse_opt(int, char*, struct argp_state *);
-static struct argp argp = { opts, &parse_opt, 0, doc };
 
 
 struct shape shipshape;
@@ -139,38 +116,6 @@ extern char *optarg;
 extern int optind, opterr, optopt;
 
 // ************************************* FUNCS
-
-void
-init_opts(void)
-{
-	opt_fullscreen = 0;
-	opt_sound = 1;
-	opt_music = 0;
-	opt_gamespeed = 1.00; // Run game at full speed.
-	// These switch back to the old gameplay and are off by default.
-	opt_tail_engine = 0;
-	opt_friction = 0;
-}
-
-error_t
-parse_opt(int key, char *arg, struct argp_state *state)
-{
-	int i;
-
-	switch(key) {
-		case 'f': opt_fullscreen = 1; break;
-		case 'm': opt_music = 1; break;
-		case 's': opt_sound = 0; opt_music = 0; break;
-		case 'g': sscanf(arg, "%d%%", &i);
-				  if(i < 50) i = 50; else if(i > 100) i = 100;
-				  opt_gamespeed = (float)i / 100;
-				  break;
-		case 'e': opt_tail_engine = 1; break;
-		case 'p': opt_friction = 1; break;
-		default: break;
-	}
-	return 0;
-}
 
 float
 rnd() {
@@ -663,9 +608,9 @@ draw() {
 	ticks_since_last = SDL_GetTicks()-last_ticks;
 	last_ticks = SDL_GetTicks();
 	if(ticks_since_last>200 || ticks_since_last<0) {
+		// We won't run at all below 5 frames per second.
 		gamerate = 0;
-	}
-	else {
+	} else {
 		gamerate = opt_gamespeed*ticks_since_last/50.0;
 		if(state == GAMEPLAY) {
 			score += ticks_since_last;
@@ -697,14 +642,14 @@ gameloop() {
 						play_tune(1);
 						break;
 					case GAME_OVER:
-						state = HIGH_SCORE_ENTRY;
-						state_timeout = 5.0e6;
 						if(new_high_score(score)) {
 							SDL_Event e;
+							state = HIGH_SCORE_ENTRY;
+							state_timeout = 5.0e6;
 							SDL_EnableUNICODE(1);
 							while(SDL_PollEvent(&e))
 								;
-						} else {
+						} else if(!keystate[SDLK_SPACE]) {
 							state = HIGH_SCORE_DISPLAY;
 							state_timeout = 400;
 						}
@@ -784,14 +729,14 @@ gameloop() {
 			if(shipx<0 || shipx>XSIZE-surf_ship->w) {
 				// BOUNCE from left and right wall
 				shipx -= (shipdx-screendx)*gamerate;
-				shipdx = 2*screendx-shipdx;
+				shipdx = screendx - (shipdx-screendx)*opt_bounciness;
 			}
 
 			// BOUNCE Y
 			if(shipy<0 || shipy>YSIZE-surf_ship->h) {
 				// BOUNCE from top and bottom wall
 				shipy -= (shipdy-screendy)*gamerate;
-				shipdy = 2*screendy-shipdy;
+				shipdy = screendy - (shipdy-screendy)*opt_bounciness;
 			}
 
 
@@ -882,7 +827,6 @@ gameloop() {
 int
 main(int argc, char **argv) {
 	init_opts();
-
 	argp_parse(&argp, argc, argv, 0, 0, 0);
 
 	if(init()) {

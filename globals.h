@@ -53,14 +53,6 @@ extern struct enginedots edot[MAXENGINEDOTS], *dotptr;
 extern struct bangdots bdot[MAXBANGDOTS], *bdotptr;
 extern struct spacedot sdot[MAXSPACEDOTS];
 
-// command-line arguments
-extern int opt_fullscreen;
-extern int opt_sound;
-extern int opt_music;
-extern float opt_gamespeed;
-extern int opt_tail_engine;
-extern int opt_friction;
-
 // Other global variables
 extern char topline[1024];
 extern char *initerror;

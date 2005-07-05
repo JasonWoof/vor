@@ -1,5 +1,5 @@
-#   Rock Dodger! Avoid the rocks as long as you can!
-#   Copyright (C) 2001  Paul Holt <pad@pcholt.com>
+#   Variations on Rockdodger
+#   Copyright (C) 2004  Joshua Grams <josh@qualdan.com>
 
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -15,11 +15,13 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-debug := $(if $(DEBUG),1,0)
 ldflags := $(shell sdl-config --libs) -lSDL_image -lSDL_mixer
-cflags := $(shell sdl-config --cflags) -Wall -DDEBUG=$(debug) $(CFLAGS)
+cflags := $(shell sdl-config --cflags) -Wall -DDEBUG=$(if $(DEBUG),1,0)
+cflags := $(strip $(cflags))
+cflags += $(CFLAGS)
 
-my_objects := file.o rocks.o score.o shape.o sound.o main.o $(if $(DEBUG),debug.o)
+my_objects := args.o file.o rocks.o score.o shape.o sound.o
+my_objects += $(if $(DEBUG),debug.o) main.o
 libs := SFont.o
 objects := $(libs) $(my_objects)
 
@@ -39,12 +41,16 @@ DATA_PREFIX = /usr/share/vor
 PROGRAM_PREFIX = /usr/games/bin
 
 
+.PHONY: all clean maintainer-clean install uninstall
+.PHONY: mkinstalldirs rminstalldirs
+.PHONY: program program-clean install-program uninstall-program
+.PHONY: data data-clean install-data uninstall-data
 
-.PHONY: all clean graphics maintainer-clean install uninstall
+all: program data
 
-all: graphics vor
+data: $(graphics)
 
-graphics: $(graphics)
+program: vor
 
 %.o: %.c
 	$(CC) $(cflags) -c -o $@ $<
@@ -58,13 +64,17 @@ vor: $(objects)
 
 include gfx.mk
 
-clean:
+clean: program-clean
+
+maintainer-clean: program-clean data-clean
+
+program-clean:
 	rm -f *.o vor
 
-maintainer-clean: clean
+data-clean:
 	rm -f $(graphics)
 
-install:	all
+mkinstalldirs:
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
 	if [ ! -d $(DATA_PREFIX)/banners ]; then mkdir $(DATA_PREFIX)/banners; fi
 	if [ ! -d $(DATA_PREFIX)/fonts ]; then mkdir $(DATA_PREFIX)/fonts; fi
@@ -74,7 +84,22 @@ install:	all
 	if [ ! -d $(DATA_PREFIX)/sounds ]; then mkdir $(DATA_PREFIX)/sounds; fi
 	if [ ! -d $(DATA_PREFIX)/sprites ]; then mkdir $(DATA_PREFIX)/sprites; fi
 
+rminstalldirs:
+	if [ -d $(DATA_PREFIX)/banners ]; then rmdir $(DATA_PREFIX)/banners; fi
+	if [ -d $(DATA_PREFIX)/fonts ]; then rmdir $(DATA_PREFIX)/fonts; fi
+	if [ -d $(DATA_PREFIX)/icons ]; then rmdir $(DATA_PREFIX)/icons; fi
+	if [ -d $(DATA_PREFIX)/indicators ]; then rmdir $(DATA_PREFIX)/indicators; fi
+	if [ -d $(DATA_PREFIX)/music ]; then rmdir $(DATA_PREFIX)/music; fi
+	if [ -d $(DATA_PREFIX)/sounds ]; then rmdir $(DATA_PREFIX)/sounds; fi
+	if [ -d $(DATA_PREFIX)/sprites ]; then rmdir $(DATA_PREFIX)/sprites; fi
+	if [ -d $(DATA_PREFIX) ]; then rmdir $(DATA_PREFIX); fi
+
+install: all mkinstalldirs install-program install-data
+
+install-program: program
 	$(INSTALL_PROGRAM) ./vor $(PROGRAM_PREFIX)
+
+install-data: data
 	$(INSTALL_DATA) ./data/banners/* $(DATA_PREFIX)/banners/
 	$(INSTALL_DATA) ./data/fonts/* $(DATA_PREFIX)/fonts/
 	$(INSTALL_DATA) ./data/icons/* $(DATA_PREFIX)/icons/
@@ -85,8 +110,12 @@ install:	all
 	touch $(DATA_PREFIX)/scores
 	chmod a+rw $(DATA_PREFIX)/scores
 
-uninstall:
+uninstall: uninstall-program uninstall-data rminstalldirs
+
+uninstall-program:
 	rm -f $(PROGRAM_PREFIX)/vor
+
+uninstall-data:
 	rm -f $(DATA_PREFIX)/banners/*
 	rm -f $(DATA_PREFIX)/fonts/*
 	rm -f $(DATA_PREFIX)/icons/*
@@ -95,12 +124,3 @@ uninstall:
 	rm -f $(DATA_PREFIX)/sounds/*
 	rm -f $(DATA_PREFIX)/sprites/*
 	rm -f $(DATA_PREFIX)/scores $(DATA_PREFIX)/.highscore
-
-	if [ -d $(DATA_PREFIX)/banners ]; then rmdir $(DATA_PREFIX)/banners; fi
-	if [ -d $(DATA_PREFIX)/fonts ]; then rmdir $(DATA_PREFIX)/fonts; fi
-	if [ -d $(DATA_PREFIX)/icons ]; then rmdir $(DATA_PREFIX)/icons; fi
-	if [ -d $(DATA_PREFIX)/indicators ]; then rmdir $(DATA_PREFIX)/indicators; fi
-	if [ -d $(DATA_PREFIX)/music ]; then rmdir $(DATA_PREFIX)/music; fi
-	if [ -d $(DATA_PREFIX)/sounds ]; then rmdir $(DATA_PREFIX)/sounds; fi
-	if [ -d $(DATA_PREFIX)/sprites ]; then rmdir $(DATA_PREFIX)/sprites; fi
-	if [ -d $(DATA_PREFIX) ]; then rmdir $(DATA_PREFIX); fi

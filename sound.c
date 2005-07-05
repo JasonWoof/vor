@@ -1,7 +1,6 @@
+#include "args.h"
 #include "sound.h"
 #include "config.h"
-
-extern int opt_sound, opt_music;
 
 #define TUNE_TITLE_PAGE		0
 #define TUNE_GAMEPLAY		1

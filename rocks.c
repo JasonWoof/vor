@@ -69,7 +69,7 @@ reset_rocks(void)
 enum { LEFT, RIGHT, TOP, BOTTOM };
 
 
-// compute the number of rocks/seccond that should be coming from each side
+// compute the number of rocks/second that should be coming from each side
 
 // compute the speed ranges of rocks coming from each side
 void
