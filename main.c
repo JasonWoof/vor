@@ -19,19 +19,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifdef DEBUG
-#include "debug.h"
-#endif
-
-#include "args.h"
-#include "config.h"
-#include "file.h"
-#include "globals.h"
-#include "rocks.h"
-#include "score.h"
-#include "shape.h"
-#include "sound.h"
-
 #include <argp.h>
 #include <math.h>
 #include <SDL/SDL.h>
@@ -42,6 +29,20 @@
 #include <string.h>
 
 #include "SFont.h"
+
+#ifdef DEBUG
+#include "debug.h"
+#endif
+
+#include "args.h"
+#include "common.h"
+#include "config.h"
+#include "file.h"
+#include "globals.h"
+#include "rocks.h"
+#include "score.h"
+#include "shape.h"
+#include "sound.h"
 
 // ************************************* VARS
 // SDL_Surface global variables
@@ -115,6 +116,8 @@ Uint16 heatcolor[W*3];
 char *data_dir;
 extern char *optarg;
 extern int optind, opterr, optopt;
+
+#define TO_TICKS(seconds) ((seconds)*20*opt_gamespeed)
 
 // ************************************* FUNCS
 
@@ -714,13 +717,14 @@ gameloop() {
 			screendx = -tmp;
 
 			// taper off if we would hit the barrier in under 2 seconds.
-			if(back_dist + (screendx - SCREENDXMIN)*2*20*opt_gamespeed < 0) {
-				screendx = SCREENDXMIN - (back_dist/(2*20*opt_gamespeed));
+			if(back_dist + (screendx - SCREENDXMIN)*TO_TICKS(2) < 0) {
+				screendx = SCREENDXMIN - (back_dist/TO_TICKS(2));
 			}
 
 			xscroll = screendx * framelen;
 			yscroll = screendy * framelen;
 			back_dist += (screendx - SCREENDXMIN)*framelen;
+			if(opt_max_lead >= 0) back_dist = min(back_dist, opt_max_lead);
 
 			shipx -= xscroll;
 			shipy -= yscroll;

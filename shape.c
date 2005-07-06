@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "common.h"
 #include "shape.h"
 
 void
@@ -38,18 +39,6 @@ get_shape(SDL_Surface *img, struct shape *s)
 	}
 	SDL_UnlockSurface(img);
 }
-
-#ifndef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
-#ifndef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#endif
-
-#ifndef abs
-#define abs(a) ((a)<=0 ? -(a) : (a))
-#endif
 
 int
 line_collide(int xov, struct shape *r, uint32_t *rbits, struct shape *s, uint32_t *sbits)
