@@ -76,6 +76,7 @@ float shipx = XSIZE/2, shipy = YSIZE/2;	// X position, 0..XSIZE
 float shipdx = SCREENDXMIN, shipdy = 0.0;	// Change in X position per tick.
 float screendx = SCREENDXMIN, screendy = 0.0;
 float xscroll, yscroll;
+float back_dist;
 float framelen;  // this controls the speed of everything that moves.
 
 float bangx, bangy, bangdx, bangdy;
@@ -711,10 +712,15 @@ gameloop() {
 			tmp /= -25;
 			tmp = ((screendx * (framelen - 12)) + (tmp * framelen)) / 12;
 			screendx = -tmp;
-			if(screendx < SCREENDXMIN) screendx=SCREENDXMIN;
+
+			// taper off if we would hit the barrier in under 2 seconds.
+			if(back_dist + (screendx - SCREENDXMIN)*2*20*opt_gamespeed < 0) {
+				screendx = SCREENDXMIN - (back_dist/(2*20*opt_gamespeed));
+			}
 
 			xscroll = screendx * framelen;
 			yscroll = screendy * framelen;
+			back_dist += (screendx - SCREENDXMIN)*framelen;
 
 			shipx -= xscroll;
 			shipy -= yscroll;
