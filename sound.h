@@ -23,4 +23,12 @@ int init_sound(void);
 void play_sound(int i);
 void play_tune(int i);
 
+#define TUNE_TITLE_PAGE		0
+#define TUNE_GAMEPLAY		1
+#define TUNE_HIGH_SCORE_ENTRY	2
+#define NUM_TUNES		3
+
+#define SOUND_BANG		0
+#define NUM_SOUNDS		4
+
 #endif // VOR_SOUND_H

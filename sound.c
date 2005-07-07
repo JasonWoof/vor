@@ -9,13 +9,6 @@
 #include "config.h"
 #include "sound.h"
 
-#define TUNE_TITLE_PAGE		0
-#define TUNE_GAMEPLAY		1
-#define TUNE_HIGH_SCORE_ENTRY	2
-#define NUM_TUNES		3
-
-#define SOUND_BANG		0
-#define NUM_SOUNDS		4
 
 static Mix_Music *music[NUM_TUNES];
 static int music_volume[NUM_TUNES] = {128,128,128};

@@ -37,8 +37,10 @@
 #include "args.h"
 #include "common.h"
 #include "config.h"
+#include "dust.h"
 #include "file.h"
 #include "globals.h"
+#include "mt.h"
 #include "rocks.h"
 #include "score.h"
 #include "shape.h"
@@ -64,7 +66,6 @@ SFont_Font *g_font;
 // Structure global variables
 struct enginedots edot[MAXENGINEDOTS], *dotptr = edot;
 struct bangdots bdot[MAXBANGDOTS], *bdotptr = bdot;
-struct spacedot sdot[MAXSPACEDOTS];
 
 // Other global variables
 char topline[1024];
@@ -126,11 +127,6 @@ extern int optind, opterr, optopt;
 
 // ************************************* FUNCS
 
-float
-rnd() {
-	return (float)random()/(float)RAND_MAX;
-}
-
 void
 init_engine_dots() {
 	int i;
@@ -140,23 +136,8 @@ init_engine_dots() {
 }
 
 void
-init_space_dots() {
-	int i,b;
-	for(i = 0; i<MAXSPACEDOTS; i++) {
-		sdot[i].x = rnd()*(XSIZE-5);
-		sdot[i].y = rnd()*(YSIZE-5);
-		sdot[i].z = MAXDUSTDEPTH*sqrt(rnd());
-		b = (MAXDUSTDEPTH - sdot[i].z) * 255.0 / MAXDUSTDEPTH;
-		sdot[i].color = SDL_MapRGB(surf_screen->format, b, b, b);
-	}
-}
-
-void
-make_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s, int power) {
-
-	// TODO - stop generating dots after a certain amount of time has passed, to cope with slower CPUs.
-	// TODO - generate and display dots in a circular buffer
-
+new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s, int power)
+{
 	int x,y,endcount;
 	Uint16 *rawpixel,c;
 	double theta,r;
@@ -176,9 +157,9 @@ make_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s, int power) 
 				c = rawpixel[s->pitch/2*y + x];
 				if(c && c != s->format->colorkey) {
 
-					theta = rnd()*M_PI*2;
+					theta = frnd()*M_PI*2;
 
-					r = 1-(rnd()*rnd());
+					r = 1-(frnd()*frnd());
 
 					bdot[bd2].dx = (power/50.0)*45.0*cos(theta)*r + dx;
 					bdot[bd2].dy = (power/50.0)*45.0*sin(theta)*r + dy;
@@ -188,7 +169,7 @@ make_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s, int power) 
 					// Replace the last few bang dots with the pixels from the exploding object
 					bdot[bd2].c = (endcount>0)?c:0;
 					bdot[bd2].life = 100;
-					bdot[bd2].decay = rnd()*3 + 1;
+					bdot[bd2].decay = frnd()*3 + 1;
 					bdot[bd2].active = 1;
 
 					bd2++;
@@ -254,26 +235,6 @@ draw_bang_dots(SDL_Surface *s) {
 
 
 void
-draw_space_dots(SDL_Surface *s) {
-	int i;
-	Uint16 *rawpixel;
-	rawpixel = (Uint16 *) s->pixels;
-
-	for(i = 0; i<MAXSPACEDOTS; i++) {
-		if(sdot[i].y<0) {
-			sdot[i].y = 0;
-		}
-		rawpixel[(int)(s->pitch/2*(int)sdot[i].y) + (int)(sdot[i].x)] = sdot[i].color;
-		sdot[i].x -= xscroll / (1.3 + sdot[i].z);
-		sdot[i].y -= yscroll / (1.3 + sdot[i].z);
-		if(sdot[i].y >= XSIZE) sdot[i].x -= XSIZE;
-		else if(sdot[i].x < 0) sdot[i].x = XSIZE-1;
-		if(sdot[i].y > YSIZE) sdot[i].y -= YSIZE;
-		else if(sdot[i].y < 0) sdot[i].y += YSIZE-1;
-	}
-}
-
-void
 draw_engine_dots(SDL_Surface *s) {
 	int i;
 	Uint16 *rawpixel;
@@ -310,14 +271,14 @@ new_engine_dots(int n, int dir) {
 
 	for(i = 0; i<n; i++) {
 		if(dotptr->active == 0) {
-			a = rnd()*M_PI + (dir-1)*M_PI_2;
-			r = sin(rnd()*M_PI);
+			a = frnd()*M_PI + (dir-1)*M_PI_2;
+			r = sin(frnd()*M_PI);
 			dx = r * cos(a);
 			dy = r * -sin(a);  // screen y is "backwards".
 
 			dotptr->active = 1;
-			dotptr->x = shipx + s[dir]*hx + (rnd()-0.5)*3;
-			dotptr->y = shipy + s[(dir+1)&3]*hy + (rnd()-0.5)*3;
+			dotptr->x = shipx + s[dir]*hx + (frnd()-0.5)*3;
+			dotptr->y = shipy + s[(dir+1)&3]*hy + (frnd()-0.5)*3;
 			if(dir&1) {
 				dotptr->dx = shipdx + 2*dx;
 				dotptr->dy = shipdy + 20*dy;
@@ -347,8 +308,10 @@ drawdots(SDL_Surface *s) {
 		}
 	}
 
+	move_dust();
+
 	SDL_LockSurface(s);
-	draw_space_dots(s);
+	draw_dust(s);
 	draw_engine_dots(s);
 	draw_bang_dots(s);
 	SDL_UnlockSurface(s);
@@ -382,7 +345,7 @@ init(void) {
 		atexit(SDL_Quit);
 	}
 
-	play_tune(0);
+	play_tune(TUNE_TITLE_PAGE);
 
 	// Attempt to get the required video size
 	flag = SDL_DOUBLEBUF | SDL_HWSURFACE;
@@ -431,7 +394,7 @@ init(void) {
 	NULLERROR(surf_life = SDL_DisplayFormat(temp));
 
 	init_engine_dots();
-	init_space_dots();
+	init_dust();
 
 	init_rocks();
 
@@ -536,7 +499,7 @@ draw() {
 		break;
 
 		case HIGH_SCORE_ENTRY:
-			play_tune(2);
+			play_tune(TUNE_HIGH_SCORE_ENTRY);
 			if(!process_score_input()) {  // done inputting name
 
 				// Change state to briefly show high scores page
@@ -546,8 +509,7 @@ draw() {
 				// Write the high score table to the file
 				write_high_score_table();
 		
-				// Play the title page tune
-				play_tune(0);
+				play_tune(TUNE_TITLE_PAGE);
 			}
 		// FALL THROUGH TO
 		case HIGH_SCORE_DISPLAY:
@@ -598,7 +560,7 @@ gameloop() {
 					case DEAD_PAUSE:
 						// Create a new ship and start all over again
 						state = GAMEPLAY;
-						play_tune(1);
+						play_tune(TUNE_GAMEPLAY);
 						break;
 					case GAME_OVER:
 						if(new_high_score(score)) {
@@ -618,9 +580,6 @@ gameloop() {
 						state_timeout = 500.0;
 						break;
 					case HIGH_SCORE_ENTRY:
-						// state = TITLE_PAGE;
-						// play_tune(1);
-						// state_timeout = 100.0;
 						break;
 					case TITLE_PAGE:
 						state = HIGH_SCORE_DISPLAY;
@@ -702,9 +661,9 @@ gameloop() {
 
 			if(draw() && state == GAMEPLAY) {
 				// Died
-				play_sound(0); // Play the explosion sound
+				play_sound(SOUND_BANG); // Play the explosion sound
 				bangx = shipx; bangy = shipy; bangdx = shipdx; bangdy = shipdy;
-				make_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship,30);
+				new_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship,30);
 				shipdx *= 0.5; shipdy *= 0.5;
 				if(shipdx < SCREENDXMIN) shipdx = SCREENDXMIN;
 				if(--nships <= 0) {
@@ -733,7 +692,7 @@ gameloop() {
 				score = 0;
 
 				state = GAMEPLAY;
-				play_tune(1);
+				play_tune(TUNE_GAMEPLAY);
 
 				gameover = 0;
 				shipx = XSIZE/2.2; shipy = YSIZE/2;

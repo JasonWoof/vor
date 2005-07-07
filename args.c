@@ -79,10 +79,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 				  break;
 		case 'm': opt_music = 1; break;
 		case 's': opt_sound = 0; opt_music = 0; break;
-		case ARGP_KEY_END:
-				  break;
-		default:
-				  return ARGP_ERR_UNKNOWN;
+		default: return ARGP_ERR_UNKNOWN;
 	}
 	return 0;
 }

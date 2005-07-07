@@ -7,6 +7,7 @@
 #include "config.h"
 #include "file.h"
 #include "globals.h"
+#include "mt.h"
 #include "rocks.h"
 #include "shape.h"
 
@@ -35,11 +36,6 @@ uint32_t nrocks_inc_ticks = 2*60*1000/(F_ROCKS-I_ROCKS);
 #define KV 24.0  // 24 s for a speed=1 rock to cross the screen vertically.
 #define RDX 2.5  // range for rock dx values (+/-)
 #define RDY 2.5  // range for rock dy values (+/-)
-
-float rnd(void);
-
-#define crnd() (2*(rnd()-0.5))
-
 
 int
 init_rocks(void)
@@ -133,7 +129,7 @@ rock_sides(float *ti, float *speed_min, float *speed_max)
 
 float
 weighted_rnd_range(float min, float max) {
-	return sqrt(min * min + rnd() * (max * max - min * min));
+	return sqrt(min * min + frnd() * (max * max - min * min));
 }
 
 void
@@ -172,27 +168,27 @@ new_rocks(void)
 				switch(i) {
 					case RIGHT:
 						rockptr->x = XSIZE;
-						rockptr->y = rnd()*(YSIZE + rockptr->image->h);
+						rockptr->y = frnd()*(YSIZE + rockptr->image->h);
 
 						rockptr->dx = -weighted_rnd_range(rmin[i], rmax[i]) + screendx;
 						rockptr->dy = RDY*crnd();
 						break;
 					case LEFT:
 						rockptr->x = -rockptr->image->w;
-						rockptr->y = rnd()*(YSIZE + rockptr->image->h);
+						rockptr->y = frnd()*(YSIZE + rockptr->image->h);
 
 						rockptr->dx = weighted_rnd_range(rmin[i], rmax[i]) + screendx;
 						rockptr->dy = RDY*crnd();
 						break;
 					case BOTTOM:
-						rockptr->x = rnd()*(XSIZE + rockptr->image->w);
+						rockptr->x = frnd()*(XSIZE + rockptr->image->w);
 						rockptr->y = YSIZE;
 
 						rockptr->dx = RDX*crnd();
 						rockptr->dy = -weighted_rnd_range(rmin[i], rmax[i]) + screendy;
 						break;
 					case TOP:
-						rockptr->x = rnd()*(XSIZE + rockptr->image->w);
+						rockptr->x = frnd()*(XSIZE + rockptr->image->w);
 						rockptr->y = -rockptr->image->h;
 
 						rockptr->dx = RDX*crnd();

@@ -28,8 +28,6 @@
 
 #define MAXENGINEDOTS 5000
 #define MAXBANGDOTS 50000
-#define MAXSPACEDOTS 2000
-#define MAXDUSTDEPTH 2
 #define W 100
 #define M 255
 

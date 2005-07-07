@@ -23,12 +23,6 @@ struct enginedots {
 	// is a number starting at between 0 and 50 and counting backward.
 	float life;	// When reduced to 0, set active = 0
 };
-struct spacedot {
-	// Space dots are harmless background items
-	// All are active. When one falls off the edge, another is created at the start.
-	float x,y,z;
-	Uint16 color;
-};
 
 // ************************************* VARS
 // SDL_Surface global variables
@@ -51,7 +45,6 @@ extern uint32_t area;
 // Structure global variables
 extern struct enginedots edot[MAXENGINEDOTS], *dotptr;
 extern struct bangdots bdot[MAXBANGDOTS], *bdotptr;
-extern struct spacedot sdot[MAXSPACEDOTS];
 
 // Other global variables
 extern char topline[1024];
