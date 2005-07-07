@@ -15,10 +15,16 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-ldflags := $(shell sdl-config --libs) -lSDL_image -lSDL_mixer
-cflags := $(shell sdl-config --cflags) -Wall -DDEBUG=$(if $(DEBUG),1,0)
-cflags := $(strip $(cflags))
-cflags += $(CFLAGS)
+DATA_PREFIX := /usr/share/vor
+PROGRAM_PREFIX := /usr/games/bin
+
+debug := $(if $(DEBUG),-DDEBUG=1)
+paths := -DDATA_PREFIX=\"$(DATA_PREFIX)\"
+sdl-cflags := $(shell sdl-config --cflags)
+sdl-ldflags := $(shell sdl-config --libs)
+
+ldflags := $(sdl-ldflags) -lSDL_image -lSDL_mixer
+cflags := $(sdl-cflags) $(debug) $(paths) $(CFLAGS)
 
 my_objects := args.o file.o rocks.o score.o shape.o sound.o
 my_objects += $(if $(DEBUG),debug.o) main.o
@@ -30,15 +36,12 @@ rocks += 10 11 12 13 14 15 16 17 18 19
 rocks += 20 21 22 23 24 25 26 27 28 29
 rocks += 30 31 32 33 34 35 36 37 38 39
 rocks += 40 41 42 43 44 45 46 47 48 49
+rocks := $(rocks:%=data/sprites/rock%.png)
+graphics := data/sprites/ship.png data/indicators/life.png $(rocks)
 
-graphics := data/sprites/ship.png data/indicators/life.png $(rocks:%=data/sprites/rock%.png)
-
-INSTALL = install
-INSTALL_PROGRAM = $(INSTALL) -o games -g games
-INSTALL_DATA = $(INSTALL) -m 644
-
-DATA_PREFIX = /usr/share/vor
-PROGRAM_PREFIX = /usr/games/bin
+INSTALL := install
+INSTALL_PROGRAM := $(INSTALL) -o games -g games
+INSTALL_DATA := $(INSTALL) -m 644
 
 
 .PHONY: all clean maintainer-clean install uninstall
@@ -53,14 +56,16 @@ data: $(graphics)
 program: vor
 
 %.o: %.c
-	$(CC) $(cflags) -c -o $@ $<
+	@echo compiling $@ from $<
+	@$(CC) $(cflags) -c -o $@ $<
 
 $(my_objects): config.h
 
 main.o file.o: file.h
 
 vor: $(objects)
-	$(CC) $(ldflags) -o $@ $^ $(LIBRARIES)
+	@echo linking $@ from $^
+	@$(CC) $(ldflags) -o $@ $^ $(LIBRARIES)
 
 include gfx.mk
 

@@ -16,15 +16,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "config.h"
-#include "file.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include "common.h"
+#include "config.h"
+#include "file.h"
 
 char *g_data_dir;
 char *g_score_file;
@@ -80,16 +81,9 @@ find_data_dir(void)
 int
 find_score_file(void)
 {
-	g_score_file = add_path("scores");
-	g_score_mode = 0111;
-	if(is_file(g_score_file)) {
-		g_score_file = strdup(g_score_file);
-		return true;
-	}
-
 	g_score_file = malloc(MAX_PATH_LEN);
 	snprintf(g_score_file, MAX_PATH_LEN,
-			"%s/.vor-high", getenv("HOME"));
+			"%s/.vor-scores", getenv("HOME"));
 	g_score_mode = 0177;
 	if(is_file(g_score_file)) return true;
 

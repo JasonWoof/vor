@@ -1,6 +1,13 @@
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
 #include "args.h"
-#include "sound.h"
+#include "common.h"
 #include "config.h"
+#include "sound.h"
 
 #define TUNE_TITLE_PAGE		0
 #define TUNE_GAMEPLAY		1

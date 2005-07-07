@@ -19,12 +19,6 @@
 #ifndef VOR_SOUND_H
 #define VOR_SOUND_H
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-
 int init_sound(void);
 void play_sound(int i);
 void play_tune(int i);
