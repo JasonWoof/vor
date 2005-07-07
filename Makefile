@@ -112,8 +112,6 @@ install-data: data
 	$(INSTALL_DATA) ./data/music/* $(DATA_PREFIX)/music/
 	$(INSTALL_DATA) ./data/sounds/* $(DATA_PREFIX)/sounds/
 	$(INSTALL_DATA) ./data/sprites/* $(DATA_PREFIX)/sprites/
-	touch $(DATA_PREFIX)/scores
-	chmod a+rw $(DATA_PREFIX)/scores
 
 uninstall: uninstall-program uninstall-data rminstalldirs
 
@@ -128,4 +126,4 @@ uninstall-data:
 	rm -f $(DATA_PREFIX)/music/*
 	rm -f $(DATA_PREFIX)/sounds/*
 	rm -f $(DATA_PREFIX)/sprites/*
-	rm -f $(DATA_PREFIX)/scores $(DATA_PREFIX)/.highscore
+	rm -f $(DATA_PREFIX)/scores

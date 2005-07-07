@@ -29,7 +29,7 @@
 
 char *g_data_dir;
 char *g_score_file;
-mode_t g_score_mode;
+mode_t g_score_mask;
 
 char *
 add_path(char *filename)
@@ -84,7 +84,7 @@ find_score_file(void)
 	g_score_file = malloc(MAX_PATH_LEN);
 	snprintf(g_score_file, MAX_PATH_LEN,
 			"%s/.vor-scores", getenv("HOME"));
-	g_score_mode = 0177;
+	g_score_mask = 0177;
 	if(is_file(g_score_file)) return true;
 
 	return false;
@@ -107,7 +107,7 @@ open_score_file(char *mode)
 
 	if(!g_score_file) return f;
 
-	old_mask = umask(g_score_mode);
+	old_mask = umask(g_score_mask);
 	f = fopen(g_score_file, mode);
 
 	umask(old_mask);
