@@ -66,9 +66,10 @@ extern float yscroll;
 extern float scrollvel;
 
 // all movement is based on s_frame.
-float t_frame;  // length of this frame (in ticks = 1/20th second)
-int ms_frame;   // length of this frame (milliseconds)
-int ms_end;     // end of this frame (milliseconds)
+extern float t_frame;  // length of this frame (in ticks = 1/20th second)
+extern float s_frame;  // length of this frame (seconds)
+extern int ms_frame;   // length of this frame (milliseconds)
+extern int ms_end;     // end of this frame (milliseconds)
 
 extern int nships,score;
 extern int gameover;

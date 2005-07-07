@@ -157,7 +157,7 @@ new_rocks(void)
 	// loop through the four sides of the screen
 	for(i=0; i<4; i++) {
 		// see if we generate a rock for this side this frame
-		rtimers[i] += ti[i]*t_frame/20;
+		rtimers[i] += ti[i]*s_frame;
 		while(rtimers[i] >= 1) {
 			rtimers[i] -= 1;
 			j=0;

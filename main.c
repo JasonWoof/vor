@@ -81,6 +81,7 @@ float back_dist;
 
 // all movement is based on t_frame.
 float t_frame;  // length of this frame (in ticks = 1/20th second)
+float s_frame;  // length of this frame (seconds)
 int ms_frame;   // length of this frame (milliseconds)
 int ms_end;     // end of this frame (milliseconds)
 
@@ -88,7 +89,7 @@ float bangx, bangy, bangdx, bangdy;
 
 int nships,score;
 int gameover;
-int maneuver = 0;
+int jets = 0;
 
 float fadetimer = 0, faderate;
 
@@ -297,84 +298,36 @@ draw_engine_dots(SDL_Surface *s) {
 }
 
 void
-create_engine_dots(int newdots) {
+new_engine_dots(int n, int dir) {
 	int i;
-	double theta,r,dx,dy;
+	float a, r;  // angle, random length
+	float dx, dy;
+	float hx, hy; // half ship width/height.
+	static const int s[4] = { 2, 1, 0, 1 };
 
-	if(!opt_tail_engine) return;
+	hx = surf_ship->w / 2;
+	hy = surf_ship->h / 2;
 
-	if(state == GAMEPLAY) {
-		for(i = 0; i<newdots*t_frame; i++) {
-			if(dotptr->active == 0) {
-				theta = rnd()*M_PI*2;
-				r = rnd();
-				dx = cos(theta)*r;
-				dy = sin(theta)*r;
-
-				dotptr->active = 1;
-				dotptr->x = shipx + surf_ship->w/2-14;
-				dotptr->y = shipy + surf_ship->h/2 + (rnd()-0.5)*5-1;
-				dotptr->dx = 10*(dx-1.5) + shipdx;
-				dotptr->dy = 1*dy + shipdy;
-				dotptr->life = 45 + rnd(1)*5;
-
-				dotptr++;
-				if(dotptr-edot >= MAXENGINEDOTS) {
-					dotptr = edot;
-				}
-			}
-		}
-	}
-}
-
-void
-create_engine_dots2(int newdots, int m) {
-	int i;
-	double theta, theta2, dx, dy, adx, ady;
-
-	// Don't create fresh engine dots when
-	// the game is not being played and a demo is not beng shown
-	if(state != GAMEPLAY) return;
-
-	for(i = 0; i<newdots; i++) {
+	for(i = 0; i<n; i++) {
 		if(dotptr->active == 0) {
-			theta = rnd()*M_PI*2;
-			theta2 = rnd()*M_PI*2;
-
-			dx = cos(theta) * fabs(cos(theta2));
-			dy = sin(theta) * fabs(cos(theta2));
-			adx = fabs(dx);
-			ady = fabs(dy);
-
+			a = rnd()*M_PI + (dir-1)*M_PI_2;
+			r = sin(rnd()*M_PI);
+			dx = r * cos(a);
+			dy = r * -sin(a);  // screen y is "backwards".
 
 			dotptr->active = 1;
-			dotptr->x = shipx + surf_ship->w/2 + (rnd()-0.5)*3;
-			dotptr->y = shipy + surf_ship->h/2 + (rnd()-0.5)*3;
-
-			switch(m) {
-				case 0:
-					dotptr->x -= 14;
-					dotptr->dx = -20*adx + shipdx;
-					dotptr->dy = 2*dy + shipdy;
-					dotptr->life = 60 * adx;
-				break;
-				case 1:
-					dotptr->dx = 2*dx + shipdx;
-					dotptr->dy = -20*ady + shipdy;
-					dotptr->life = 60 * ady;
-				break;
-				case 2:
-					dotptr->x += 14;
-					dotptr->dx = 20*adx + shipdx;
-					dotptr->dy = 2*dy + shipdy;
-					dotptr->life = 60 * adx;
-				break;
-				case 3:
-					dotptr->dx = 2*dx + shipdx;
-					dotptr->dy = 20*ady + shipdy;
-					dotptr->life = 60 * ady;
-				break;
+			dotptr->x = shipx + s[dir]*hx + (rnd()-0.5)*3;
+			dotptr->y = shipy + s[(dir+1)&3]*hy + (rnd()-0.5)*3;
+			if(dir&1) {
+				dotptr->dx = shipdx + 2*dx;
+				dotptr->dy = shipdy + 20*dy;
+				dotptr->life = 60 * fabs(dy);
+			} else {
+				dotptr->dx = shipdx + 20*dx;
+				dotptr->dy = shipdy + 2*dy;
+				dotptr->life = 60 * fabs(dx);
 			}
+
 			dotptr++;
 			if(dotptr-edot >= MAXENGINEDOTS) {
 				dotptr = edot;
@@ -387,13 +340,10 @@ void
 drawdots(SDL_Surface *s) {
 	int m;
 
-	// Create more engine dots comin' out da back
-	if(!gameover) create_engine_dots(200);
-
 	// Create engine dots out the side we're moving from
 	for(m = 0; m<4; m++) {
-		if(maneuver & 1<<m) { // 'maneuver' is a bit field
-			create_engine_dots2(80,m);
+		if(jets & 1<<m) { // 'jets' is a bit field
+			new_engine_dots(80,m);
 		}
 	}
 
@@ -617,13 +567,14 @@ draw() {
 	ms_end += ms_frame;
 	if(ms_frame>200 || ms_frame<0) {
 		// We won't run at all below 5 frames per second.
-		t_frame = 0;
+		// This also happens if we were paused, grr.
+		s_frame = 0;
+		ms_frame = 0;
 	} else {
-		t_frame = opt_gamespeed*ms_frame/50.0;
-		if(state == GAMEPLAY) {
-			score += ms_frame;
-		}
+		s_frame = opt_gamespeed * ms_frame / 1000;
+		if(state == GAMEPLAY) score += ms_frame;
 	}
+	t_frame = s_frame * 20;
 
 	// Update the surface
 	SDL_Flip(surf_screen);
@@ -697,12 +648,6 @@ gameloop() {
 			}
 
 			new_rocks();
-
-			// FRICTION?
-			if(opt_friction) {
-				shipdx *= pow((double)0.9,(double)t_frame);
-				shipdy *= pow((double)0.9,(double)t_frame);
-			}
 
 			// INERTIA
 			shipx += shipdx*t_frame;
@@ -795,7 +740,7 @@ gameloop() {
 				shipdx = screendx; shipdy = screendy;
 			}
 
-			maneuver = 0;
+			jets = 0;
 		} else {
 			SDL_PumpEvents();
 			keystate = SDL_GetKeyState(NULL);
@@ -805,10 +750,10 @@ gameloop() {
 			if(!gameover) {
 
 				if(!paused) {
-					if(keystate[SDLK_UP]    | keystate[SDLK_c]) { shipdy -= 1.5*t_frame; maneuver |= 1<<3;}
-					if(keystate[SDLK_DOWN]  | keystate[SDLK_t]) { shipdy += 1.5*t_frame; maneuver |= 1<<1;}
-					if(keystate[SDLK_LEFT]  | keystate[SDLK_h]) { shipdx -= 1.5*t_frame; maneuver |= 1<<2;}
-					if(keystate[SDLK_RIGHT] | keystate[SDLK_n]) { shipdx += 1.5*t_frame; maneuver |= 1;}
+					if(keystate[SDLK_LEFT]  | keystate[SDLK_h]) { shipdx -= 1.5*t_frame; jets |= 1<<0;}
+					if(keystate[SDLK_DOWN]  | keystate[SDLK_t]) { shipdy += 1.5*t_frame; jets |= 1<<1;}
+					if(keystate[SDLK_RIGHT] | keystate[SDLK_n]) { shipdx += 1.5*t_frame; jets |= 1<<2;}
+					if(keystate[SDLK_UP]    | keystate[SDLK_c]) { shipdy -= 1.5*t_frame; jets |= 1<<3;}
 					if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
 				}
 
