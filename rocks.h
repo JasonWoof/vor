@@ -1,4 +1,3 @@
-#include <SDL.h>
 #include "shape.h"
 
 int init_rocks(void);

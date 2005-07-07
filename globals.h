@@ -62,11 +62,15 @@ extern float shipx,shipy;	// X position, 0..XSIZE
 extern float shipdx,shipdy;	// Change in X position per tick.
 extern float screendx, screendy;
 extern float xscroll, yscroll;
-extern float framelen;  // this controls the speed of everything that moves.
 extern float yscroll;
 extern float scrollvel;
 
-extern int nships,score,initticks,ticks_since_last, last_ticks;
+// all movement is based on s_frame.
+float t_frame;  // length of this frame (in ticks = 1/20th second)
+int ms_frame;   // length of this frame (milliseconds)
+int ms_end;     // end of this frame (milliseconds)
+
+extern int nships,score;
 extern int gameover;
 extern int maneuver;
 extern float fadetimer, faderate;

@@ -78,11 +78,15 @@ float shipdx = SCREENDXMIN, shipdy = 0.0;	// Change in X position per tick.
 float screendx = SCREENDXMIN, screendy = 0.0;
 float xscroll, yscroll;
 float back_dist;
-float framelen;  // this controls the speed of everything that moves.
+
+// all movement is based on t_frame.
+float t_frame;  // length of this frame (in ticks = 1/20th second)
+int ms_frame;   // length of this frame (milliseconds)
+int ms_end;     // end of this frame (milliseconds)
 
 float bangx, bangy, bangdx, bangdy;
 
-int nships,score,ticks_since_last,last_ticks;
+int nships,score;
 int gameover;
 int maneuver = 0;
 
@@ -228,8 +232,8 @@ draw_bang_dots(SDL_Surface *s) {
 			//last_i = i + 1;
 			rawpixel[(int)(s->pitch/2*(int)(bdot[i].y)) + (int)(bdot[i].x)] = bdot[i].c ? bdot[i].c : heatcolor[(int)(bdot[i].life*3)];
 			bdot[i].life -= bdot[i].decay;
-			bdot[i].x += bdot[i].dx*framelen - xscroll;
-			bdot[i].y += bdot[i].dy*framelen - yscroll;
+			bdot[i].x += bdot[i].dx*t_frame - xscroll;
+			bdot[i].y += bdot[i].dy*t_frame - yscroll;
 
 			if(bdot[i].life<0)
 			bdot[i].active = 0;
@@ -276,9 +280,9 @@ draw_engine_dots(SDL_Surface *s) {
 
 	for(i = 0; i<MAXENGINEDOTS; i++) {
 		if(edot[i].active) {
-			edot[i].x += edot[i].dx*framelen - xscroll;
-			edot[i].y += edot[i].dy*framelen - yscroll;
-			if((edot[i].life -= framelen*3)<0 || edot[i].y<0 || edot[i].y>YSIZE) {
+			edot[i].x += edot[i].dx*t_frame - xscroll;
+			edot[i].y += edot[i].dy*t_frame - yscroll;
+			if((edot[i].life -= t_frame*3)<0 || edot[i].y<0 || edot[i].y>YSIZE) {
 				edot[i].active = 0;
 			} else if(edot[i].x<0 || edot[i].x>XSIZE) {
 				edot[i].active = 0;
@@ -300,7 +304,7 @@ create_engine_dots(int newdots) {
 	if(!opt_tail_engine) return;
 
 	if(state == GAMEPLAY) {
-		for(i = 0; i<newdots*framelen; i++) {
+		for(i = 0; i<newdots*t_frame; i++) {
 			if(dotptr->active == 0) {
 				theta = rnd()*M_PI*2;
 				r = rnd();
@@ -545,7 +549,7 @@ draw() {
 
 			dest.x = (XSIZE-surf_b_game->w)/2;
 			dest.y = (YSIZE-surf_b_game->h)/2-40;
-			SDL_SetAlpha(surf_b_game, SDL_SRCALPHA, (int)(fadegame*(200 + 55*cos(fadetimer += framelen/1.0))));
+			SDL_SetAlpha(surf_b_game, SDL_SRCALPHA, (int)(fadegame*(200 + 55*cos(fadetimer += t_frame/1.0))));
 			SDL_BlitSurface(surf_b_game,NULL,surf_screen,&dest);
 
 			dest.x = (XSIZE-surf_b_over->w)/2;
@@ -558,7 +562,7 @@ draw() {
 
 			dest.x = (XSIZE-surf_b_variations->w)/2 + cos(fadetimer/6.5)*10;
 			dest.y = (YSIZE/2-surf_b_variations->h)/2 + sin(fadetimer/5.0)*10;
-			SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer += framelen/2.0)));
+			SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer += t_frame/2.0)));
 			SDL_BlitSurface(surf_b_variations,NULL,surf_screen,&dest);
 
 			dest.x = (XSIZE-surf_b_on->w)/2 + cos((fadetimer + 1.0)/6.5)*10;
@@ -609,15 +613,15 @@ draw() {
 		bang = hit_rocks(shipx, shipy, &shipshape);
 	}
 
-	ticks_since_last = SDL_GetTicks()-last_ticks;
-	last_ticks = SDL_GetTicks();
-	if(ticks_since_last>200 || ticks_since_last<0) {
+	ms_frame = SDL_GetTicks() - ms_end;
+	ms_end += ms_frame;
+	if(ms_frame>200 || ms_frame<0) {
 		// We won't run at all below 5 frames per second.
-		framelen = 0;
+		t_frame = 0;
 	} else {
-		framelen = opt_gamespeed*ticks_since_last/50.0;
+		t_frame = opt_gamespeed*ms_frame/50.0;
 		if(state == GAMEPLAY) {
-			score += ticks_since_last;
+			score += ms_frame;
 		}
 	}
 
@@ -638,7 +642,7 @@ gameloop() {
 		if(!paused) {
 			// Count down the game loop timer, and change state when it gets to zero or less;
 
-			if((state_timeout -= framelen*3) < 0) {
+			if((state_timeout -= t_frame*3) < 0) {
 				switch(state) {
 					case DEAD_PAUSE:
 						// Create a new ship and start all over again
@@ -696,24 +700,24 @@ gameloop() {
 
 			// FRICTION?
 			if(opt_friction) {
-				shipdx *= pow((double)0.9,(double)framelen);
-				shipdy *= pow((double)0.9,(double)framelen);
+				shipdx *= pow((double)0.9,(double)t_frame);
+				shipdy *= pow((double)0.9,(double)t_frame);
 			}
 
 			// INERTIA
-			shipx += shipdx*framelen;
-			shipy += shipdy*framelen;
+			shipx += shipdx*t_frame;
+			shipy += shipdy*t_frame;
 
 			// SCROLLING
 			tmp = shipy - (YSIZE / 2);
 			tmp += shipdy * 25;
 			tmp /= -25;
-			tmp = ((screendy * (framelen - 12)) + (tmp * framelen)) / 12;
+			tmp = ((screendy * (t_frame - 12)) + (tmp * t_frame)) / 12;
 			screendy = -tmp;
 			tmp = shipx - (XSIZE / 3);
 			tmp += shipdx * 25;
 			tmp /= -25;
-			tmp = ((screendx * (framelen - 12)) + (tmp * framelen)) / 12;
+			tmp = ((screendx * (t_frame - 12)) + (tmp * t_frame)) / 12;
 			screendx = -tmp;
 
 			// taper off if we would hit the barrier in under 2 seconds.
@@ -721,17 +725,17 @@ gameloop() {
 				screendx = SCREENDXMIN - (back_dist/TO_TICKS(2));
 			}
 
-			xscroll = screendx * framelen;
-			yscroll = screendy * framelen;
-			back_dist += (screendx - SCREENDXMIN)*framelen;
+			xscroll = screendx * t_frame;
+			yscroll = screendy * t_frame;
+			back_dist += (screendx - SCREENDXMIN)*t_frame;
 			if(opt_max_lead >= 0) back_dist = min(back_dist, opt_max_lead);
 
 			shipx -= xscroll;
 			shipy -= yscroll;
 
 			// move bang center
-			bangx += bangdx*framelen - xscroll;
-			bangy += bangdy*framelen - yscroll;
+			bangx += bangdx*t_frame - xscroll;
+			bangy += bangdy*t_frame - yscroll;
 
 			move_rocks();
 
@@ -739,14 +743,14 @@ gameloop() {
 			// BOUNCE X
 			if(shipx<0 || shipx>XSIZE-surf_ship->w) {
 				// BOUNCE from left and right wall
-				shipx -= (shipdx-screendx)*framelen;
+				shipx -= (shipdx-screendx)*t_frame;
 				shipdx = screendx - (shipdx-screendx)*opt_bounciness;
 			}
 
 			// BOUNCE Y
 			if(shipy<0 || shipy>YSIZE-surf_ship->h) {
 				// BOUNCE from top and bottom wall
-				shipy -= (shipdy-screendy)*framelen;
+				shipy -= (shipdy-screendy)*t_frame;
 				shipdy = screendy - (shipdy-screendy)*opt_bounciness;
 			}
 
@@ -764,7 +768,7 @@ gameloop() {
 					shipdx = 8; shipdy = 0;
 					state_timeout = 200.0;
 					fadetimer = 0.0;
-					faderate = framelen;
+					faderate = t_frame;
 				}
 				else {
 					state = DEAD_PAUSE;
@@ -801,10 +805,10 @@ gameloop() {
 			if(!gameover) {
 
 				if(!paused) {
-					if(keystate[SDLK_UP] | keystate[SDLK_c])		{ shipdy -= 1.5*framelen; maneuver |= 1<<3;}
-					if(keystate[SDLK_DOWN] | keystate[SDLK_t])		{ shipdy += 1.5*framelen; maneuver |= 1<<1;}
-					if(keystate[SDLK_LEFT] | keystate[SDLK_h])		{ shipdx -= 1.5*framelen; maneuver |= 1<<2;}
-					if(keystate[SDLK_RIGHT] | keystate[SDLK_n])		{ shipdx += 1.5*framelen; maneuver |= 1;}
+					if(keystate[SDLK_UP]    | keystate[SDLK_c]) { shipdy -= 1.5*t_frame; maneuver |= 1<<3;}
+					if(keystate[SDLK_DOWN]  | keystate[SDLK_t]) { shipdy += 1.5*t_frame; maneuver |= 1<<1;}
+					if(keystate[SDLK_LEFT]  | keystate[SDLK_h]) { shipdx -= 1.5*t_frame; maneuver |= 1<<2;}
+					if(keystate[SDLK_RIGHT] | keystate[SDLK_n]) { shipdx += 1.5*t_frame; maneuver |= 1;}
 					if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
 				}
 

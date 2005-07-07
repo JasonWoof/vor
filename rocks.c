@@ -145,7 +145,7 @@ new_rocks(void)
 	float rmax[4];
 
 	if(nrocks < F_ROCKS) {
-		nrocks_timer += ticks_since_last;
+		nrocks_timer += ms_frame;
 		if(nrocks_timer >= nrocks_inc_ticks) {
 			nrocks_timer -= nrocks_inc_ticks;
 			nrocks++;
@@ -157,7 +157,7 @@ new_rocks(void)
 	// loop through the four sides of the screen
 	for(i=0; i<4; i++) {
 		// see if we generate a rock for this side this frame
-		rtimers[i] += ti[i]*framelen/20;
+		rtimers[i] += ti[i]*t_frame/20;
 		while(rtimers[i] >= 1) {
 			rtimers[i] -= 1;
 			j=0;
@@ -215,8 +215,8 @@ move_rocks(void)
 	for(i = 0; i < MAXROCKS; i++) {
 		if(rock[i].active) {
 			// move
-			rock[i].x += (rock[i].dx-screendx)*framelen;
-			rock[i].y += (rock[i].dy-screendy)*framelen;
+			rock[i].x += (rock[i].dx-screendx)*t_frame;
+			rock[i].y += (rock[i].dy-screendy)*t_frame;
 			// clip
 			if(rock[i].x < -rock[i].image->w || rock[i].x >= XSIZE
 					|| rock[i].y < -rock[i].image->h || rock[i].y >= YSIZE) {
