@@ -613,16 +613,10 @@ gameloop() {
 			shipy += shipdy*t_frame;
 
 			// SCROLLING
-			tmp = shipy - (YSIZE / 2);
-			tmp += shipdy * 25;
-			tmp /= -25;
-			tmp = ((screendy * (t_frame - 12)) + (tmp * t_frame)) / 12;
-			screendy = -tmp;
-			tmp = shipx - (XSIZE / 3);
-			tmp += shipdx * 25;
-			tmp /= -25;
-			tmp = ((screendx * (t_frame - 12)) + (tmp * t_frame)) / 12;
-			screendx = -tmp;
+			tmp = (shipy-YSCROLLTO)/25 + (shipdy-screendy);
+			screendy += tmp * t_frame/12;
+			tmp = (shipx-XSCROLLTO)/25 + (shipdx-screendx);
+			screendx += tmp * t_frame/12;
 
 			// taper off if we would hit the barrier in under 2 seconds.
 			if(back_dist + (screendx - SCREENDXMIN)*TO_TICKS(2) < 0) {
@@ -753,7 +747,6 @@ main(int argc, char **argv) {
 		return 1;
 	}
 
-	reset_rocks();
 	gameloop();
 
 	return 0;

@@ -50,6 +50,7 @@ init_rocks(void)
 		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
 		get_shape(surf_rock[i], &rock_shapes[i]);
 	}
+	reset_rocks();
 	return 0;
 }
 

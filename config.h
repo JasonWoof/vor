@@ -7,6 +7,9 @@
 #define XSIZE 640
 #define YSIZE 480
 
+#define XSCROLLTO (XSIZE/3)
+#define YSCROLLTO (YSIZE/2)
+
 #define SCREENDXMIN 7.5
 
 // image file containing font for score stuff.
