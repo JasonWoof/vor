@@ -51,22 +51,18 @@ extern char topline[1024];
 extern char *initerror;
 
 extern struct shape shipshape;
-extern float shipx,shipy;	// X position, 0..XSIZE
-extern float shipdx,shipdy;	// Change in X position per tick.
+extern float shipx,shipy;	// ship position on screen
+extern float shipdx,shipdy;	// ship speed (pixels/tick)
 extern float screendx, screendy;
 extern float xscroll, yscroll;
 extern float yscroll;
 extern float scrollvel;
 
-// all movement is based on s_frame.
+// All movement is based on t_frame.
+// All speeds are pixels/tick, with 20 ticks per second.
 extern float t_frame;  // length of this frame (in ticks = 1/20th second)
-extern float s_frame;  // length of this frame (seconds)
-extern int ms_frame;   // length of this frame (milliseconds)
-extern int ms_end;     // end of this frame (milliseconds)
 
 extern int nships,score;
-extern int gameover;
-extern int maneuver;
 extern float fadetimer, faderate;
 
 extern int pausedown, paused;

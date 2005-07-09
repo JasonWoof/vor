@@ -28,10 +28,4 @@
 #define CONDERROR(a) if((a)) {initerror = strdup(SDL_GetError());return 1;}
 #define NULLERROR(a) CONDERROR((a) == NULL)
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
-#define debug(x) if(DEBUG) { x; }
-
 #endif // VOR_COMMON_H

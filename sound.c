@@ -37,22 +37,12 @@ init_sound() {
 	// Return 1 if the sound is ready to roll, and 0 if not.
 
 	int i;
-	debug(printf ("Initialise sound\n"));
 
 	// Initialise output with SDL_mixer
 	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, AUDIO_S16, MIX_DEFAULT_CHANNELS, 4096) < 0) {
 	fprintf(stderr, "Couldn't open SDL_mixer audio: %s\n", SDL_GetError());
 	return 0;
 	}
-
-	debug(
-			// What kind of sound did we get?  Ah who cares. As long as it can play
-			// some basic bangs and simple music.
-			Mix_QuerySpec(&audio_rate, &audio_format, &audio_channels);
-			printf("Opened audio at %d Hz %d bit %s\n", audio_rate,
-				(audio_format&0xFF),
-				(audio_channels > 1) ? "stereo" : "mono");
-			) 
 
 	// Preload all the tunes into memory
 	for (i=0; i<NUM_TUNES; i++) {
@@ -72,7 +62,6 @@ init_sound() {
 void
 play_sound(int i)  {
 	if(!opt_sound) return;
-	debug(printf ("play sound %d on first free channel\n",i));
 	Mix_PlayChannel(-1, wav[i], 0);
 }/*}}}*/
 
@@ -86,12 +75,7 @@ play_tune(int i) {/*{{{*/
 	return;
 	if (playing) {
 		Mix_FadeOutMusic(1500);
-		debug(printf("Stop playing %d\n",playing));
 	}
-	debug(
-			printf ("Play music %d\n",i);
-			printf ("volume %d\n",music_volume[i]);
-			)
 	Mix_FadeInMusic(music[i],-1,2000);
 	Mix_VolumeMusic(music_volume[i]);
 

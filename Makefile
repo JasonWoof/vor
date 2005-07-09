@@ -21,16 +21,15 @@ PROGRAM_PREFIX := /usr/games/bin
 CFLAGS := -Wall
 LDFLAGS := 
 
-debug := $(if $(DEBUG),-DDEBUG=1)
 paths := -DDATA_PREFIX=\"$(DATA_PREFIX)\"
 sdl-cflags := $(shell sdl-config --cflags)
 sdl-ldflags := $(shell sdl-config --libs)
 
 ldflags := $(sdl-ldflags) -lSDL_image -lSDL_mixer $(LDFLAGS)
-cflags := $(sdl-cflags) $(debug) $(paths) $(CFLAGS)
+cflags := $(sdl-cflags) $(paths) $(CFLAGS)
 
 my_objects := args.o dust.o file.o mt.o rocks.o score.o shape.o sound.o
-my_objects += $(if $(DEBUG),debug.o) main.o
+my_objects += main.o
 libs := SFont.o
 objects := $(libs) $(my_objects)
 

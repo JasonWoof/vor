@@ -28,12 +28,12 @@ struct shape rock_shapes[NROCKS];
 float rtimers[4];
 
 uint32_t nrocks;
-uint32_t nrocks_timer;
-uint32_t nrocks_inc_ticks = 2*60*1000/(F_ROCKS-I_ROCKS);
+float nrocks_timer;
+float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
 
 // constants for rock generation.
-#define KH 32.0  // 32 s for a speed=1 rock to cross the screen horizontally.
-#define KV 24.0  // 24 s for a speed=1 rock to cross the screen vertically.
+#define KH (32.0*20)  // 32 s for a speed=1 rock to cross the screen horizontally.
+#define KV (24.0*20)  // 24 s for a speed=1 rock to cross the screen vertically.
 #define RDX 2.5  // range for rock dx values (+/-)
 #define RDY 2.5  // range for rock dy values (+/-)
 
@@ -142,10 +142,11 @@ new_rocks(void)
 	float rmax[4];
 
 	if(nrocks < F_ROCKS) {
-		nrocks_timer += ms_frame;
+		nrocks_timer += t_frame;
 		if(nrocks_timer >= nrocks_inc_ticks) {
 			nrocks_timer -= nrocks_inc_ticks;
 			nrocks++;
+			printf("nrocks = %d.\n", nrocks);
 		}
 	}
 
@@ -154,7 +155,7 @@ new_rocks(void)
 	// loop through the four sides of the screen
 	for(i=0; i<4; i++) {
 		// see if we generate a rock for this side this frame
-		rtimers[i] += ti[i]*s_frame;
+		rtimers[i] += ti[i]*t_frame;
 		while(rtimers[i] >= 1) {
 			rtimers[i] -= 1;
 			j=0;
