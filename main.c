@@ -153,6 +153,7 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 				if(c && c != colorkey) {
 					theta = frnd()*M_PI*2;
 					r = frnd(); r = 1 - r*r;
+					// r = 1 - frnd()*frnd();
 
 					bdot[bd2].dx = 45*r*cos(theta) + dx;
 					bdot[bd2].dy = 45*r*sin(theta) + dy;
@@ -178,72 +179,37 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 }
 
 void
-draw_bang_dots(SDL_Surface *s) {
+draw_bang_dots(SDL_Surface *s)
+{
 	int i;
 	int first_i, last_i;
-	Uint16 *rawpixel;
-	rawpixel = (Uint16 *) s->pixels;
+	uint16_t *pixels, *pixel, c;
+	int row_inc = s->pitch/sizeof(uint16_t);
 
+	pixels = (uint16_t *) s->pixels;
 	first_i = -1;
 	last_i = 0;
 
-	for(i = bd1; (bd1 <= bd2)?(i<bd2):(i >= bd1 && i < bd2); last_i = ++i) {
+	for(i=0; i<MAXBANGDOTS; i++) {
+		if(!bdot[i].active) continue;
 
-		i %= MAXBANGDOTS;
-
-		if(bdot[i].x <= 0 || bdot[i].x >= XSIZE || bdot[i].y <= 0 || bdot[i].y >= YSIZE) {
-			// If the dot has drifted outside the perimeter, kill it
+		// If the dot has drifted outside the screen, kill it
+		if(bdot[i].x < 0 || bdot[i].x >= XSIZE || bdot[i].y < 0 || bdot[i].y >= YSIZE) {
 			bdot[i].active = 0;
+			continue;
 		}
+		if(pixel_hit_rocks(bdot[i].x, bdot[i].y)) { bdot[i].active = 0; continue; }
+		pixel = pixels + row_inc*(int)(bdot[i].y) + (int)(bdot[i].x);
+		if(bdot[i].c) c = bdot[i].c; else c = heatcolor[(int)(bdot[i].life)*3];
+		*pixel = c;
+		bdot[i].life -= bdot[i].decay;
+		bdot[i].x += bdot[i].dx*t_frame - xscroll;
+		bdot[i].y += bdot[i].dy*t_frame - yscroll;
 
-		if(bdot[i].active) {
-			if(first_i < 0)
-			first_i = i;
-			rawpixel[(int)(s->pitch/2*(int)(bdot[i].y)) + (int)(bdot[i].x)] = bdot[i].c ? bdot[i].c : heatcolor[(int)(bdot[i].life*3)];
-			bdot[i].life -= bdot[i].decay;
-			bdot[i].x += bdot[i].dx*t_frame - xscroll;
-			bdot[i].y += bdot[i].dy*t_frame - yscroll;
-
-			if(bdot[i].life<0) bdot[i].active = 0;
-		}
+		if(bdot[i].life<0) bdot[i].active = 0;
 	}
-
-	if(first_i >= 0) {
-		bd1 = first_i;
-		bd2 = last_i;
-	}
-	else {
-		bd1 = 0;
-		bd2 = 0;
-	}
-
 }
 
-
-void
-draw_engine_dots(SDL_Surface *s) {
-	int i;
-	Uint16 *rawpixel;
-	rawpixel = (Uint16 *) s->pixels;
-
-	for(i = 0; i<MAXENGINEDOTS; i++) {
-		if(edot[i].active) {
-			edot[i].x += edot[i].dx*t_frame - xscroll;
-			edot[i].y += edot[i].dy*t_frame - yscroll;
-			edot[i].life -= t_frame*3;
-			if(edot[i].life < 0
-					|| edot[i].y<0 || edot[i].y >= YSIZE
-					|| edot[i].x<0 || edot[i].x >= XSIZE) {
-				edot[i].active = 0;
-			} else {
-				int heatindex;
-				heatindex = edot[i].life * 6;
-				//rawpixel[(int)(s->pitch/2*(int)(edot[i].y)) + (int)(edot[i].x)] = lifecolor[(int)(edot[i].life)];
-				rawpixel[(int)(s->pitch/2*(int)(edot[i].y)) + (int)(edot[i].x)] = heatindex>3*W ? heatcolor[3*W-1] : heatcolor[heatindex];
-			}
-		}
-	}
-}
 
 void
 new_engine_dots(int n, int dir) {
@@ -279,6 +245,32 @@ new_engine_dots(int n, int dir) {
 			if(dotptr - edot < MAXENGINEDOTS-1) dotptr++;
 			else dotptr = edot;
 		}
+	}
+}
+
+void
+draw_engine_dots(SDL_Surface *s) {
+	int i;
+	uint16_t c;
+	uint16_t *pixels = (uint16_t *) s->pixels;
+	int row_inc = s->pitch/sizeof(uint16_t);
+	int heatindex;
+
+	for(i = 0; i<MAXENGINEDOTS; i++) {
+		if(!edot[i].active) continue;
+		edot[i].x += edot[i].dx*t_frame - xscroll;
+		edot[i].y += edot[i].dy*t_frame - yscroll;
+		edot[i].life -= t_frame*3;
+		if(edot[i].life < 0
+				|| edot[i].x<0 || edot[i].x >= XSIZE
+				|| edot[i].y<0 || edot[i].y >= YSIZE) {
+			edot[i].active = 0;
+			continue;
+		}
+		if(pixel_hit_rocks(edot[i].x, edot[i].y)) { edot[i].active = 0; continue; }
+		heatindex = edot[i].life * 6;
+		c = heatindex>3*W ? heatcolor[3*W-1] : heatcolor[heatindex];
+		pixels[row_inc*(int)(edot[i].y) + (int)(edot[i].x)] = c;
 	}
 }
 

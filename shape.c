@@ -108,3 +108,14 @@ collide(int xdiff, int ydiff, struct shape *r, struct shape *s)
 	if(xov == 0 || yov == 0) return 0;  // bboxes hit?
 	else return mask_collide(xov, yov, r, s);
 }
+
+int
+pixel_collide(unsigned int xoff, unsigned int yoff, struct shape *r)
+{
+	uint32_t pmask;
+	
+	if(xoff >= r->w || yoff >= r->h) return 0;
+
+	pmask = 1 << (xoff & 31); xoff >>= 5;
+	return r->mask[yoff*r->mw + xoff] & pmask;
+}

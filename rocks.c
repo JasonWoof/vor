@@ -261,6 +261,22 @@ hit_rocks(float x, float y, struct shape *shape)
 	return 0;
 }
 
+int
+pixel_hit_rocks(float x, float y)
+{
+	int i;
+	float xoff, yoff;
+
+	for(i=0; i<MAXROCKS; i++) {
+		if(rock[i].active) {
+			xoff = x - rock[i].x; if(xoff < 0) continue;
+			yoff = y - rock[i].y; if(yoff < 0) continue;
+			if(pixel_collide(xoff, yoff, rock[i].shape)) return 1;
+		}
+	}
+	return 0;
+}
+
 void
 blast_rocks(float x, float y, float radius, int onlyslow)
 {

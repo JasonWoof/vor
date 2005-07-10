@@ -8,4 +8,6 @@ void move_rocks(void);
 void draw_rocks(void);
 
 int hit_rocks(float x, float y, struct shape *shape);
+int pixel_hit_rocks(float x, float y);
+
 void blast_rocks(float x, float y, float radius, int onlyslow);

@@ -13,5 +13,6 @@ struct shape {
 
 void get_shape(SDL_Surface *img, struct shape *s);
 int collide(int xdiff, int ydiff, struct shape *r, struct shape *s);
+int pixel_collide(unsigned int xoff, unsigned int yoff, struct shape *r);
 
 #endif // VOR_SHAPE_H
