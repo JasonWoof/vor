@@ -230,9 +230,10 @@ draw_engine_dots(SDL_Surface *s) {
 		if(edot[i].active) {
 			edot[i].x += edot[i].dx*t_frame - xscroll;
 			edot[i].y += edot[i].dy*t_frame - yscroll;
-			if((edot[i].life -= t_frame*3)<0 || edot[i].y<0 || edot[i].y>YSIZE) {
-				edot[i].active = 0;
-			} else if(edot[i].x<0 || edot[i].x>XSIZE) {
+			edot[i].life -= t_frame*3;
+			if(edot[i].life < 0
+					|| edot[i].y<0 || edot[i].y >= YSIZE
+					|| edot[i].x<0 || edot[i].x >= XSIZE) {
 				edot[i].active = 0;
 			} else {
 				int heatindex;
@@ -275,7 +276,7 @@ new_engine_dots(int n, int dir) {
 				dotptr->life = 60 * fabs(dx);
 			}
 
-			if(dotptr - edot < MAXENGINEDOTS) dotptr++;
+			if(dotptr - edot < MAXENGINEDOTS-1) dotptr++;
 			else dotptr = edot;
 		}
 	}
