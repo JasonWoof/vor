@@ -146,7 +146,6 @@ new_rocks(void)
 		if(nrocks_timer >= nrocks_inc_ticks) {
 			nrocks_timer -= nrocks_inc_ticks;
 			nrocks++;
-			printf("nrocks = %d.\n", nrocks);
 		}
 	}
 

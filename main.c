@@ -128,57 +128,53 @@ init_engine_dots() {
 }
 
 void
-new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s, int power)
+new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 {
 	int x,y,endcount;
-	Uint16 *rawpixel,c;
+	uint16_t *pixel,c;
+	uint32_t colorkey;
+	int row_inc;
 	double theta,r;
 	int begin_generate;
 
 	begin_generate = SDL_GetTicks();
+	pixel = s->pixels;
+	row_inc = s->pitch/sizeof(uint16_t) - s->w;
+	colorkey = s->format->colorkey;
 
 	SDL_LockSurface(s);
-	rawpixel = (Uint16 *) s->pixels;
-
-	//for(n = 0; n <= power/2; n++) {
 
 	endcount = 0;
 	while (endcount<3) {
-		for(x = 0; x<s->w; x++) {
-			for(y = 0; y<s->h; y++) {
-				c = rawpixel[s->pitch/2*y + x];
-				if(c && c != s->format->colorkey) {
-
+		pixel = s->pixels;
+		for(y=0; y<s->h; y++) {
+			for(x = 0; x<s->w; x++) {
+				c = *pixel++;
+				if(c && c != colorkey) {
 					theta = frnd()*M_PI*2;
+					r = frnd(); r = 1 - r*r;
 
-					r = 1-(frnd()*frnd());
-
-					bdot[bd2].dx = (power/50.0)*45.0*cos(theta)*r + dx;
-					bdot[bd2].dy = (power/50.0)*45.0*sin(theta)*r + dy;
+					bdot[bd2].dx = 45*r*cos(theta) + dx;
+					bdot[bd2].dy = 45*r*sin(theta) + dy;
 					bdot[bd2].x = x + xbang;
 					bdot[bd2].y = y + ybang;
-
-					// Replace the last few bang dots with the pixels from the exploding object
-					bdot[bd2].c = (endcount>0)?c:0;
+					bdot[bd2].c = 0;
 					bdot[bd2].life = 100;
 					bdot[bd2].decay = frnd()*3 + 1;
 					bdot[bd2].active = 1;
 
-					bd2++;
-					bd2 %= MAXBANGDOTS;
+					// Replace the last few bang dots with the pixels from the exploding object
+					if(endcount>0) bdot[bd2].c = c;
 
-					// If the circular buffer is filled, who cares? They've had their chance.
-					//if(bd2 == bd1-1) goto exitloop;
-
+					bd2 = (bd2+1) % MAXBANGDOTS;
 				}
+				pixel += row_inc;
 			}
 		}
-
 		if(SDL_GetTicks() - begin_generate > 7) endcount++;
 	}
 
 	SDL_UnlockSurface(s);
-
 }
 
 void
@@ -203,14 +199,12 @@ draw_bang_dots(SDL_Surface *s) {
 		if(bdot[i].active) {
 			if(first_i < 0)
 			first_i = i;
-			//last_i = i + 1;
 			rawpixel[(int)(s->pitch/2*(int)(bdot[i].y)) + (int)(bdot[i].x)] = bdot[i].c ? bdot[i].c : heatcolor[(int)(bdot[i].life*3)];
 			bdot[i].life -= bdot[i].decay;
 			bdot[i].x += bdot[i].dx*t_frame - xscroll;
 			bdot[i].y += bdot[i].dy*t_frame - yscroll;
 
-			if(bdot[i].life<0)
-			bdot[i].active = 0;
+			if(bdot[i].life<0) bdot[i].active = 0;
 		}
 	}
 
@@ -281,10 +275,8 @@ new_engine_dots(int n, int dir) {
 				dotptr->life = 60 * fabs(dx);
 			}
 
-			dotptr++;
-			if(dotptr-edot >= MAXENGINEDOTS) {
-				dotptr = edot;
-			}
+			if(dotptr - edot < MAXENGINEDOTS) dotptr++;
+			else dotptr = edot;
 		}
 	}
 }
@@ -650,7 +642,7 @@ gameloop() {
 				// Died
 				play_sound(SOUND_BANG); // Play the explosion sound
 				bangx = shipx; bangy = shipy; bangdx = shipdx; bangdy = shipdy;
-				new_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship,30);
+				new_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship);
 				shipdx *= 0.5; shipdy *= 0.5;
 				if(shipdx < SCREENDXMIN) shipdx = SCREENDXMIN;
 				if(--nships <= 0) {
