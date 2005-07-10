@@ -67,7 +67,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 					  argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
 					  return EINVAL;
 				  }
-				  if(i < 0) i = 0; else if(i > 100) i = 100;
+				  if(i < 0) i = 0; else if(i > 200) i = 100;
 				  opt_gamespeed = (float)i / 100;
 				  break;
 		case 'l': if(!sscanf(arg, "%f", &opt_max_lead)) {

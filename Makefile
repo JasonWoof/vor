@@ -71,7 +71,11 @@ vor: $(objects)
 
 include gfx.mk
 
+tags: *.c *.h
+	exuberant-ctags *.c *.h /usr/include/SDL/*
+
 clean: program-clean
+	rm -f tags
 
 maintainer-clean: program-clean data-clean
 
