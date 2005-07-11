@@ -308,16 +308,24 @@ hit_rocks(float x, float y, struct shape *shape)
 }
 
 int
-pixel_hit_rocks(float x, float y)
+pixel_hit_in_bucket(int b, float x, float y)
 {
-	int b;
 	struct rock_struct *r;
-
-	b = bucket(x, y);
 	for(r=rock_buckets[p][b]; r; r=r->next) {
 		if(x < r->x || y < r->y) continue;
 		if(pixel_collide(x - r->x, y - r->y, r->shape)) return 1;
 	}
+	return 0;
+}
+
+int
+pixel_hit_rocks(float x, float y)
+{
+	int b = bucket(x, y);
+	if(pixel_hit_in_bucket(b, x, y)) return 1;
+	if(pixel_hit_in_bucket(b-1, x, y)) return 1;
+	if(pixel_hit_in_bucket(b-bw, x, y)) return 1;
+	if(pixel_hit_in_bucket(b-bw-1, x, y)) return 1;
 	return 0;
 }
 

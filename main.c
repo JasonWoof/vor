@@ -193,20 +193,24 @@ draw_bang_dots(SDL_Surface *s)
 	for(i=0; i<MAXBANGDOTS; i++) {
 		if(!bdot[i].active) continue;
 
-		// If the dot has drifted outside the screen, kill it
+		// decrement life and maybe kill
+		bdot[i].life -= bdot[i].decay;
+		if(bdot[i].life<0) { bdot[i].active = 0; continue; }
+
+		// move and clip
+		bdot[i].x += bdot[i].dx*t_frame - xscroll;
+		bdot[i].y += bdot[i].dy*t_frame - yscroll;
 		if(bdot[i].x < 0 || bdot[i].x >= XSIZE || bdot[i].y < 0 || bdot[i].y >= YSIZE) {
 			bdot[i].active = 0;
 			continue;
 		}
+
+		// check collisions
 		if(pixel_hit_rocks(bdot[i].x, bdot[i].y)) { bdot[i].active = 0; continue; }
+
 		pixel = pixels + row_inc*(int)(bdot[i].y) + (int)(bdot[i].x);
 		if(bdot[i].c) c = bdot[i].c; else c = heatcolor[(int)(bdot[i].life)*3];
 		*pixel = c;
-		bdot[i].life -= bdot[i].decay;
-		bdot[i].x += bdot[i].dx*t_frame - xscroll;
-		bdot[i].y += bdot[i].dy*t_frame - yscroll;
-
-		if(bdot[i].life<0) bdot[i].active = 0;
 	}
 }
 

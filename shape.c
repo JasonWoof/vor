@@ -116,6 +116,6 @@ pixel_collide(unsigned int xoff, unsigned int yoff, struct shape *r)
 	
 	if(xoff >= r->w || yoff >= r->h) return 0;
 
-	pmask = 1 << (xoff & 31); xoff >>= 5;
-	return r->mask[yoff*r->mw + xoff] & pmask;
+	pmask = 1 << (32 - (xoff&0x1f));
+	return r->mask[(yoff*r->mw) + (xoff>>5)] & pmask;
 }
