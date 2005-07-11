@@ -12,14 +12,19 @@
 #include "shape.h"
 
 struct rock_struct {
+	struct rock_struct *next;
 	float x,y,dx,dy;
-	int active;
 	SDL_Surface *image;
 	struct shape *shape;
 	int type_number;
 }; 
 
-struct rock_struct rock[MAXROCKS], *rockptr = rock;
+struct rock_struct rocks[MAXROCKS], *free_rocks;
+
+struct rock_struct **rock_buckets[2];
+int n_buckets, p;
+int bw, bh;
+int grid_size;
 
 SDL_Surface *surf_rock[NROCKS];
 struct shape rock_shapes[NROCKS];
@@ -37,21 +42,31 @@ float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
 #define RDX 2.5  // range for rock dx values (+/-)
 #define RDY 2.5  // range for rock dy values (+/-)
 
-int
-init_rocks(void)
-{
-	int i;
-	char a[MAX_PATH_LEN];
-	SDL_Surface *temp;
+static inline int bucket(int x, int y) { return (1+x/grid_size) + bw*(1+y/grid_size); }
 
-	for(i = 0; i<NROCKS; i++) {
-		snprintf(a,MAX_PATH_LEN,add_path("sprites/rock%02d.png"),i);
-		NULLERROR(temp = IMG_Load(a));
-		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
-		get_shape(surf_rock[i], &rock_shapes[i]);
+void
+init_buckets(void)
+{
+	bw = (XSIZE+2*grid_size-1) / grid_size;
+	bh = (YSIZE+2*grid_size-1) / grid_size;
+	n_buckets = bw * bh;
+	
+	rock_buckets[0] = malloc(n_buckets * sizeof(struct rock_struct *));
+	rock_buckets[1] = malloc(n_buckets * sizeof(struct rock_struct *));
+	if(!rock_buckets[0] || !rock_buckets[1]) {
+		fprintf(stderr, "Can't allocate rock buckets.\n");
+		exit(1);
 	}
-	reset_rocks();
-	return 0;
+	p = 0;
+}
+
+void
+sort_rock(struct rock_struct *q, struct rock_struct *r, int p)
+{
+	int b = bucket(r->x, r->y);
+	q->next = r->next;  // remove from old list
+	r->next = rock_buckets[p][b];  // insert into new list
+	rock_buckets[p][b] = r;
 }
 
 void
@@ -59,17 +74,45 @@ reset_rocks(void)
 {
 	int i;
 
-	for(i = 0; i<MAXROCKS; i++) rock[i].active = 0;
+	for(i=0; i<MAXROCKS; i++) rocks[i].image = NULL;
+	rocks[0].next = NULL; free_rocks = &rocks[MAXROCKS-1];
+	for(i = 1; i<MAXROCKS; i++) rocks[i].next = &rocks[i-1];
+	for(i = 0; i<n_buckets; i++) {
+		rock_buckets[0][i] = NULL;
+		rock_buckets[1][i] = NULL;
+	}
+
 	nrocks = I_ROCKS;
 	nrocks_timer = 0;
+}
+
+int
+init_rocks(void)
+{
+	int i;
+	char a[MAX_PATH_LEN];
+	SDL_Surface *temp;
+	int maxw=0, maxh=0;
+
+	for(i = 0; i<NROCKS; i++) {
+		snprintf(a,MAX_PATH_LEN,add_path("sprites/rock%02d.png"),i);
+		NULLERROR(temp = IMG_Load(a));
+		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
+		get_shape(surf_rock[i], &rock_shapes[i]);
+		maxw = max(maxw, rock_shapes[i].w);
+		maxh = max(maxh, rock_shapes[i].h);
+	}
+	grid_size = max(maxw, maxh) * 3 / 2;
+	init_buckets();
+	reset_rocks();
+	return 0;
 }
 
 enum { LEFT, RIGHT, TOP, BOTTOM };
 
 
-// compute the number of rocks/second that should be coming from each side
-
-// compute the speed ranges of rocks coming from each side
+// compute the number of rocks/tick that should be coming from each side,
+// and the speed ranges of rocks coming from each side
 void
 rock_sides(float *ti, float *speed_min, float *speed_max)
 {
@@ -136,7 +179,8 @@ weighted_rnd_range(float min, float max) {
 void
 new_rocks(void)
 {
-	int i,j;
+	int i;
+	struct rock_struct *r;
 	float ti[4];
 	float rmin[4];
 	float rmax[4];
@@ -151,54 +195,49 @@ new_rocks(void)
 
 	rock_sides(ti, rmin, rmax);
 
-	// loop through the four sides of the screen
+	// increment timers
+	for(i=0; i<4; i++) rtimers[i] += ti[i]*t_frame;
+
+	// generate rocks
 	for(i=0; i<4; i++) {
-		// see if we generate a rock for this side this frame
-		rtimers[i] += ti[i]*t_frame;
 		while(rtimers[i] >= 1) {
 			rtimers[i] -= 1;
-			j=0;
-			while(rockptr->active && j<MAXROCKS) {
-				if(++rockptr - rock >= MAXROCKS) rockptr = rock;
-				j++;
+			if(!free_rocks) return;  // sorry, we ran out of rocks!
+			r = free_rocks;
+			r->type_number = urnd() % NROCKS;
+			r->image = surf_rock[r->type_number];
+			r->shape = &rock_shapes[r->type_number];
+			switch(i) {
+				case RIGHT:
+					r->x = XSIZE;
+					r->y = frnd()*(YSIZE + r->image->h);
+
+					r->dx = -weighted_rnd_range(rmin[i], rmax[i]) + screendx;
+					r->dy = RDY*crnd();
+					break;
+				case LEFT:
+					r->x = -r->image->w;
+					r->y = frnd()*(YSIZE + r->image->h);
+
+					r->dx = weighted_rnd_range(rmin[i], rmax[i]) + screendx;
+					r->dy = RDY*crnd();
+					break;
+				case BOTTOM:
+					r->x = frnd()*(XSIZE + r->image->w);
+					r->y = YSIZE;
+
+					r->dx = RDX*crnd();
+					r->dy = -weighted_rnd_range(rmin[i], rmax[i]) + screendy;
+					break;
+				case TOP:
+					r->x = frnd()*(XSIZE + r->image->w);
+					r->y = -r->image->h;
+
+					r->dx = RDX*crnd();
+					r->dy = weighted_rnd_range(rmin[i], rmax[i]) + screendy;
+					break;
 			}
-			if(!rockptr->active) {
-				rockptr->type_number = random() % NROCKS;
-				rockptr->image = surf_rock[rockptr->type_number];
-				rockptr->shape = &rock_shapes[rockptr->type_number];
-				switch(i) {
-					case RIGHT:
-						rockptr->x = XSIZE;
-						rockptr->y = frnd()*(YSIZE + rockptr->image->h);
-
-						rockptr->dx = -weighted_rnd_range(rmin[i], rmax[i]) + screendx;
-						rockptr->dy = RDY*crnd();
-						break;
-					case LEFT:
-						rockptr->x = -rockptr->image->w;
-						rockptr->y = frnd()*(YSIZE + rockptr->image->h);
-
-						rockptr->dx = weighted_rnd_range(rmin[i], rmax[i]) + screendx;
-						rockptr->dy = RDY*crnd();
-						break;
-					case BOTTOM:
-						rockptr->x = frnd()*(XSIZE + rockptr->image->w);
-						rockptr->y = YSIZE;
-
-						rockptr->dx = RDX*crnd();
-						rockptr->dy = -weighted_rnd_range(rmin[i], rmax[i]) + screendy;
-						break;
-					case TOP:
-						rockptr->x = frnd()*(XSIZE + rockptr->image->w);
-						rockptr->y = -rockptr->image->h;
-
-						rockptr->dx = RDX*crnd();
-						rockptr->dy = weighted_rnd_range(rmin[i], rmax[i]) + screendy;
-						break;
-				}
-
-				rockptr->active = 1;
-			}
+			sort_rock((struct rock_struct *)&free_rocks, r, p);
 		}
 	}
 }
@@ -206,73 +245,78 @@ new_rocks(void)
 void
 move_rocks(void)
 {
-	int i;
+	int b;
+	struct rock_struct *q,*r;
 
 	// Move all the rocks
-	for(i = 0; i < MAXROCKS; i++) {
-		if(rock[i].active) {
+	for(b=0; b<n_buckets; b++) {
+		q=(struct rock_struct *)&rock_buckets[p][b]; r=q->next;
+		while(r) {
 			// move
-			rock[i].x += (rock[i].dx-screendx)*t_frame;
-			rock[i].y += (rock[i].dy-screendy)*t_frame;
+			r->x += (r->dx - screendx)*t_frame;
+			r->y += (r->dy - screendy)*t_frame;
+
 			// clip
-			if(rock[i].x < -rock[i].image->w || rock[i].x >= XSIZE
-					|| rock[i].y < -rock[i].image->h || rock[i].y >= YSIZE) {
-				rock[i].active = 0;
-			}
+			if(r->x + r->image->w < 0 || r->x >= XSIZE
+					|| r->y + r->image->h < 0 || r->y >= YSIZE) {
+				q->next = r->next;
+				r->next = free_rocks; free_rocks = r;
+				r->image = NULL;
+			} else sort_rock(q,r,1-p);
+			if(q->next == r) q = q->next;
+			if(q) r = q->next; else r = NULL;
 		}
 	}
+	p = 1-p;  // switch current set of buckets.
 }
 
 void
 draw_rocks(void)
 {
 	int i;
-	SDL_Rect src, dest;
+	SDL_Rect dest;
 
-	src.x = 0; src.y = 0;
-
-	for(i = 0; i<MAXROCKS; i++) {
-		if(rock[i].active) {
-			src.w = rock[i].image->w;
-			src.h = rock[i].image->h;
-
-			dest.w = src.w;
-			dest.h = src.h;
-			dest.x = (int) rock[i].x;
-			dest.y = (int) rock[i].y;
-
-			SDL_BlitSurface(rock[i].image,&src,surf_screen,&dest);
-
-		}
+	for(i=0; i<MAXROCKS; i++) {
+		if(!rocks[i].image) continue;
+		dest.x = rocks[i].x; dest.y = rocks[i].y;
+		SDL_BlitSurface(rocks[i].image,NULL,surf_screen,&dest);
 	}
+}
+
+int
+hit_in_bucket(int b, float x, float y, struct shape *shape)
+{
+	struct rock_struct *r;
+
+	for(r=rock_buckets[p][b]; r; r=r->next) {
+		if(collide(x - r->x, y - r->y, r->shape, shape)) return 1;
+	}
+	return 0;
 }
 
 int
 hit_rocks(float x, float y, struct shape *shape)
 {
-	int i;
-
-	for(i=0; i<MAXROCKS; i++) {
-		if(rock[i].active) {
-			if(collide(x-rock[i].x, y-rock[i].y, rock[i].shape, shape)) 
-				return 1;
-		}
-	}
+	int b = bucket(x, y);
+	int bdx = ((int)x+shape->w)/grid_size - (int)x/grid_size;
+	int bdy = ((int)y+shape->h)/grid_size - (int)y/grid_size;
+	if(hit_in_bucket(b, x, y, shape)) return 1;
+	if(bdx && hit_in_bucket(b+1, x, y, shape)) return 1;
+	if(bdy && hit_in_bucket(b+bw, x, y, shape)) return 1;
+	if(bdx && bdy && hit_in_bucket(b+bw+1, x, y, shape)) return 1;
 	return 0;
 }
 
 int
 pixel_hit_rocks(float x, float y)
 {
-	int i;
-	float xoff, yoff;
+	int b;
+	struct rock_struct *r;
 
-	for(i=0; i<MAXROCKS; i++) {
-		if(rock[i].active) {
-			xoff = x - rock[i].x; if(xoff < 0) continue;
-			yoff = y - rock[i].y; if(yoff < 0) continue;
-			if(pixel_collide(xoff, yoff, rock[i].shape)) return 1;
-		}
+	b = bucket(x, y);
+	for(r=rock_buckets[p][b]; r; r=r->next) {
+		if(x < r->x || y < r->y) continue;
+		if(pixel_collide(x - r->x, y - r->y, r->shape)) return 1;
 	}
 	return 0;
 }
@@ -280,27 +324,30 @@ pixel_hit_rocks(float x, float y)
 void
 blast_rocks(float x, float y, float radius, int onlyslow)
 {
-	int i;
+	int b;
+	struct rock_struct *r;
 	float dx, dy, n;
 
 	if(onlyslow) return;
 
-	for(i = 0; i<MAXROCKS; i++ ) {
-		if(rock[i].x <= 0) continue;
+	for(b=0; b<n_buckets; b++) {
+		for(r=rock_buckets[p][b]; r; r=r->next) {
+			if(r->x <= 0) continue;
 
-		// This makes it so your explosion from dying magically doesn't leave
-		// any rocks that aren't moving much on the x axis. If onlyslow is set,
-		// only rocks that are barely moving will be pushed.
-		if(onlyslow && (rock[i].dx-screendx < -4 || rock[i].dx-screendx > 3)) continue;
+			// This makes it so your explosion from dying magically doesn't leave
+			// any rocks that aren't moving much on the x axis. If onlyslow is set,
+			// only rocks that are barely moving will be pushed.
+			if(onlyslow && (r->dx - screendx < -4 || r->dx - screendx > 3)) continue;
 
-		dx = rock[i].x - x;
-		dy = rock[i].y - y;
+			dx = r->x - x;
+			dy = r->y - y;
 
-		n = sqrt(dx*dx + dy*dy);
-		if(n < radius) {
-			n *= 15;
-			rock[i].dx += 54.0*dx/n;
-			rock[i].dy += 54.0*dy/n;
+			n = sqrt(dx*dx + dy*dy);
+			if(n < radius) {
+				n *= 15;
+				r->dx += 54.0*dx/n;
+				r->dy += 54.0*dy/n;
+			}
 		}
 	}
 }
