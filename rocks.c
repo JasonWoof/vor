@@ -301,8 +301,18 @@ hit_rocks(float x, float y, struct shape *shape)
 	int bdx = ((int)x+shape->w)/grid_size - (int)x/grid_size;
 	int bdy = ((int)y+shape->h)/grid_size - (int)y/grid_size;
 	if(hit_in_bucket(b, x, y, shape)) return 1;
-	if(bdx && hit_in_bucket(b+1, x, y, shape)) return 1;
-	if(bdy && hit_in_bucket(b+bw, x, y, shape)) return 1;
+	if(hit_in_bucket(b-1, x, y, shape)) return 1;
+	if(hit_in_bucket(b-bw, x, y, shape)) return 1;
+	if(hit_in_bucket(b-bw-1, x, y, shape)) return 1;
+
+	if(bdx) {
+		if(hit_in_bucket(b+1, x, y, shape)) return 1;
+		if(hit_in_bucket(b+1-bw, x, y, shape)) return 1;
+	}
+	if(bdy) {
+		if(hit_in_bucket(b+bw, x, y, shape)) return 1;
+		if(hit_in_bucket(b+bw-1, x, y, shape)) return 1;
+	}
 	if(bdx && bdy && hit_in_bucket(b+bw+1, x, y, shape)) return 1;
 	return 0;
 }
