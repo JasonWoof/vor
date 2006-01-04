@@ -1,7 +1,7 @@
 #ifndef VOR_MT_H
 #define VOR_MT_H
 
-#include <stdint.h>
+#include <inttypes.h>
 
 void init_mt(uint32_t s);
 uint32_t urnd(void); // [0, 0xfffffff]

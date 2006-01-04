@@ -7,7 +7,7 @@ get_shape(SDL_Surface *img, struct shape *s)
 {
 	int x, y;
 	uint16_t *px, transp;
-	uint32_t bits, bit, *p;
+	uint32_t bits = 0, bit, *p;
 
 	if(img->format->BytesPerPixel != 2) {
 		fprintf(stderr, "get_shape(): not a 16-bit image!\n");

@@ -11,6 +11,8 @@
 #include "rocks.h"
 #include "shape.h"
 
+SDL_Surface *load_image(char *filename);
+
 struct rock_struct {
 	struct rock_struct *next;
 	float x,y,dx,dy;
@@ -22,7 +24,9 @@ struct rock_struct {
 struct rock_struct rocks[MAXROCKS], *free_rocks;
 
 struct rock_struct **rock_buckets[2];
-int n_buckets, p;
+int n_buckets;
+// we have two sets of buckets -- this variable tells which we are using.
+int p;
 int bw, bh;
 int grid_size;
 
@@ -37,12 +41,17 @@ float nrocks_timer;
 float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
 
 // constants for rock generation.
-#define KH (32.0*20)  // 32 s for a speed=1 rock to cross the screen horizontally.
-#define KV (24.0*20)  // 24 s for a speed=1 rock to cross the screen vertically.
+#define KH (32*20)  // 32 s for a speed=1 rock to cross the screen horizontally.
+#define KV (24*20)  // 24 s for a speed=1 rock to cross the screen vertically.
 #define RDX 2.5  // range for rock dx values (+/-)
 #define RDY 2.5  // range for rock dy values (+/-)
 
-static inline int bucket(int x, int y) { return (1+x/grid_size) + bw*(1+y/grid_size); }
+static inline struct rock_struct **
+bucket(int x, int y, int p)
+{
+	int b = (1+x/grid_size) + bw*(1+y/grid_size);
+	return &rock_buckets[p][b];
+}
 
 void
 init_buckets(void)
@@ -61,12 +70,11 @@ init_buckets(void)
 }
 
 void
-sort_rock(struct rock_struct *q, struct rock_struct *r, int p)
+transfer_rock(struct rock_struct *r, struct rock_struct **from, struct rock_struct **to)
 {
-	int b = bucket(r->x, r->y);
-	q->next = r->next;  // remove from old list
-	r->next = rock_buckets[p][b];  // insert into new list
-	rock_buckets[p][b] = r;
+	*from = r->next;
+	r->next = *to;
+	*to = r;
 }
 
 void
@@ -86,18 +94,18 @@ reset_rocks(void)
 	nrocks_timer = 0;
 }
 
+#define ROCK_LEN sizeof("sprites/rockXX.png")
+
 int
 init_rocks(void)
 {
 	int i;
-	char a[MAX_PATH_LEN];
-	SDL_Surface *temp;
+	char a[ROCK_LEN];
 	int maxw=0, maxh=0;
 
 	for(i = 0; i<NROCKS; i++) {
-		snprintf(a,MAX_PATH_LEN,add_path("sprites/rock%02d.png"),i);
-		NULLERROR(temp = IMG_Load(a));
-		NULLERROR(surf_rock[i] = SDL_DisplayFormat(temp));
+		snprintf(a, ROCK_LEN, "sprites/rock%02d.png", i);
+		NULLERROR(surf_rock[i] = load_image(a));
 		get_shape(surf_rock[i], &rock_shapes[i]);
 		maxw = max(maxw, rock_shapes[i].w);
 		maxh = max(maxh, rock_shapes[i].h);
@@ -237,7 +245,7 @@ new_rocks(void)
 					r->dy = weighted_rnd_range(rmin[i], rmax[i]) + screendy;
 					break;
 			}
-			sort_rock((struct rock_struct *)&free_rocks, r, p);
+			transfer_rock(r, &free_rocks, bucket(r->x, r->y, p));
 		}
 	}
 }
@@ -246,25 +254,26 @@ void
 move_rocks(void)
 {
 	int b;
-	struct rock_struct *q,*r;
+	struct rock_struct **head;
+	struct rock_struct *r;
 
 	// Move all the rocks
 	for(b=0; b<n_buckets; b++) {
-		q=(struct rock_struct *)&rock_buckets[p][b]; r=q->next;
-		while(r) {
+		head=&rock_buckets[p][b]; r=*head;
+		while(*head) {
+			r=*head;
+
 			// move
 			r->x += (r->dx - screendx)*t_frame;
 			r->y += (r->dy - screendy)*t_frame;
 
-			// clip
+			// clip or resort into other bucket set
+			// (either way we move it out of this list).
 			if(r->x + r->image->w < 0 || r->x >= XSIZE
 					|| r->y + r->image->h < 0 || r->y >= YSIZE) {
-				q->next = r->next;
-				r->next = free_rocks; free_rocks = r;
+				transfer_rock(r, head, &free_rocks);
 				r->image = NULL;
-			} else sort_rock(q,r,1-p);
-			if(q->next == r) q = q->next;
-			if(q) r = q->next; else r = NULL;
+			} else transfer_rock(r, head, bucket(r->x, r->y, 1-p));
 		}
 	}
 	p = 1-p;  // switch current set of buckets.
@@ -284,11 +293,9 @@ draw_rocks(void)
 }
 
 int
-hit_in_bucket(int b, float x, float y, struct shape *shape)
+hit_in_bucket(struct rock_struct *r, float x, float y, struct shape *shape)
 {
-	struct rock_struct *r;
-
-	for(r=rock_buckets[p][b]; r; r=r->next) {
+	for(; r; r=r->next) {
 		if(collide(x - r->x, y - r->y, r->shape, shape)) return 1;
 	}
 	return 0;
@@ -297,31 +304,30 @@ hit_in_bucket(int b, float x, float y, struct shape *shape)
 int
 hit_rocks(float x, float y, struct shape *shape)
 {
-	int b = bucket(x, y);
+	struct rock_struct **b = bucket(x, y, p);
 	int bdx = ((int)x+shape->w)/grid_size - (int)x/grid_size;
 	int bdy = ((int)y+shape->h)/grid_size - (int)y/grid_size;
-	if(hit_in_bucket(b, x, y, shape)) return 1;
-	if(hit_in_bucket(b-1, x, y, shape)) return 1;
-	if(hit_in_bucket(b-bw, x, y, shape)) return 1;
-	if(hit_in_bucket(b-bw-1, x, y, shape)) return 1;
+	if(hit_in_bucket(*b, x, y, shape)) return 1;
+	if(hit_in_bucket(*(b-1), x, y, shape)) return 1;
+	if(hit_in_bucket(*(b-bw), x, y, shape)) return 1;
+	if(hit_in_bucket(*(b-bw-1), x, y, shape)) return 1;
 
 	if(bdx) {
-		if(hit_in_bucket(b+1, x, y, shape)) return 1;
-		if(hit_in_bucket(b+1-bw, x, y, shape)) return 1;
+		if(hit_in_bucket(*(b+1), x, y, shape)) return 1;
+		if(hit_in_bucket(*(b+1-bw), x, y, shape)) return 1;
 	}
 	if(bdy) {
-		if(hit_in_bucket(b+bw, x, y, shape)) return 1;
-		if(hit_in_bucket(b+bw-1, x, y, shape)) return 1;
+		if(hit_in_bucket(*(b+bw), x, y, shape)) return 1;
+		if(hit_in_bucket(*(b+bw-1), x, y, shape)) return 1;
 	}
-	if(bdx && bdy && hit_in_bucket(b+bw+1, x, y, shape)) return 1;
+	if(bdx && bdy && hit_in_bucket(*(b+bw+1), x, y, shape)) return 1;
 	return 0;
 }
 
 int
-pixel_hit_in_bucket(int b, float x, float y)
+pixel_hit_in_bucket(struct rock_struct *r, float x, float y)
 {
-	struct rock_struct *r;
-	for(r=rock_buckets[p][b]; r; r=r->next) {
+	for(; r; r=r->next) {
 		if(x < r->x || y < r->y) continue;
 		if(pixel_collide(x - r->x, y - r->y, r->shape)) return 1;
 	}
@@ -331,11 +337,11 @@ pixel_hit_in_bucket(int b, float x, float y)
 int
 pixel_hit_rocks(float x, float y)
 {
-	int b = bucket(x, y);
-	if(pixel_hit_in_bucket(b, x, y)) return 1;
-	if(pixel_hit_in_bucket(b-1, x, y)) return 1;
-	if(pixel_hit_in_bucket(b-bw, x, y)) return 1;
-	if(pixel_hit_in_bucket(b-bw-1, x, y)) return 1;
+	struct rock_struct **b = bucket(x, y, p);
+	if(pixel_hit_in_bucket(*b, x, y)) return 1;
+	if(pixel_hit_in_bucket(*(b-1), x, y)) return 1;
+	if(pixel_hit_in_bucket(*(b-bw), x, y)) return 1;
+	if(pixel_hit_in_bucket(*(b-bw-1), x, y)) return 1;
 	return 0;
 }
 

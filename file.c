@@ -32,11 +32,26 @@ char *g_score_file;
 mode_t g_score_mask;
 
 char *
-add_path(char *filename)
+add_path(char *path, char *file)
 {
-	static char r[MAX_PATH_LEN];
-	snprintf(r, MAX_PATH_LEN, "%s/%s", g_data_dir, filename);
-	return r;
+	char *s;
+	size_t plen, flen;
+
+	if(!path || !file) return NULL;
+	plen = strlen(path);
+	flen = strlen(file);
+	s = malloc(2+plen+flen);
+	if(!s) return NULL;
+	memcpy(s, path, plen);
+	s[plen] = '/';
+	memcpy(s+plen+1, file, flen+1);
+	return s;
+}
+
+char *
+add_data_path(char *filename)
+{
+	return add_path(g_data_dir, filename);
 }
 
 int
@@ -81,13 +96,18 @@ find_data_dir(void)
 int
 find_score_file(void)
 {
-	g_score_file = malloc(MAX_PATH_LEN);
-	snprintf(g_score_file, MAX_PATH_LEN,
-			"%s/.vor-scores", getenv("HOME"));
-	g_score_mask = 0177;
-	if(is_file(g_score_file)) return true;
+	char *dir, *s;
+	
+	/* in case we get called twice */
+	if(g_score_file) return true;
 
-	return false;
+	dir = getenv("HOME"); if(!dir) return false;
+	s = add_path(dir, ".vor-scores");
+	if(s) {
+		g_score_file = s;
+		g_score_mask = 0177;
+		return is_file(s);
+	} else return false;
 }
 
 int
@@ -103,13 +123,12 @@ FILE *
 open_score_file(char *mode)
 {
 	mode_t old_mask;
-	FILE *f = NULL;
+	FILE *f;
 
-	if(!g_score_file) return f;
+	if(!g_score_file) return NULL;
 
 	old_mask = umask(g_score_mask);
 	f = fopen(g_score_file, mode);
-
 	umask(old_mask);
 	return f;
 }

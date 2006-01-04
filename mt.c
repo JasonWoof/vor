@@ -1,6 +1,9 @@
 /* mt.c - A C program for MT199937, with initialization improved 2002-02-10.
 
    -----
+   2006-01-14 - Switched include from stdint.h to inttypes.h,
+   fixed a warning from gcc -Wall.  --Josh
+   -----
    2003-07-01 - Stripped out stuff I didn't need, converted to
    stdint.h types, changed source formatting a bit.  --Josh
    -----
@@ -125,11 +128,11 @@ urnd(void)
 float
 frnd(void)
 {
-	return urnd()/(float)0x100000000UL;
+	return urnd()/(1.0 + UINT32_MAX);
 }
 
 float
 crnd(void)
 {
-	return (urnd()-0x80000000)/(float)0x100000000UL;
+	return (urnd()-INT32_MIN)/(1.0 + UINT32_MAX);
 }

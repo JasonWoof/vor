@@ -298,11 +298,27 @@ drawdots(SDL_Surface *s) {
 	SDL_UnlockSurface(s);
 }
 
+SDL_Surface *
+load_image(char *filename)
+{
+	SDL_Surface *tmp, *img = NULL;
+	char *s = add_data_path(filename);
+	if(s) {
+		tmp = IMG_Load(s);
+		free(s);
+		if(tmp) {
+			img = SDL_DisplayFormat(tmp);
+			SDL_FreeSurface(tmp);
+		}
+	}
+	return img;
+}
+
 int
 init(void) {
 
 	int i;
-	SDL_Surface *temp;
+	char *s;
 	Uint32 flag;
 
 	// Where are our data files?
@@ -347,32 +363,27 @@ init(void) {
 	}
 
 	// Load the banners
-	NULLERROR(temp = IMG_Load(add_path("banners/variations.png")));
-	NULLERROR(surf_b_variations = SDL_DisplayFormat(temp));
+	NULLERROR(surf_b_variations = load_image("banners/variations.png"));
+	NULLERROR(surf_b_on = load_image("banners/on.png"));
+	NULLERROR(surf_b_rockdodger = load_image("banners/rockdodger.png"));
 
-	NULLERROR(temp = IMG_Load(add_path("banners/on.png")));
-	NULLERROR(surf_b_on = SDL_DisplayFormat(temp));
-
-	NULLERROR(temp = IMG_Load(add_path("banners/rockdodger.png")));
-	NULLERROR(surf_b_rockdodger = SDL_DisplayFormat(temp));
-
-	NULLERROR(temp = IMG_Load(add_path("banners/game.png")));
-	NULLERROR(surf_b_game = SDL_DisplayFormat(temp));
-
-	NULLERROR(temp = IMG_Load(add_path("banners/over.png")));
-	NULLERROR(surf_b_over = SDL_DisplayFormat(temp));
-
-	surf_font_big = IMG_Load(add_path(BIG_FONT_FILE));
-	g_font = SFont_InitFont(surf_font_big);
+	NULLERROR(surf_b_game = load_image("banners/game.png"));
+	NULLERROR(surf_b_over = load_image("banners/over.png"));
 
 	// Load the spaceship graphic.
-	NULLERROR(temp = IMG_Load(add_path("sprites/ship.png")));
-	NULLERROR(surf_ship = SDL_DisplayFormat(temp));
+	NULLERROR(surf_ship = load_image("sprites/ship.png"));
 	get_shape(surf_ship, &shipshape);
 
 	// Load the life indicator (small ship) graphic.
-	NULLERROR(temp = IMG_Load(add_path("indicators/life.png")));
-	NULLERROR(surf_life = SDL_DisplayFormat(temp));
+	NULLERROR(surf_life = load_image("indicators/life.png"));
+
+	// Load the font image
+	s = add_data_path(BIG_FONT_FILE);
+	if(s) {
+		NULLERROR(surf_font_big = IMG_Load(s));
+		free(s);
+		g_font = SFont_InitFont(surf_font_big);
+	}
 
 	init_engine_dots();
 	init_dust();
@@ -528,7 +539,7 @@ draw() {
 
 int
 gameloop() {
-	Uint8 *keystate;
+	Uint8 *keystate = SDL_GetKeyState(NULL);
 	float tmp;
 
 

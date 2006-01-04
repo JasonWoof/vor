@@ -18,7 +18,7 @@ int audio_rate;
 Uint16 audio_format;
 int audio_channels;
 
-char *add_path(char *);
+char *add_data_path(char *);
 char *wav_file[] = {
 	"sounds/booom.wav",
 	"sounds/cboom.wav",
@@ -32,11 +32,11 @@ char *tune_file[] = {
 	"music/4est_fulla3s.mod"
 };
 
+// Return 1 if the sound is ready to roll, and 0 if not.
 int
 init_sound() {
-	// Return 1 if the sound is ready to roll, and 0 if not.
-
 	int i;
+	char *s;
 
 	// Initialise output with SDL_mixer
 	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, AUDIO_S16, MIX_DEFAULT_CHANNELS, 4096) < 0) {
@@ -46,14 +46,21 @@ init_sound() {
 
 	// Preload all the tunes into memory
 	for (i=0; i<NUM_TUNES; i++) {
-		if (!(music[i] = Mix_LoadMUS(add_path(tune_file[i])))) {
-			printf ("Failed to load %s\n",add_path(tune_file[i]));
+		s = add_data_path(tune_file[i]);
+		if(s) {
+			music[i] = Mix_LoadMUS(s);
+			if(!music[i]) printf("Failed to load %s.\n", s);
+			free(s);
 		}
 	}
 
 	// Preload all the wav files into memory
 	for (i=0; i<NUM_SOUNDS; i++) {
-		wav[i] = Mix_LoadWAV(add_path(wav_file[i]));
+		s = add_data_path(wav_file[i]);
+		if(s) {
+			wav[i] = Mix_LoadWAV(s);
+			free(s);
+		}
 	}
 
 	return 1;
