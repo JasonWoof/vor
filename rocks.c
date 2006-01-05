@@ -49,7 +49,7 @@ float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
 static inline struct rock_struct **
 bucket(int x, int y, int p)
 {
-	int b = (1+x/grid_size) + bw*(1+y/grid_size);
+	int b = (x+grid_size)/grid_size + bw*((y+grid_size)/grid_size);
 	return &rock_buckets[p][b];
 }
 
@@ -269,7 +269,7 @@ move_rocks(void)
 			r->x += (r->dx - screendx)*t_frame;
 			r->y += (r->dy - screendy)*t_frame;
 
-			// clip or resort into other bucket set
+			// clip it, or sort it into the other bucket set
 			// (either way we move it out of this list).
 			if(r->x + r->image->w < 0 || r->x >= XSIZE
 					|| r->y + r->image->h < 0 || r->y >= YSIZE) {
@@ -306,24 +306,30 @@ hit_in_bucket(struct rock_struct *r, float x, float y, struct shape *shape)
 int
 hit_rocks(float x, float y, struct shape *shape)
 {
-	struct rock_struct **b = bucket(x, y, p);
-	int bdx = ((int)x+shape->w)/grid_size - (int)x/grid_size;
-	int bdy = ((int)y+shape->h)/grid_size - (int)y/grid_size;
-	if(hit_in_bucket(*b, x, y, shape)) return 1;
-	if(hit_in_bucket(*(b-1), x, y, shape)) return 1;
-	if(hit_in_bucket(*(b-bw), x, y, shape)) return 1;
-	if(hit_in_bucket(*(b-bw-1), x, y, shape)) return 1;
+	int ix, iy;
+	int l, r, t, b;
+	struct rock_struct **bucket;
 
-	if(bdx) {
-		if(hit_in_bucket(*(b+1), x, y, shape)) return 1;
-		if(hit_in_bucket(*(b+1-bw), x, y, shape)) return 1;
+	ix = x + grid_size; iy = y + grid_size;
+	l = ix / grid_size; r = (ix+shape->w)/grid_size;
+	t = iy / grid_size; b = (iy+shape->h)/grid_size;
+	bucket = &rock_buckets[p][l + t*bw];
+
+	if(hit_in_bucket(*bucket, x, y, shape)) return true;
+	if(l && hit_in_bucket(*(bucket-1), x, y, shape)) return true;
+	if(r && hit_in_bucket(*(bucket-bw), x, y, shape)) return true;
+	if(l && r && hit_in_bucket(*(bucket-(1+bw)), x, y, shape)) return true;
+
+	if(r > l) {
+		if(hit_in_bucket(*(bucket+1), x, y, shape)) return true;
+		if(hit_in_bucket(*(bucket+1-bw), x, y, shape)) return true;
 	}
-	if(bdy) {
-		if(hit_in_bucket(*(b+bw), x, y, shape)) return 1;
-		if(hit_in_bucket(*(b+bw-1), x, y, shape)) return 1;
+	if(t > b) {
+		if(hit_in_bucket(*(bucket+bw), x, y, shape)) return true;
+		if(hit_in_bucket(*(bucket+bw-1), x, y, shape)) return true;
 	}
-	if(bdx && bdy && hit_in_bucket(*(b+bw+1), x, y, shape)) return 1;
-	return 0;
+	if(r > l && t > b && hit_in_bucket(*(bucket+bw+1), x, y, shape)) return true;
+	return false;
 }
 
 int
