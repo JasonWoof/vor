@@ -316,19 +316,19 @@ hit_rocks(float x, float y, struct shape *shape)
 	bucket = &rock_buckets[p][l + t*bw];
 
 	if(hit_in_bucket(*bucket, x, y, shape)) return true;
-	if(l && hit_in_bucket(*(bucket-1), x, y, shape)) return true;
-	if(t && hit_in_bucket(*(bucket-bw), x, y, shape)) return true;
-	if(l && t && hit_in_bucket(*(bucket-(1+bw)), x, y, shape)) return true;
+	if(l > 0 && hit_in_bucket(*(bucket-1), x, y, shape)) return true;
+	if(t > 0 && hit_in_bucket(*(bucket-bw), x, y, shape)) return true;
+	if(l > 0 && t > 0 && hit_in_bucket(*(bucket-1-bw), x, y, shape)) return true;
 
 	if(r > l) {
 		if(hit_in_bucket(*(bucket+1), x, y, shape)) return true;
-		if(hit_in_bucket(*(bucket+1-bw), x, y, shape)) return true;
+		if(t > 0 && hit_in_bucket(*(bucket+1-bw), x, y, shape)) return true;
 	}
-	if(t > b) {
+	if(b > t) {
 		if(hit_in_bucket(*(bucket+bw), x, y, shape)) return true;
-		if(hit_in_bucket(*(bucket+bw-1), x, y, shape)) return true;
+		if(l > 0 && hit_in_bucket(*(bucket-1+bw), x, y, shape)) return true;
 	}
-	if(r > l && t > b && hit_in_bucket(*(bucket+bw+1), x, y, shape)) return true;
+	if(r > l && b > t && hit_in_bucket(*(bucket+1+bw), x, y, shape)) return true;
 	return false;
 }
 
@@ -353,9 +353,9 @@ pixel_hit_rocks(float x, float y)
 	l = ix / grid_size; t = iy / grid_size;
 	bucket = &rock_buckets[p][l + t*bw];
 	if(pixel_hit_in_bucket(*bucket, x, y)) return true;
-	if(l && pixel_hit_in_bucket(*(bucket-1), x, y)) return true;
-	if(t && pixel_hit_in_bucket(*(bucket-bw), x, y)) return true;
-	if(l && t && pixel_hit_in_bucket(*(bucket-(bw+1)), x, y)) return true;
+	if(l > 0 && pixel_hit_in_bucket(*(bucket-1), x, y)) return true;
+	if(t > 0 && pixel_hit_in_bucket(*(bucket-bw), x, y)) return true;
+	if(l > 0 && t > 0 && pixel_hit_in_bucket(*(bucket-1-bw), x, y)) return true;
 	return false;
 }
 
