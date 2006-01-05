@@ -56,8 +56,10 @@ bucket(int x, int y, int p)
 void
 init_buckets(void)
 {
-	bw = (XSIZE+2*grid_size-1) / grid_size;
-	bh = (YSIZE+2*grid_size-1) / grid_size;
+	int scr_grid_w = (XSIZE+2*grid_size-1) / grid_size;
+	int scr_grid_h = (YSIZE+2*grid_size-1) / grid_size;
+	bw = 1 + scr_grid_w + 1;
+	bh = 1 + scr_grid_h + 1;
 	n_buckets = bw * bh;
 	
 	rock_buckets[0] = malloc(n_buckets * sizeof(struct rock_struct *));
