@@ -329,7 +329,7 @@ init(void) {
 		// Initialize SDL with audio and video
 		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
 			opt_sound = 0;
-			printf ("Can't open sound, starting without it\n");
+			fputs("Can't open sound, starting without it\n", stderr);
 			atexit(SDL_Quit);
 		} else {
 			atexit(SDL_Quit);
@@ -600,14 +600,10 @@ gameloop() {
 
 			new_rocks();
 
-			// INERTIA
-			shipx += shipdx*t_frame;
-			shipy += shipdy*t_frame;
-
 			// SCROLLING
-			tmp = (shipy-YSCROLLTO)/25 + (shipdy-screendy);
+			tmp = (shipy+shipdy*t_frame-YSCROLLTO)/25 + (shipdy-screendy);
 			screendy += tmp * t_frame/12;
-			tmp = (shipx-XSCROLLTO)/25 + (shipdx-screendx);
+			tmp = (shipx+shipdx*t_frame-XSCROLLTO)/25 + (shipdx-screendx);
 			screendx += tmp * t_frame/12;
 			// taper off so we don't hit the barrier abruptly.
 			// (if we would hit in < 2 seconds, adjust to 2 seconds).
@@ -621,8 +617,8 @@ gameloop() {
 			xscroll = screendx * t_frame;
 			yscroll = screendy * t_frame;
 
-			shipx -= xscroll;
-			shipy -= yscroll;
+			shipx += shipdx*t_frame - xscroll;
+			shipy += shipdy*t_frame - yscroll;
 
 			// move bang center
 			bangx += bangdx*t_frame - xscroll;

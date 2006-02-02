@@ -19,7 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
+#ifndef WIN32
+# include <sys/stat.h>
+#endif
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -43,7 +45,7 @@ add_path(char *path, char *file)
 	s = malloc(2+plen+flen);
 	if(!s) return NULL;
 	memcpy(s, path, plen);
-	s[plen] = '/';
+	s[plen] = PATH_SEPARATOR;
 	memcpy(s+plen+1, file, flen+1);
 	return s;
 }
@@ -54,7 +56,29 @@ add_data_path(char *filename)
 	return add_path(g_data_dir, filename);
 }
 
-int
+#ifdef WIN32
+
+bool
+is_dir(char *dirname)
+{
+	WIN32_FILE_ATTRIBUTE_DATA buf;
+	if(!GetFileAttributesEx(dirname, GetFileExInfoStandard, &buf))
+		return false;
+	return buf.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+}
+
+bool
+is_file(char *filename)
+{
+	WIN32_FILE_ATTRIBUTE_DATA buf;
+	if(!GetFileAttributesEx(filename, GetFileExInfoStandard, &buf))
+		return false;
+	return buf.dwFileAttributes & FILE_ATTRIBUTE_NORMAL;
+}
+
+#else /* !WIN32 */
+
+bool
 is_dir(char *dirname)
 {
 	struct stat buf;
@@ -62,7 +86,7 @@ is_dir(char *dirname)
 	return S_ISDIR(buf.st_mode);
 }
 
-int
+bool
 is_file(char *filename)
 {
 	struct stat buf;
@@ -70,13 +94,15 @@ is_file(char *filename)
 	return S_ISREG(buf.st_mode);
 }
 
-int
+#endif /* !WIN32 */
+
+bool
 find_data_dir(void)
 {
 	int i;
 	char *data_options[3] = {
-		"./data",
 		getenv("VOR_DATA"),
+		"data",
 		DATA_PREFIX
 	};
 
@@ -93,7 +119,7 @@ find_data_dir(void)
 	return false;
 }
 
-int
+bool
 find_score_file(void)
 {
 	char *dir, *s;
@@ -110,13 +136,10 @@ find_score_file(void)
 	} else return false;
 }
 
-int
+bool
 find_files(void)
 {
-	int r;
-	r = find_data_dir();
-	find_score_file();
-	return r;
+	return find_data_dir() && find_score_file();
 }
 
 FILE *

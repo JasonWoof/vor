@@ -28,4 +28,3 @@ INSTALLING
 	before building. If you change these settings in the Makefile after
 	building, you'll have to "make clean" and build again before
 	installing.
-
