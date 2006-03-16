@@ -105,7 +105,7 @@ float state_timeout = 600.0;
 #define NSEQUENCE 2
 char *sequence[] = {
 	"Press SPACE to start",
-	"http://herkamire.com/jason/vor"
+	"http://jasonwoof.org/vor"
 };
 
 int bangdotlife, nbangdots;

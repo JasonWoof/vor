@@ -36,6 +36,10 @@
 
 // radius^2 (pixels) which will be cleared of rocks when you die
 #define BLAST_RADIUS 300
+
+// time (in 1/60ths of a seccond) between when you blow up, and when your next
+// ship appears. Make it at least 20.0 so the explosion has time to push the
+// rocks away.
 #define DEAD_PAUSE_LENGTH 40.0
 
 #define MAX_PATH_LEN 1024
