@@ -63,7 +63,25 @@ program: vor
 
 $(my_objects): config.h
 
-main.o file.o: file.h
+SFont.o: SFont.h
+
+args.o: args.h
+
+dust.o: globals.h dust.h mt.h
+
+file.o: file.h common.h
+
+main.o: args.h common.h dust.h file.h globals.h mt.h rocks.h score.h sprite.h sound.h
+
+mt.o: mt.h
+
+rocks.o: rocks.h common.h file.h globals.h mt.h
+
+score.o: score.h common.h file.h
+
+sound.o: sound.h args.h common.h
+
+sprite.o: sprite.h common.h
 
 vor: $(objects)
 	@echo linking $@ from $^

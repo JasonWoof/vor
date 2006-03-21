@@ -1,8 +1,6 @@
 #ifndef VOR_DUST_H
 #define VOR_DUST_H
 
-#include <stdint.h>
-
 /*
  * Dust motes are harmless background items.  They are created when the
  * program is initialized, and are simply wrapped whenever they hit the

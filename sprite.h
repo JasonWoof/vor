@@ -1,8 +1,10 @@
 #ifndef VOR_SHAPE_H
 #define VOR_SHAPE_H
 
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include <inttypes.h>
+
+typedef union sprite Sprite;
 
 
 // Shape stuff
@@ -15,14 +17,12 @@ struct shape {
 };
 
 void get_shape(SDL_Surface *img, struct shape *s);
-int collide(int xdiff, int ydiff, struct shape *r, struct shape *s);
-int pixel_collide(unsigned int xoff, unsigned int yoff, struct shape *r);
+int collide(Sprite *r, Sprite *s);
+int pixel_collide(unsigned int xdiff, unsigned int ydiff, struct shape *r);
 
 
 
 // Sprite stuff
-
-typedef union sprite Sprite;
 
 #define SPRITE(x) ((Sprite *) (x))
 
@@ -70,5 +70,8 @@ union sprite {
 #define BASE_SPRITE 0
 #define SHIP_SPRITE 1
 #define ROCK_SPRITE 2
+
+SDL_Surface *load_image(char *filename);
+void load_sprite(Sprite *sprite, char *filename);
 
 #endif // VOR_SHAPE_H

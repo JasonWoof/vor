@@ -18,7 +18,6 @@
 
 #include <SDL.h>
 #include <SDL_keysym.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

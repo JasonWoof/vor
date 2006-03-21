@@ -21,8 +21,8 @@
 
 #include <argp.h>
 #include <math.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -368,13 +368,7 @@ init(void) {
 	NULLERROR(surf_b_over = load_image("banners/over.png"));
 
 	// Load the spaceship graphic.
-	ship.shape = malloc(sizeof(struct shape));
-	if(!ship.shape) {
-		fprintf(stderr, "can't allocate ship shape.\n");
-		exit(1);
-	}
-	NULLERROR(ship.image = load_image("sprites/ship.png"));
-	get_shape(ship.image, ship.shape);
+	load_sprite(SPRITE(&ship), "sprites/ship.png");
 
 	// Load the life indicator (small ship) graphic.
 	NULLERROR(surf_life = load_image("indicators/life.png"));
@@ -517,7 +511,7 @@ draw() {
 	}
 
 	if(state == GAMEPLAY) {
-		bang = hit_rocks(ship.x, ship.y, ship.shape);
+		bang = hit_rocks(SPRITE(&ship));
 	}
 
 	ms_frame = SDL_GetTicks() - ms_end;

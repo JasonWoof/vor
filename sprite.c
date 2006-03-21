@@ -3,6 +3,22 @@
 #include "sprite.h"
 
 void
+load_sprite(Sprite *sprite, char *filename)
+{
+	struct base_sprite *spr = &sprite->sprite;
+	spr->image = load_image(filename);
+	if(!spr->image) return;
+	if(!spr->shape) {
+		spr->shape = malloc(sizeof(struct shape));
+		if(!spr->shape) {
+			fprintf(stderr, "load_sprite(): can't allocate shape structure.\n");
+			exit(1);
+		}
+		get_shape(spr->image, spr->shape);
+	}
+}
+
+void
 get_shape(SDL_Surface *img, struct shape *s)
 {
 	int x, y;
@@ -19,7 +35,7 @@ get_shape(SDL_Surface *img, struct shape *s)
 	s->mw = ((img->w+31)>>5);
 	s->mask = malloc(4*s->mw*s->h);
 	if(!s->mask) {
-		fprintf(stderr, "can't malloc bitmask");
+		fprintf(stderr, "get_shape(): can't allocate bitmask.\n");
 		exit(1);
 	}
 
@@ -40,7 +56,7 @@ get_shape(SDL_Surface *img, struct shape *s)
 	SDL_UnlockSurface(img);
 }
 
-int
+static int
 line_collide(int xov, struct shape *r, uint32_t *rbits, struct shape *s, uint32_t *sbits)
 {
 	int lshift, n, i, ret = 0;
@@ -70,7 +86,7 @@ line_collide(int xov, struct shape *r, uint32_t *rbits, struct shape *s, uint32_
 	return ret;
 }
 
-int
+static int
 mask_collide(int xov, int yov, struct shape *r, struct shape *s)
 {
 	int y, ry, sy;
@@ -95,18 +111,22 @@ mask_collide(int xov, int yov, struct shape *r, struct shape *s)
 }
 
 int
-collide(int xdiff, int ydiff, struct shape *r, struct shape *s)
+collide(Sprite *r, Sprite *s)
 {
+	struct shape *rs = r->sprite.shape;
+	struct shape *ss = s->sprite.shape;
+	int dx = s->sprite.x - r->sprite.x;
+	int dy = s->sprite.y - r->sprite.y;
 	int xov, yov;
 
-	if(xdiff >= 0) xov = max(min(r->w-xdiff, s->w), 0);
-	else xov = min(-min(s->w+xdiff, r->w), 0);
+	if(dx >= 0) xov = max(min(rs->w - dx, ss->w), 0);
+	else xov = -max(min(ss->w + dx, rs->w), 0);
 
-	if(ydiff >= 0) yov = max(min(r->h-ydiff, s->h), 0);
-	else yov = min(-min(s->h+ydiff, r->h), 0);
+	if(dy >= 0) yov = max(min(rs->h - dy, ss->h), 0);
+	else yov = -max(min(ss->h + dy, rs->h), 0);
 
-	if(xov == 0 || yov == 0) return 0;  // bboxes hit?
-	else return mask_collide(xov, yov, r, s);
+	if(xov == 0 || yov == 0) return false;
+	else return mask_collide(xov, yov, rs, ss);
 }
 
 int

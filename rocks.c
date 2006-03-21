@@ -10,8 +10,6 @@
 #include "mt.h"
 #include "rocks.h"
 
-SDL_Surface *load_image(char *filename);
-
 struct rock rocks[MAXROCKS], *free_rocks;
 
 struct rock **rock_buckets[2];
@@ -286,40 +284,41 @@ draw_rocks(void)
 }
 
 int
-hit_in_bucket(struct rock *r, float x, float y, struct shape *shape)
+hit_in_bucket(struct rock *r, Sprite *s)
 {
 	for(; r; r=&r->next->rock) {
-		if(collide(x - r->x, y - r->y, r->shape, shape)) return 1;
+		if(collide(SPRITE(r), s)) return true;
 	}
-	return 0;
+	return false;
 }
 
 int
-hit_rocks(float x, float y, struct shape *shape)
+hit_rocks(Sprite *s)
 {
-	int ix, iy;
+	struct base_sprite *sp = &s->sprite;
 	int l, r, t, b;
 	struct rock **bucket;
 
-	ix = x + grid_size; iy = y + grid_size;
-	l = ix / grid_size; r = (ix+shape->w)/grid_size;
-	t = iy / grid_size; b = (iy+shape->h)/grid_size;
+	l = (sp->x + grid_size) / grid_size;
+	r = (sp->x + sp->shape->w + grid_size) / grid_size;
+	t = (sp->y + grid_size) / grid_size;
+	b = (sp->y + sp->shape->h + grid_size) / grid_size;
 	bucket = &rock_buckets[p][l + t*bw];
 
-	if(hit_in_bucket(*bucket, x, y, shape)) return true;
-	if(l > 0 && hit_in_bucket(*(bucket-1), x, y, shape)) return true;
-	if(t > 0 && hit_in_bucket(*(bucket-bw), x, y, shape)) return true;
-	if(l > 0 && t > 0 && hit_in_bucket(*(bucket-1-bw), x, y, shape)) return true;
+	if(hit_in_bucket(*bucket, s)) return true;
+	if(l > 0 && hit_in_bucket(*(bucket-1), s)) return true;
+	if(t > 0 && hit_in_bucket(*(bucket-bw), s)) return true;
+	if(l > 0 && t > 0 && hit_in_bucket(*(bucket-1-bw), s)) return true;
 
 	if(r > l) {
-		if(hit_in_bucket(*(bucket+1), x, y, shape)) return true;
-		if(t > 0 && hit_in_bucket(*(bucket+1-bw), x, y, shape)) return true;
+		if(hit_in_bucket(*(bucket+1), s)) return true;
+		if(t > 0 && hit_in_bucket(*(bucket+1-bw), s)) return true;
 	}
 	if(b > t) {
-		if(hit_in_bucket(*(bucket+bw), x, y, shape)) return true;
-		if(l > 0 && hit_in_bucket(*(bucket-1+bw), x, y, shape)) return true;
+		if(hit_in_bucket(*(bucket+bw), s)) return true;
+		if(l > 0 && hit_in_bucket(*(bucket-1+bw), s)) return true;
 	}
-	if(r > l && b > t && hit_in_bucket(*(bucket+1+bw), x, y, shape)) return true;
+	if(r > l && b > t && hit_in_bucket(*(bucket+1+bw), s)) return true;
 	return false;
 }
 

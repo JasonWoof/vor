@@ -20,7 +20,7 @@
 #define VOR_SCORE_H
 
 #include <SDL.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 #define N_SCORES 8
