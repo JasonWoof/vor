@@ -51,7 +51,6 @@ SDL_Surface
 	*surf_b_rockdodger, // "rockdodger" banner
 	*surf_b_game,	// Title element "game"
 	*surf_b_over,	// Title element "over"
-	*surf_ship,		// Spaceship element
 	*surf_life,	// Indicator of number of ships remaining
 	*surf_rock[NROCKS],	// THE ROCKS
 	*surf_font_big;	// The big font
@@ -67,9 +66,8 @@ struct bangdots bdot[MAXBANGDOTS], *bdotptr = bdot;
 char topline[1024];
 char *initerror = "";
 
-struct shape shipshape;
-float shipx = XSIZE/2, shipy = YSIZE/2;	// X position, 0..XSIZE
-float shipdx = SCREENDXMIN, shipdy = 0.0;	// Change in X position per tick.
+struct ship ship = { SHIP_SPRITE, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
+	  
 float screendx = SCREENDXMIN, screendy = 0.0;
 float xscroll, yscroll;
 float back_dist;
@@ -81,8 +79,7 @@ int ms_end;     // end of this frame (milliseconds)
 
 float bangx, bangy, bangdx, bangdy;
 
-int nships,score;
-int jets = 0;
+int score;
 
 float fadetimer = 0, faderate;
 
@@ -223,8 +220,8 @@ new_engine_dots(int n, int dir) {
 	float hx, hy; // half ship width/height.
 	static const int s[4] = { 2, 1, 0, 1 };
 
-	hx = surf_ship->w / 2;
-	hy = surf_ship->h / 2;
+	hx = ship.image->w / 2;
+	hy = ship.image->h / 2;
 
 	for(i = 0; i<n; i++) {
 		if(dotptr->active == 0) {
@@ -234,15 +231,15 @@ new_engine_dots(int n, int dir) {
 			dy = r * -sin(a);  // screen y is "backwards".
 
 			dotptr->active = 1;
-			dotptr->x = shipx + s[dir]*hx + (frnd()-0.5)*3;
-			dotptr->y = shipy + s[(dir+1)&3]*hy + (frnd()-0.5)*3;
+			dotptr->x = ship.x + s[dir]*hx + (frnd()-0.5)*3;
+			dotptr->y = ship.y + s[(dir+1)&3]*hy + (frnd()-0.5)*3;
 			if(dir&1) {
-				dotptr->dx = shipdx + 2*dx;
-				dotptr->dy = shipdy + 20*dy;
+				dotptr->dx = ship.dx + 2*dx;
+				dotptr->dy = ship.dy + 20*dy;
 				dotptr->life = 60 * fabs(dy);
 			} else {
-				dotptr->dx = shipdx + 20*dx;
-				dotptr->dy = shipdy + 2*dy;
+				dotptr->dx = ship.dx + 20*dx;
+				dotptr->dy = ship.dy + 2*dy;
 				dotptr->life = 60 * fabs(dx);
 			}
 
@@ -284,7 +281,7 @@ drawdots(SDL_Surface *s) {
 
 	// Create engine dots out the side we're moving from
 	for(m = 0; m<4; m++) {
-		if(jets & 1<<m) { // 'jets' is a bit field
+		if(ship.jets & 1<<m) { // 'jets' is a bit field
 			new_engine_dots(80,m);
 		}
 	}
@@ -371,8 +368,13 @@ init(void) {
 	NULLERROR(surf_b_over = load_image("banners/over.png"));
 
 	// Load the spaceship graphic.
-	NULLERROR(surf_ship = load_image("sprites/ship.png"));
-	get_shape(surf_ship, &shipshape);
+	ship.shape = malloc(sizeof(struct shape));
+	if(!ship.shape) {
+		fprintf(stderr, "can't allocate ship shape.\n");
+		exit(1);
+	}
+	NULLERROR(ship.image = load_image("sprites/ship.png"));
+	get_shape(ship.image, ship.shape);
 
 	// Load the life indicator (small ship) graphic.
 	NULLERROR(surf_life = load_image("indicators/life.png"));
@@ -416,16 +418,16 @@ draw() {
 
 	// Draw ship
 	if(state == GAMEPLAY ) {
-		dest.x = shipx;
-		dest.y = shipy;
-		SDL_BlitSurface(surf_ship,NULL,surf_screen,&dest);
+		dest.x = ship.x;
+		dest.y = ship.y;
+		SDL_BlitSurface(ship.image,NULL,surf_screen,&dest);
 	}
 
 	draw_rocks();
 
 	// Draw the life indicators.
 	if(state == GAMEPLAY || state == DEAD_PAUSE || state == GAME_OVER) {
-		for(i = 0; i<nships-1; i++) {
+		for(i = 0; i<ship.lives-1; i++) {
 			dest.x = (i + 1)*(surf_life->w + 10);
 			dest.y = 20;
 			SDL_BlitSurface(surf_life, NULL, surf_screen, &dest);
@@ -515,7 +517,7 @@ draw() {
 	}
 
 	if(state == GAMEPLAY) {
-		bang = hit_rocks(shipx, shipy, &shipshape);
+		bang = hit_rocks(ship.x, ship.y, ship.shape);
 	}
 
 	ms_frame = SDL_GetTicks() - ms_end;
@@ -601,9 +603,9 @@ gameloop() {
 			new_rocks();
 
 			// SCROLLING
-			tmp = (shipy+shipdy*t_frame-YSCROLLTO)/25 + (shipdy-screendy);
+			tmp = (ship.y+ship.dy*t_frame-YSCROLLTO)/25 + (ship.dy-screendy);
 			screendy += tmp * t_frame/12;
-			tmp = (shipx+shipdx*t_frame-XSCROLLTO)/25 + (shipdx-screendx);
+			tmp = (ship.x+ship.dx*t_frame-XSCROLLTO)/25 + (ship.dx-screendx);
 			screendx += tmp * t_frame/12;
 			// taper off so we don't hit the barrier abruptly.
 			// (if we would hit in < 2 seconds, adjust to 2 seconds).
@@ -617,8 +619,8 @@ gameloop() {
 			xscroll = screendx * t_frame;
 			yscroll = screendy * t_frame;
 
-			shipx += shipdx*t_frame - xscroll;
-			shipy += shipdy*t_frame - yscroll;
+			ship.x += ship.dx*t_frame - xscroll;
+			ship.y += ship.dy*t_frame - yscroll;
 
 			// move bang center
 			bangx += bangdx*t_frame - xscroll;
@@ -628,30 +630,30 @@ gameloop() {
 
 
 			// BOUNCE X
-			if(shipx<0 || shipx>XSIZE-surf_ship->w) {
+			if(ship.x<0 || ship.x>XSIZE-ship.image->w) {
 				// BOUNCE from left and right wall
-				shipx -= (shipdx-screendx)*t_frame;
-				shipdx = screendx - (shipdx-screendx)*opt_bounciness;
+				ship.x -= (ship.dx-screendx)*t_frame;
+				ship.dx = screendx - (ship.dx-screendx)*opt_bounciness;
 			}
 
 			// BOUNCE Y
-			if(shipy<0 || shipy>YSIZE-surf_ship->h) {
+			if(ship.y<0 || ship.y>YSIZE-ship.image->h) {
 				// BOUNCE from top and bottom wall
-				shipy -= (shipdy-screendy)*t_frame;
-				shipdy = screendy - (shipdy-screendy)*opt_bounciness;
+				ship.y -= (ship.dy-screendy)*t_frame;
+				ship.dy = screendy - (ship.dy-screendy)*opt_bounciness;
 			}
 
 
 			if(draw() && state == GAMEPLAY) {
 				// Died
 				play_sound(SOUND_BANG); // Play the explosion sound
-				bangx = shipx; bangy = shipy; bangdx = shipdx; bangdy = shipdy;
-				new_bang_dots(shipx,shipy,shipdx,shipdy,surf_ship);
-				shipdx *= 0.5; shipdy *= 0.5;
-				if(shipdx < SCREENDXMIN) shipdx = SCREENDXMIN;
-				if(--nships <= 0) {
+				bangx = ship.x; bangy = ship.y; bangdx = ship.dx; bangdy = ship.dy;
+					new_bang_dots(ship.x,ship.y,ship.dx,ship.dy,ship.image);
+					ship.dx *= 0.5; ship.dy *= 0.5;
+				if(ship.dx < SCREENDXMIN) ship.dx = SCREENDXMIN;
+				if(--ship.lives <= 0) {
 					state = GAME_OVER;
-					shipdx = SCREENDXMIN; shipdy = 0;
+					ship.dx = SCREENDXMIN; ship.dy = 0;
 					state_timeout = 200.0;
 					fadetimer = 0.0;
 					faderate = t_frame;
@@ -670,17 +672,17 @@ gameloop() {
 
 				reset_rocks();
 
-				nships = 4;
+				ship.lives = 4;
 				score = 0;
 
 				state = GAMEPLAY;
 				play_tune(TUNE_GAMEPLAY);
 
-				shipx = XSIZE/2.2; shipy = YSIZE/2;
-				shipdx = screendx; shipdy = screendy;
+				ship.x = XSIZE/2.2; ship.y = YSIZE/2;
+				ship.dx = screendx; ship.dy = screendy;
 			}
 
-			jets = 0;
+			ship.jets = 0;
 		} else {
 			SDL_PumpEvents();
 			keystate = SDL_GetKeyState(NULL);
@@ -688,10 +690,10 @@ gameloop() {
 
 		if(state == GAMEPLAY) {
 			if(!paused) {
-				if(keystate[SDLK_LEFT]  | keystate[SDLK_h]) { shipdx -= 1.5*t_frame; jets |= 1<<0;}
-				if(keystate[SDLK_DOWN]  | keystate[SDLK_t]) { shipdy += 1.5*t_frame; jets |= 1<<1;}
-				if(keystate[SDLK_RIGHT] | keystate[SDLK_n]) { shipdx += 1.5*t_frame; jets |= 1<<2;}
-				if(keystate[SDLK_UP]    | keystate[SDLK_c]) { shipdy -= 1.5*t_frame; jets |= 1<<3;}
+				if(keystate[SDLK_LEFT]  | keystate[SDLK_h]) { ship.dx -= 1.5*t_frame; ship.jets |= 1<<0;}
+				if(keystate[SDLK_DOWN]  | keystate[SDLK_t]) { ship.dy += 1.5*t_frame; ship.jets |= 1<<1;}
+				if(keystate[SDLK_RIGHT] | keystate[SDLK_n]) { ship.dx += 1.5*t_frame; ship.jets |= 1<<2;}
+				if(keystate[SDLK_UP]    | keystate[SDLK_c]) { ship.dy -= 1.5*t_frame; ship.jets |= 1<<3;}
 				if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
 			}
 

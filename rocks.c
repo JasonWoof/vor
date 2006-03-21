@@ -13,17 +13,9 @@
 
 SDL_Surface *load_image(char *filename);
 
-struct rock_struct {
-	struct rock_struct *next;
-	float x,y,dx,dy;
-	SDL_Surface *image;
-	struct shape *shape;
-	int type_number;
-}; 
+struct rock rocks[MAXROCKS], *free_rocks;
 
-struct rock_struct rocks[MAXROCKS], *free_rocks;
-
-struct rock_struct **rock_buckets[2];
+struct rock **rock_buckets[2];
 int n_buckets;
 // we have two sets of buckets -- this variable tells which we are using.
 int p;
@@ -46,7 +38,7 @@ float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
 #define RDX 2.5  // range for rock dx values (+/-)
 #define RDY 2.5  // range for rock dy values (+/-)
 
-static inline struct rock_struct **
+static inline struct rock **
 bucket(int x, int y, int p)
 {
 	int b = (x+grid_size)/grid_size + bw*((y+grid_size)/grid_size);
@@ -62,8 +54,8 @@ init_buckets(void)
 	bh = 1 + scr_grid_h + 1;
 	n_buckets = bw * bh;
 	
-	rock_buckets[0] = malloc(n_buckets * sizeof(struct rock_struct *));
-	rock_buckets[1] = malloc(n_buckets * sizeof(struct rock_struct *));
+	rock_buckets[0] = malloc(n_buckets * sizeof(struct rock *));
+	rock_buckets[1] = malloc(n_buckets * sizeof(struct rock *));
 	if(!rock_buckets[0] || !rock_buckets[1]) {
 		fprintf(stderr, "Can't allocate rock buckets.\n");
 		exit(1);
@@ -72,10 +64,10 @@ init_buckets(void)
 }
 
 void
-transfer_rock(struct rock_struct *r, struct rock_struct **from, struct rock_struct **to)
+transfer_rock(struct rock *r, struct rock **from, struct rock **to)
 {
-	*from = r->next;
-	r->next = *to;
+	*from = &r->next->rock;
+	r->next = SPRITE(*to);
 	*to = r;
 }
 
@@ -86,7 +78,7 @@ reset_rocks(void)
 
 	for(i=0; i<MAXROCKS; i++) rocks[i].image = NULL;
 	rocks[0].next = NULL; free_rocks = &rocks[MAXROCKS-1];
-	for(i = 1; i<MAXROCKS; i++) rocks[i].next = &rocks[i-1];
+	for(i = 1; i<MAXROCKS; i++) rocks[i].next = SPRITE(&rocks[i-1]);
 	for(i = 0; i<n_buckets; i++) {
 		rock_buckets[0][i] = NULL;
 		rock_buckets[1][i] = NULL;
@@ -190,7 +182,7 @@ void
 new_rocks(void)
 {
 	int i;
-	struct rock_struct *r;
+	struct rock *r;
 	float ti[4];
 	float rmin[4];
 	float rmax[4];
@@ -214,9 +206,9 @@ new_rocks(void)
 			rtimers[i] -= 1;
 			if(!free_rocks) return;  // sorry, we ran out of rocks!
 			r = free_rocks;
-			r->type_number = urnd() % NROCKS;
-			r->image = surf_rock[r->type_number];
-			r->shape = &rock_shapes[r->type_number];
+			r->type = urnd() % NROCKS;
+			r->image = surf_rock[r->type];
+			r->shape = &rock_shapes[r->type];
 			switch(i) {
 				case RIGHT:
 					r->x = XSIZE;
@@ -256,8 +248,8 @@ void
 move_rocks(void)
 {
 	int b;
-	struct rock_struct **head;
-	struct rock_struct *r;
+	struct rock **head;
+	struct rock *r;
 
 	// Move all the rocks
 	for(b=0; b<n_buckets; b++) {
@@ -295,9 +287,9 @@ draw_rocks(void)
 }
 
 int
-hit_in_bucket(struct rock_struct *r, float x, float y, struct shape *shape)
+hit_in_bucket(struct rock *r, float x, float y, struct shape *shape)
 {
-	for(; r; r=r->next) {
+	for(; r; r=&r->next->rock) {
 		if(collide(x - r->x, y - r->y, r->shape, shape)) return 1;
 	}
 	return 0;
@@ -308,7 +300,7 @@ hit_rocks(float x, float y, struct shape *shape)
 {
 	int ix, iy;
 	int l, r, t, b;
-	struct rock_struct **bucket;
+	struct rock **bucket;
 
 	ix = x + grid_size; iy = y + grid_size;
 	l = ix / grid_size; r = (ix+shape->w)/grid_size;
@@ -333,9 +325,9 @@ hit_rocks(float x, float y, struct shape *shape)
 }
 
 int
-pixel_hit_in_bucket(struct rock_struct *r, float x, float y)
+pixel_hit_in_bucket(struct rock *r, float x, float y)
 {
-	for(; r; r=r->next) {
+	for(; r; r=&r->next->rock) {
 		if(x < r->x || y < r->y) continue;
 		if(pixel_collide(x - r->x, y - r->y, r->shape)) return 1;
 	}
@@ -347,7 +339,7 @@ pixel_hit_rocks(float x, float y)
 {
 	int ix, iy;
 	int l, t;
-	struct rock_struct **bucket;
+	struct rock **bucket;
 
 	ix = x + grid_size; iy = y + grid_size;
 	l = ix / grid_size; t = iy / grid_size;
@@ -363,13 +355,13 @@ void
 blast_rocks(float x, float y, float radius, int onlyslow)
 {
 	int b;
-	struct rock_struct *r;
+	struct rock *r;
 	float dx, dy, n;
 
 	if(onlyslow) return;
 
 	for(b=0; b<n_buckets; b++) {
-		for(r=rock_buckets[p][b]; r; r=r->next) {
+		for(r=rock_buckets[p][b]; r; r=&r->next->rock) {
 			if(r->x <= 0) continue;
 
 			// This makes it so your explosion from dying magically doesn't leave
