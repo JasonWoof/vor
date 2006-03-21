@@ -9,7 +9,6 @@
 #include "globals.h"
 #include "mt.h"
 #include "rocks.h"
-#include "shape.h"
 
 SDL_Surface *load_image(char *filename);
 

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "common.h"
-#include "shape.h"
+#include "sprite.h"
 
 void
 get_shape(SDL_Surface *img, struct shape *s)

@@ -28,7 +28,7 @@ sdl-ldflags := $(shell sdl-config --libs)
 ldflags := $(sdl-ldflags) -lSDL_image -lSDL_mixer $(LDFLAGS)
 cflags := $(sdl-cflags) $(paths) $(CFLAGS)
 
-my_objects := args.o dust.o file.o mt.o rocks.o score.o shape.o sound.o
+my_objects := args.o dust.o file.o mt.o rocks.o score.o sprite.o sound.o
 my_objects += main.o
 libs := SFont.o
 objects := $(libs) $(my_objects)

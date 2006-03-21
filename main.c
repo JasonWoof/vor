@@ -39,7 +39,7 @@
 #include "mt.h"
 #include "rocks.h"
 #include "score.h"
-#include "shape.h"
+#include "sprite.h"
 #include "sound.h"
 
 // ************************************* VARS

@@ -2,7 +2,6 @@
 #define VOR_GLOBALS_H
 
 #include <SDL.h>
-#include "shape.h"
 #include "SFont.h"
 
 struct bangdots {
@@ -40,8 +39,6 @@ extern SDL_Surface
 
 extern SFont_Font *g_font;
 
-extern uint32_t area;
-
 // Structure global variables
 extern struct enginedots edot[MAXENGINEDOTS], *dotptr;
 extern struct bangdots bdot[MAXBANGDOTS], *bdotptr;
@@ -50,9 +47,6 @@ extern struct bangdots bdot[MAXBANGDOTS], *bdotptr;
 extern char topline[1024];
 extern char *initerror;
 
-extern struct shape shipshape;
-extern float shipx,shipy;	// ship position on screen
-extern float shipdx,shipdy;	// ship speed (pixels/tick)
 extern float screendx, screendy;
 extern float xscroll, yscroll;
 extern float yscroll;
@@ -62,7 +56,7 @@ extern float scrollvel;
 // All speeds are pixels/tick, with 20 ticks per second.
 extern float t_frame;  // length of this frame (in ticks = 1/20th second)
 
-extern int nships,score;
+extern int score;
 extern float fadetimer, faderate;
 
 extern int pausedown, paused;

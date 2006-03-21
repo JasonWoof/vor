@@ -1,4 +1,4 @@
-#include "shape.h"
+#include "sprite.h"
 
 int init_rocks(void);
 void reset_rocks(void);
