@@ -203,7 +203,7 @@ draw_bang_dots(SDL_Surface *s)
 		}
 
 		// check collisions
-		if(pixel_hit_rocks(bdot[i].x, bdot[i].y)) { bdot[i].active = 0; continue; }
+		if(pixel_collides(bdot[i].x, bdot[i].y)) { bdot[i].active = 0; continue; }
 
 		pixel = pixels + row_inc*(int)(bdot[i].y) + (int)(bdot[i].x);
 		if(bdot[i].c) c = bdot[i].c; else c = heatcolor[(int)(bdot[i].life)*3];
@@ -268,7 +268,7 @@ draw_engine_dots(SDL_Surface *s) {
 			edot[i].active = 0;
 			continue;
 		}
-		if(pixel_hit_rocks(edot[i].x, edot[i].y)) { edot[i].active = 0; continue; }
+		if(pixel_collides(edot[i].x, edot[i].y)) { edot[i].active = 0; continue; }
 		heatindex = edot[i].life * 6;
 		c = heatindex>3*W ? heatcolor[3*W-1] : heatcolor[heatindex];
 		pixels[row_inc*(int)(edot[i].y) + (int)(edot[i].x)] = c;
@@ -309,6 +309,12 @@ load_image(char *filename)
 		}
 	}
 	return img;
+}
+
+void
+load_ship(void)
+{
+	load_sprite(SPRITE(&ship), "sprites/ship.png");
 }
 
 int
@@ -367,9 +373,6 @@ init(void) {
 	NULLERROR(surf_b_game = load_image("banners/game.png"));
 	NULLERROR(surf_b_over = load_image("banners/over.png"));
 
-	// Load the spaceship graphic.
-	load_sprite(SPRITE(&ship), "sprites/ship.png");
-
 	// Load the life indicator (small ship) graphic.
 	NULLERROR(surf_life = load_image("indicators/life.png"));
 
@@ -384,7 +387,7 @@ init(void) {
 	init_engine_dots();
 	init_dust();
 
-	init_rocks();
+	init_sprites();
 
 	// Remove the mouse cursor
 #ifdef SDL_DISABLE
@@ -411,11 +414,7 @@ draw() {
 	drawdots(surf_screen);
 
 	// Draw ship
-	if(state == GAMEPLAY ) {
-		dest.x = ship.x;
-		dest.y = ship.y;
-		SDL_BlitSurface(ship.image,NULL,surf_screen,&dest);
-	}
+	if(state == GAMEPLAY) draw_sprite(SPRITE(&ship));
 
 	draw_rocks();
 
@@ -511,7 +510,7 @@ draw() {
 	}
 
 	if(state == GAMEPLAY) {
-		bang = hit_rocks(SPRITE(&ship));
+		bang = collides(SPRITE(&ship));
 	}
 
 	ms_frame = SDL_GetTicks() - ms_end;
@@ -579,16 +578,10 @@ gameloop() {
 			} else {
 				if(state == DEAD_PAUSE) {
 					float blast_radius;
-					int fixonly;
-
-					if(state_timeout < DEAD_PAUSE_LENGTH - 20.0) {
-						blast_radius = BLAST_RADIUS * 1.3;
-						fixonly = 1;
-					} else {
+					if(state_timeout >= DEAD_PAUSE_LENGTH - 20.0) {
 						blast_radius = BLAST_RADIUS * (DEAD_PAUSE_LENGTH - state_timeout) / 20.0;
-						fixonly = 0;
+						blast_rocks(bangx, bangy, blast_radius);
 					}
-					blast_rocks(bangx, bangy, blast_radius, fixonly);
 
 					if(bangx < 60) bangx = 60;
 				}
@@ -613,14 +606,12 @@ gameloop() {
 			xscroll = screendx * t_frame;
 			yscroll = screendy * t_frame;
 
-			ship.x += ship.dx*t_frame - xscroll;
-			ship.y += ship.dy*t_frame - yscroll;
-
 			// move bang center
 			bangx += bangdx*t_frame - xscroll;
 			bangy += bangdy*t_frame - yscroll;
 
-			move_rocks();
+			move_sprite(SPRITE(&ship));
+			move_sprites();
 
 
 			// BOUNCE X

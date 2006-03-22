@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#define NONE (~0)
+
 #ifndef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #endif

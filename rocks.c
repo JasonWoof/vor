@@ -9,24 +9,16 @@
 #include "globals.h"
 #include "mt.h"
 #include "rocks.h"
+#include "sprite.h"
 
-struct rock rocks[MAXROCKS];
-Sprite *free_rocks;
-
-Sprite **rock_buckets[2];
-int n_buckets;
-// we have two sets of buckets -- this variable tells which we are using.
-int p;
-int bw, bh;
-int grid_size;
-
+static struct rock rocks[MAXROCKS];
 static struct rock prototypes[NROCKS];
 
 // timers for rock generation.
 static float rtimers[4];
 
-uint32_t nrocks;
-float nrocks_timer;
+uint32_t nrocks = I_ROCKS;
+float nrocks_timer = 0;
 float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
 
 // constants for rock generation.
@@ -35,86 +27,33 @@ float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
 #define RDX 2.5  // range for rock dx values (+/-)
 #define RDY 2.5  // range for rock dy values (+/-)
 
-static inline Sprite **
-bucket(int x, int y, int p)
-{
-	int b = (x+grid_size)/grid_size + bw*((y+grid_size)/grid_size);
-	return &rock_buckets[p][b];
-}
-
-void
-init_buckets(void)
-{
-	int scr_grid_w = (XSIZE+2*grid_size-1) / grid_size;
-	int scr_grid_h = (YSIZE+2*grid_size-1) / grid_size;
-	bw = 1 + scr_grid_w + 1;
-	bh = 1 + scr_grid_h + 1;
-	n_buckets = bw * bh;
-	
-	rock_buckets[0] = malloc(n_buckets * sizeof(struct rock *));
-	rock_buckets[1] = malloc(n_buckets * sizeof(struct rock *));
-	if(!rock_buckets[0] || !rock_buckets[1]) {
-		fprintf(stderr, "Can't allocate rock buckets.\n");
-		exit(1);
-	}
-	p = 0;
-}
-
-static inline void
-insert_sprite(Sprite **head, Sprite *this)
-{
-	this->next = *head;
-	*head = this;
-}
-
-static inline Sprite *
-remove_sprite(Sprite **head)
-{
-	Sprite *this = *head;
-	*head = this->next;
-	return this;
-}
-
 void
 reset_rocks(void)
 {
-	int i;
-
-	for(i=0; i<MAXROCKS; i++) rocks[i].image = NULL;
-
-	rocks[0].next = NULL;
-	for(i=1; i<MAXROCKS; i++) rocks[i].next = &rocks[i-1];
-	free_rocks = SPRITE(&rocks[MAXROCKS-1]);
-
-	for(i = 0; i<n_buckets; i++) {
-		rock_buckets[0][i] = NULL;
-		rock_buckets[1][i] = NULL;
-	}
-
 	nrocks = I_ROCKS;
 	nrocks_timer = 0;
 }
 
 #define ROCK_LEN sizeof("sprites/rockXX.png")
 
-int
-init_rocks(void)
+void
+load_rocks(void)
 {
 	int i;
 	char a[ROCK_LEN];
-	int maxw=0, maxh=0;
 
-	for(i = 0; i<NROCKS; i++) {
+	for(i=0; i<NROCKS; i++) {
 		snprintf(a, ROCK_LEN, "sprites/rock%02d.png", i);
 		load_sprite(SPRITE(&prototypes[i]), a);
-		prototypes[i].type = ROCK_SPRITE;
-		maxw = max(maxw, prototypes[i].w);
-		maxh = max(maxh, prototypes[i].h);
+		prototypes[i].sprite_type = ROCK_SPRITE;
 	}
-	grid_size = max(maxw, maxh) * 3 / 2;
-	init_buckets();
+
+	memset(rocks, 0, MAXROCKS*sizeof(struct rock));
+
+	for(i=1; i<MAXROCKS; i++) rocks[i].next = &rocks[i-1];
+	free_sprites[ROCK_SPRITE] = SPRITE(&rocks[MAXROCKS-1]);
+
 	reset_rocks();
-	return 0;
 }
 
 enum { LEFT, RIGHT, TOP, BOTTOM };
@@ -211,8 +150,8 @@ new_rocks(void)
 	for(i=0; i<4; i++) {
 		while(rtimers[i] >= 1) {
 			rtimers[i] -= 1;
-			if(!free_rocks) return;  // sorry, we ran out of rocks!
-			r = (struct rock *) remove_sprite(&free_rocks);
+			if(!free_sprites[ROCK_SPRITE]) return;  // sorry, we ran out of rocks!
+			r = (struct rock *) remove_sprite(&free_sprites[ROCK_SPRITE]);
 			type = urnd() % NROCKS;
 			*r = prototypes[type];
 			r->type = type;
@@ -246,143 +185,39 @@ new_rocks(void)
 					r->dy = weighted_rnd_range(rmin[i], rmax[i]) + screendy;
 					break;
 			}
-			insert_sprite(bucket(r->x, r->y, p), SPRITE(r));
+			add_sprite(SPRITE(r));
 		}
 	}
 }
 
-void
-move_rocks(void)
-{
-	int b;
-	Sprite *r, **head;
-
-	// Move all the rocks
-	for(b=0; b<n_buckets; b++) {
-		head=&rock_buckets[p][b]; r=*head;
-		while(*head) {
-			r=*head;
-
-			// move
-			r->x += (r->dx - screendx)*t_frame;
-			r->y += (r->dy - screendy)*t_frame;
-
-			// clip it, or sort it into the other bucket set
-			// (either way we move it out of this list).
-			if(r->x + r->image->w < 0 || r->x >= XSIZE
-					|| r->y + r->image->h < 0 || r->y >= YSIZE) {
-				insert_sprite(&free_rocks, remove_sprite(head));
-				r->image = NULL;
-			} else insert_sprite(bucket(r->x, r->y, 1-p), remove_sprite(head));
-		}
-	}
-	p = 1-p;  // switch current set of buckets.
-}
 
 void
 draw_rocks(void)
 {
 	int i;
-	SDL_Rect dest;
-
-	for(i=0; i<MAXROCKS; i++) {
-		if(!rocks[i].image) continue;
-		dest.x = rocks[i].x; dest.y = rocks[i].y;
-		SDL_BlitSurface(rocks[i].image,NULL,surf_screen,&dest);
-	}
-}
-
-int
-hit_in_bucket(Sprite *r, Sprite *s)
-{
-	for(; r; r=r->next) {
-		if(collide(r, s)) return true;
-	}
-	return false;
-}
-
-int
-hit_rocks(Sprite *s)
-{
-	int l, r, t, b;
-	Sprite **bucket;
-
-	l = (s->x + grid_size) / grid_size;
-	r = (s->x + s->w + grid_size) / grid_size;
-	t = (s->y + grid_size) / grid_size;
-	b = (s->y + s->h + grid_size) / grid_size;
-	bucket = &rock_buckets[p][l + t*bw];
-
-	if(hit_in_bucket(*bucket, s)) return true;
-	if(l > 0 && hit_in_bucket(*(bucket-1), s)) return true;
-	if(t > 0 && hit_in_bucket(*(bucket-bw), s)) return true;
-	if(l > 0 && t > 0 && hit_in_bucket(*(bucket-1-bw), s)) return true;
-
-	if(r > l) {
-		if(hit_in_bucket(*(bucket+1), s)) return true;
-		if(t > 0 && hit_in_bucket(*(bucket+1-bw), s)) return true;
-	}
-	if(b > t) {
-		if(hit_in_bucket(*(bucket+bw), s)) return true;
-		if(l > 0 && hit_in_bucket(*(bucket-1+bw), s)) return true;
-	}
-	if(r > l && b > t && hit_in_bucket(*(bucket+1+bw), s)) return true;
-	return false;
-}
-
-int
-pixel_hit_in_bucket(Sprite *r, float x, float y)
-{
-	for(; r; r=r->next) {
-		if(pixel_collide(r, x, y)) return 1;
-	}
-	return 0;
-}
-
-int
-pixel_hit_rocks(float x, float y)
-{
-	int ix, iy;
-	int l, t;
-	Sprite **bucket;
-
-	ix = x + grid_size; iy = y + grid_size;
-	l = ix / grid_size; t = iy / grid_size;
-	bucket = &rock_buckets[p][l + t*bw];
-	if(pixel_hit_in_bucket(*bucket, x, y)) return true;
-	if(l > 0 && pixel_hit_in_bucket(*(bucket-1), x, y)) return true;
-	if(t > 0 && pixel_hit_in_bucket(*(bucket-bw), x, y)) return true;
-	if(l > 0 && t > 0 && pixel_hit_in_bucket(*(bucket-1-bw), x, y)) return true;
-	return false;
+	for(i=0; i<MAXROCKS; i++) draw_sprite(SPRITE(&rocks[i]));
 }
 
 void
-blast_rocks(float x, float y, float radius, int onlyslow)
+blast_rocks(float x, float y, float radius)
 {
-	int b;
+	int i;
 	Sprite *r;
 	float dx, dy, n;
 
-	if(onlyslow) return;
+	for(i=0; i<MAXROCKS; i++) {
+		if(rocks[i].sprite_type == NONE) continue;
+		r = SPRITE(&rocks[i]);
+		if(r->x <= 0) continue;
 
-	for(b=0; b<n_buckets; b++) {
-		for(r=rock_buckets[p][b]; r; r=r->next) {
-			if(r->x <= 0) continue;
+		dx = r->x - x;
+		dy = r->y - y;
 
-			// This makes it so your explosion from dying magically doesn't leave
-			// any rocks that aren't moving much on the x axis. If onlyslow is set,
-			// only rocks that are barely moving will be pushed.
-			if(onlyslow && (r->dx - screendx < -4 || r->dx - screendx > 3)) continue;
-
-			dx = r->x - x;
-			dy = r->y - y;
-
-			n = sqrt(dx*dx + dy*dy);
-			if(n < radius) {
-				n *= 15;
-				r->dx += 54.0*dx/n;
-				r->dy += 54.0*dy/n;
-			}
+		n = sqrt(dx*dx + dy*dy);
+		if(n < radius) {
+			n *= 15;
+			r->dx += 54.0*dx/n;
+			r->dy += 54.0*dy/n;
 		}
 	}
 }
