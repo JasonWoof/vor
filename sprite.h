@@ -22,6 +22,7 @@ struct sprite {
 	int w, h;
 	int mask_w;
 	uint32_t *mask;
+	uint32_t area;
 };
 
 Sprite *free_sprites[N_TYPES];  // lists of free sprites, by type.
@@ -50,6 +51,7 @@ struct ship {
 	int w, h;
 	int mask_w;
 	uint32_t *mask;
+	uint32_t area;
 	// SHIP extras
 	int lives;
 	int jets;
@@ -65,6 +67,7 @@ struct rock {
 	int w, h;
 	int mask_w;
 	uint32_t *mask;
+	uint32_t area;
 	// ROCK extras
 	int type;
 };

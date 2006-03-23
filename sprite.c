@@ -33,6 +33,7 @@ get_shape(Sprite *s)
 	uint16_t *px, transp;
 	uint32_t bits = 0, bit, *p;
 
+	s->area = 0;
 	if(s->image->format->BytesPerPixel != 2) {
 		fprintf(stderr, "get_shape(): not a 16-bit image!\n");
 		exit(1);
@@ -55,7 +56,7 @@ get_shape(Sprite *s)
 		bit = 0;
 		for(x=0; x<s->image->w; x++) {
 			if(!bit) { bits = 0; bit = 0x80000000; }
-			if(*px++ != transp) { bits |= bit; }
+			if(*px++ != transp) { bits |= bit; s->area++; }
 			bit >>= 1;
 			if(!bit || x == s->image->w - 1) { *(p++) = bits; }
 		}
@@ -285,19 +286,35 @@ pixel_collides(float x, float y)
 	return false;
 }
 
+
+float
+sprite_mass(Sprite *s)
+{
+	if(s->type == SHIP_SPRITE) return s->area;
+	else if(s->type == ROCK_SPRITE) return 3*s->area;
+	else return 0;
+}
+
 void
 bounce(Sprite *a, Sprite *b)
 {
 	float x, y, n;
-	float na, nb;
+	float da, db;
+	float ma, mb, mr;
 
+	// (x, y) is unit vector pointing from A's center to B's center.
 	x = (b->x + b->w / 2) - (a->x + a->w / 2);
 	y = (b->y + b->h / 2) - (a->y + a->h / 2);
 	n = sqrt(x*x + y*y); x /= n; y /= n;
 
-	na = (x*a->dx + y*a->dy); // sqrt(a->dx*a->dx + a->dy*a->dy);
-	nb = (x*b->dx + y*b->dy); // sqrt(b->dx*b->dx + b->dy*b->dy);
+	// velocities along (x, y), or 0 if already moving away.
+	da = max(x*a->dx + y*a->dy, 0);
+	db = min(x*b->dx + y*b->dy, 0);
 
-	a->dx += x*(nb-na); a->dy += y*(nb-na);
-	b->dx += x*(na-nb); b->dy += y*(na-nb);
+	// mass ratio
+	ma = sprite_mass(a); mb = sprite_mass(b);
+	if(ma && mb) mr = mb/ma; else mr = 1;
+
+	a->dx += x*(db*mr - da); a->dy += y*(db*mr - da);
+	b->dx += x*(da/mr - db); b->dy += y*(da/mr - db);
 }
