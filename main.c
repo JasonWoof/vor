@@ -510,7 +510,10 @@ draw() {
 	}
 
 	if(state == GAMEPLAY) {
-		bang = collides(SPRITE(&ship));
+		Sprite *r = collides(SPRITE(&ship));
+		if(r) {
+			bounce(r, SPRITE(&ship));
+		}
 	}
 
 	ms_frame = SDL_GetTicks() - ms_end;

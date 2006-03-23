@@ -31,9 +31,11 @@ void add_sprite(Sprite *s);
 void move_sprite(Sprite *s);
 void move_sprites(void);
 
-int collides(Sprite *s);
+Sprite *collides(Sprite *s);
 int pixel_collides(float x, float y);
 void load_sprite(Sprite *sprite, char *filename);
+
+void bounce(Sprite *a, Sprite *b);
 
 
 // extended sprites

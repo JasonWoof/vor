@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "config.h"
@@ -210,20 +211,20 @@ collide(Sprite *a, Sprite *b)
 	else return mask_collide(xov, yov, a, b);
 }
 
-int
+Sprite *
 hit_in_square(Sprite *r, Sprite *s)
 {
-	for(; r; r=r->next) {
-		if(collide(r, s)) return true;
-	}
-	return false;
+	for(; r; r=r->next)
+		if(collide(r, s)) break;
+	return r;
 }
 
-int
+Sprite *
 collides(Sprite *s)
 {
 	int l, r, t, b;
 	Sprite **sq;
+	Sprite *c;
 
 	l = (s->x + grid_size) / grid_size;
 	r = (s->x + s->w + grid_size) / grid_size;
@@ -231,21 +232,21 @@ collides(Sprite *s)
 	b = (s->y + s->h + grid_size) / grid_size;
 	sq = &sprites[set][l + t*gw];
 
-	if(hit_in_square(*sq, s)) return true;
-	if(l > 0 && hit_in_square(*(sq-1), s)) return true;
-	if(t > 0 && hit_in_square(*(sq-gw), s)) return true;
-	if(l > 0 && t > 0 && hit_in_square(*(sq-1-gw), s)) return true;
+	if((c = hit_in_square(*sq, s))) return c;
+	if(l > 0 && (c = hit_in_square(*(sq-1), s))) return c;
+	if(t > 0 && (c = hit_in_square(*(sq-gw), s))) return c;
+	if(l > 0 && t > 0 && (c = hit_in_square(*(sq-1-gw), s))) return c;
 
 	if(r > l) {
-		if(hit_in_square(*(sq+1), s)) return true;
-		if(t > 0 && hit_in_square(*(sq+1-gw), s)) return true;
+		if((c = hit_in_square(*(sq+1), s))) return c;
+		if(t > 0 && hit_in_square(*(sq+1-gw), s)) return c;
 	}
 	if(b > t) {
-		if(hit_in_square(*(sq+gw), s)) return true;
-		if(l > 0 && hit_in_square(*(sq-1+gw), s)) return true;
+		if((c = hit_in_square(*(sq+gw), s))) return c;
+		if(l > 0 && (c = hit_in_square(*(sq-1+gw), s))) return c;
 	}
-	if(r > l && b > t && hit_in_square(*(sq+1+gw), s)) return true;
-	return false;
+	if(r > l && b > t && (c = hit_in_square(*(sq+1+gw), s))) return c;
+	return NULL;
 }
 
 int
@@ -282,4 +283,21 @@ pixel_collides(float x, float y)
 	if(t > 0 && pixel_hit_in_square(*(sq-gw), x, y)) return true;
 	if(l > 0 && t > 0 && pixel_hit_in_square(*(sq-1-gw), x, y)) return true;
 	return false;
+}
+
+void
+bounce(Sprite *a, Sprite *b)
+{
+	float x, y, n;
+	float na, nb;
+
+	x = (b->x + b->w / 2) - (a->x + a->w / 2);
+	y = (b->y + b->h / 2) - (a->y + a->h / 2);
+	n = sqrt(x*x + y*y); x /= n; y /= n;
+
+	na = (x*a->dx + y*a->dy); // sqrt(a->dx*a->dx + a->dy*a->dy);
+	nb = (x*b->dx + y*b->dy); // sqrt(b->dx*b->dx + b->dy*b->dy);
+
+	a->dx += x*(nb-na); a->dy += y*(nb-na);
+	b->dx += x*(na-nb); b->dy += y*(na-nb);
 }
