@@ -198,6 +198,8 @@ collide(Sprite *a, Sprite *b)
 {
 	int dx, dy, xov, yov;
 
+	if(a->type < 0 || b->type < 0) return false;
+
 	if(b->x < a->x) { Sprite *tmp = a; a = b; b = tmp; }
 
 	dx = b->x - a->x;
@@ -210,6 +212,17 @@ collide(Sprite *a, Sprite *b)
 
 	if(xov == 0 || yov == 0) return false;
 	else return mask_collide(xov, yov, a, b);
+}
+
+void
+collisions(void)
+{
+	int i;
+	Sprite *a, *b;
+	for(i=0; i<gw*gh; i++)
+		for(a=sprites[set][i]; a; a=a->next)
+			for(b=a->next; b; b=b->next)
+				if(collide(a, b)) do_collision(a, b);
 }
 
 Sprite *
@@ -287,11 +300,11 @@ pixel_collides(float x, float y)
 }
 
 
-float
+static float
 sprite_mass(Sprite *s)
 {
-	if(s->type == SHIP_SPRITE) return s->area;
-	else if(s->type == ROCK_SPRITE) return 3*s->area;
+	if(s->type == SHIP) return s->area;
+	else if(s->type == ROCK) return 3*s->area;
 	else return 0;
 }
 

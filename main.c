@@ -66,7 +66,7 @@ struct bangdots bdot[MAXBANGDOTS], *bdotptr = bdot;
 char topline[1024];
 char *initerror = "";
 
-struct ship ship = { SHIP_SPRITE, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
+struct ship ship = { SHIP, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
 	  
 float screendx = SCREENDXMIN, screendy = 0.0;
 float xscroll, yscroll;
@@ -514,6 +514,7 @@ draw() {
 		if(r) {
 			bounce(r, SPRITE(&ship));
 		}
+		collisions();
 	}
 
 	ms_frame = SDL_GetTicks() - ms_end;
@@ -533,6 +534,12 @@ draw() {
 
 
 	return bang;
+}
+
+void
+do_collision(Sprite *a, Sprite *b)
+{
+	bounce(a, b);
 }
 
 int

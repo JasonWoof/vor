@@ -8,9 +8,9 @@ typedef struct sprite Sprite;
 
 #define SPRITE(x) ((Sprite *) (x))
 
-#define BASE_SPRITE 0
-#define SHIP_SPRITE 1
-#define ROCK_SPRITE 2
+#define BASE 0
+#define SHIP 1
+#define ROCK 2
 #define N_TYPES 3
 
 struct sprite {
@@ -26,6 +26,9 @@ struct sprite {
 };
 
 Sprite *free_sprites[N_TYPES];  // lists of free sprites, by type.
+
+void do_collision(Sprite *a, Sprite *b);
+void collisions(void);
 
 void init_sprites(void);
 void add_sprite(Sprite *s);

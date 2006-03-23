@@ -45,13 +45,13 @@ load_rocks(void)
 	for(i=0; i<NROCKS; i++) {
 		snprintf(a, ROCK_LEN, "sprites/rock%02d.png", i);
 		load_sprite(SPRITE(&prototypes[i]), a);
-		prototypes[i].sprite_type = ROCK_SPRITE;
+		prototypes[i].sprite_type = ROCK;
 	}
 
 	memset(rocks, 0, MAXROCKS*sizeof(struct rock));
 
 	for(i=1; i<MAXROCKS; i++) rocks[i].next = &rocks[i-1];
-	free_sprites[ROCK_SPRITE] = SPRITE(&rocks[MAXROCKS-1]);
+	free_sprites[ROCK] = SPRITE(&rocks[MAXROCKS-1]);
 
 	reset_rocks();
 }
@@ -150,8 +150,8 @@ new_rocks(void)
 	for(i=0; i<4; i++) {
 		while(rtimers[i] >= 1) {
 			rtimers[i] -= 1;
-			if(!free_sprites[ROCK_SPRITE]) return;  // sorry, we ran out of rocks!
-			r = (struct rock *) remove_sprite(&free_sprites[ROCK_SPRITE]);
+			if(!free_sprites[ROCK]) return;  // sorry, we ran out of rocks!
+			r = (struct rock *) remove_sprite(&free_sprites[ROCK]);
 			type = urnd() % NROCKS;
 			*r = prototypes[type];
 			r->type = type;
