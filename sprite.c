@@ -205,7 +205,7 @@ collide(Sprite *a, Sprite *b)
 	xov = max(min(a->w - dx, b->w), 0);
 
 	if(dy >= 0) yov = max(min(a->h - dy, b->h), 0);
-	else yov = -max(min(a->h - -dy, b->h), 0);
+	else yov = -max(min(b->h - -dy, a->h), 0);
 
 	if(xov == 0 || yov == 0) return false;
 	else return mask_collide(xov, yov, a, b);
