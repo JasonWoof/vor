@@ -675,7 +675,7 @@ gameloop() {
 			ship.jets = 0;
 		}
 
-		if(state == GAMEPLAY || state == DEAD_PAUSE) {
+		if(state == GAMEPLAY) {
 			if(!paused) {
 				if(keystate[SDLK_LEFT]  | keystate[SDLK_h]) { ship.dx -= 1.5*t_frame; ship.jets |= 1<<0;}
 				if(keystate[SDLK_DOWN]  | keystate[SDLK_t]) { ship.dy += 1.5*t_frame; ship.jets |= 1<<1;}
