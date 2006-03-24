@@ -48,9 +48,6 @@ extern char topline[1024];
 extern char *initerror;
 
 extern float screendx, screendy;
-extern float xscroll, yscroll;
-extern float yscroll;
-extern float scrollvel;
 
 // All movement is based on t_frame.
 // All speeds are pixels/tick, with 20 ticks per second.

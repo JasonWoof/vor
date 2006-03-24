@@ -69,7 +69,6 @@ char *initerror = "";
 struct ship ship = { SHIP, 0, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
 	  
 float screendx = SCREENDXMIN, screendy = 0.0;
-float xscroll, yscroll;
 float back_dist;
 
 // all movement is based on t_frame.
@@ -196,8 +195,8 @@ draw_bang_dots(SDL_Surface *s)
 		if(bdot[i].life<0) { bdot[i].active = 0; continue; }
 
 		// move and clip
-		bdot[i].x += bdot[i].dx*t_frame - xscroll;
-		bdot[i].y += bdot[i].dy*t_frame - yscroll;
+		bdot[i].x += (bdot[i].dx - screendx)*t_frame;
+		bdot[i].y += (bdot[i].dy - screendy)*t_frame;
 		if(bdot[i].x < 0 || bdot[i].x >= XSIZE || bdot[i].y < 0 || bdot[i].y >= YSIZE) {
 			bdot[i].active = 0;
 			continue;
@@ -260,8 +259,8 @@ draw_engine_dots(SDL_Surface *s) {
 
 	for(i = 0; i<MAXENGINEDOTS; i++) {
 		if(!edot[i].active) continue;
-		edot[i].x += edot[i].dx*t_frame - xscroll;
-		edot[i].y += edot[i].dy*t_frame - yscroll;
+		edot[i].x += (edot[i].dx - screendx)*t_frame;
+		edot[i].y += (edot[i].dy - screendy)*t_frame;
 		edot[i].life -= t_frame*3;
 		if(edot[i].life < 0
 				|| edot[i].x<0 || edot[i].x >= XSIZE
@@ -603,19 +602,14 @@ gameloop() {
 			screendx += tmp * t_frame/12;
 			// taper off so we don't hit the barrier abruptly.
 			// (if we would hit in < 2 seconds, adjust to 2 seconds).
-			if(back_dist + (screendx - SCREENDXMIN)*TO_TICKS(2) < 0) {
+			if(back_dist + (screendx - SCREENDXMIN)*TO_TICKS(2) < 0)
 				screendx = SCREENDXMIN - (back_dist/TO_TICKS(2));
-			}
-
 			back_dist += (screendx - SCREENDXMIN)*t_frame;
 			if(opt_max_lead >= 0) back_dist = min(back_dist, opt_max_lead);
 
-			xscroll = screendx * t_frame;
-			yscroll = screendy * t_frame;
-
 			// move bang center
-			bangx += bangdx*t_frame - xscroll;
-			bangy += bangdy*t_frame - yscroll;
+			bangx += (bangdx - screendx)*t_frame;
+			bangy += (bangdy - screendy)*t_frame;
 
 			move_sprites();
 
@@ -640,17 +634,19 @@ gameloop() {
 				play_sound(SOUND_BANG); // Play the explosion sound
 				bangx = ship.x; bangy = ship.y; bangdx = ship.dx; bangdy = ship.dy;
 				new_bang_dots(ship.x,ship.y,ship.dx,ship.dy,ship.image);
-				ship.dx *= 0.5; ship.dy *= 0.5;
-				if(ship.dx < SCREENDXMIN) ship.dx = SCREENDXMIN;
-				if(--ship.lives <= 0) {
+
+				if(--ship.lives) {
+					state = DEAD_PAUSE;
+					state_timeout = DEAD_PAUSE_LENGTH;
+					ship.dx = (ship.dx < 0) ? -sqrt(-ship.dx) : sqrt(ship.dx);
+					ship.dy = (ship.dy < 0) ? -sqrt(-ship.dy) : sqrt(ship.dy);
+					if(ship.dx < SCREENDXMIN) ship.dx = SCREENDXMIN;
+				} else {
 					state = GAME_OVER;
 					ship.dx = SCREENDXMIN; ship.dy = 0;
 					state_timeout = 200.0;
 					fadetimer = 0.0;
 					faderate = t_frame;
-				} else {
-					state = DEAD_PAUSE;
-					state_timeout = DEAD_PAUSE_LENGTH;
 				}
 			}
 
@@ -661,6 +657,7 @@ gameloop() {
 			       || state == GAME_OVER)) {
 				reset_sprites();
 				reset_rocks();
+				screendx = SCREENDXMIN; screendy = 0;
 
 				ship.x = XSIZE/2.2; ship.y = YSIZE/2;
 				ship.dx = screendx; ship.dy = screendy;
