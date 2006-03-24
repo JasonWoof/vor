@@ -111,7 +111,6 @@ square(int x, int y, int set)
 void
 add_sprite(Sprite *s)
 {
-	if(s->type < 0) s->type = -s->type;
 	insert_sprite(square(s->x, s->y, set), s);
 }
 
@@ -123,18 +122,19 @@ reset_sprites(void)
 	for(i=0; i<gw*gh; i++)
 		while(sprites[set][i]) {
 			Sprite *s = remove_sprite(&sprites[set][i]);
-			if(s->type < 0) s->type = -s->type;
 			insert_sprite(&free_sprites[s->type], s);
-			if(s->type > 0) s->type = -s->type;
+			s->flags = 0;
 		}
 }
 
 void
 move_sprite(Sprite *s)
 {
-	// move it.
-	s->x += (s->dx - screendx)*t_frame;
-	s->y += (s->dy - screendy)*t_frame;
+	if(s->flags & DRAW_FLAG) {
+		// move it.
+		s->x += (s->dx - screendx)*t_frame;
+		s->y += (s->dy - screendy)*t_frame;
+	}
 }
 
 void
@@ -143,9 +143,8 @@ sort_sprite(Sprite *s)
 	// clip it, or sort it into the other set of sprites.
 	if(s->x + s->w < 0 || s->x >= XSIZE
 	   || s->y + s->h < 0 || s->y >= YSIZE) {
-		if(s->type < 0) s->type = -s->type;
 		insert_sprite(&free_sprites[s->type], s);
-		if(s->type > 0) s->type = -s->type;
+		s->flags = 0;
 	} else insert_sprite(square(s->x, s->y, 1-set), s);
 }
 
@@ -214,7 +213,7 @@ collide(Sprite *a, Sprite *b)
 {
 	int dx, dy, xov, yov;
 
-	if(a->type < 0 || b->type < 0) return false;
+	if(!COLLIDES(a) || !COLLIDES(b)) return false;
 
 	if(b->x < a->x) { Sprite *tmp = a; a = b; b = tmp; }
 
@@ -306,7 +305,7 @@ int
 pixel_hit_in_square(Sprite *r, float x, float y)
 {
 	for(; r; r=r->next) {
-		if(r->type >= 0 && pixel_collide(r, x, y)) return 1;
+		if(COLLIDES(r) && pixel_collide(r, x, y)) return 1;
 	}
 	return 0;
 }

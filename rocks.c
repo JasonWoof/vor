@@ -46,6 +46,7 @@ load_rocks(void)
 		snprintf(a, ROCK_LEN, "sprites/rock%02d.png", i);
 		load_sprite(SPRITE(&prototypes[i]), a);
 		prototypes[i].sprite_type = ROCK;
+		prototypes[i].flags = ALL_FLAGS;
 	}
 
 	memset(rocks, 0, MAXROCKS*sizeof(struct rock));
@@ -206,7 +207,7 @@ blast_rocks(float x, float y, float radius)
 	float dx, dy, n;
 
 	for(i=0; i<MAXROCKS; i++) {
-		if(rocks[i].sprite_type == NONE) continue;
+		if(!rocks[i].flags) continue;
 		r = SPRITE(&rocks[i]);
 		if(r->x <= 0) continue;
 
@@ -218,6 +219,7 @@ blast_rocks(float x, float y, float radius)
 			n *= 15;
 			r->dx += 54.0*dx/n;
 			r->dy += 54.0*dy/n;
+			r->flags &= ~COLLIDE_FLAG;
 		}
 	}
 }

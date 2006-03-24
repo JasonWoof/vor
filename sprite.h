@@ -15,6 +15,7 @@ typedef struct sprite Sprite;
 
 struct sprite {
 	int8_t type;
+	int8_t flags;
 	Sprite *next;
 	float x, y;
 	float dx, dy;
@@ -24,6 +25,13 @@ struct sprite {
 	uint32_t *mask;
 	uint32_t area;
 };
+
+#define MOVE_FLAG 1
+#define DRAW_FLAG 2
+#define COLLIDE_FLAG 4
+#define ALL_FLAGS (~0)
+
+#define COLLIDES(sprite) ((sprite)->flags & COLLIDE_FLAG)
 
 Sprite *free_sprites[N_TYPES];  // lists of free sprites, by type.
 
@@ -48,6 +56,7 @@ void bounce(Sprite *a, Sprite *b);
 struct ship {
 	// core sprite fields
 	int8_t sprite_type;
+	int8_t flags;
 	struct ship *next;
 	float x, y;
 	float dx, dy;
@@ -64,6 +73,7 @@ struct ship {
 struct rock {
 	// core sprite fields
 	int8_t sprite_type;
+	int8_t flags;
 	struct rock *next;
 	float x, y;
 	float dx, dy;
@@ -99,9 +109,10 @@ static inline void
 draw_sprite(Sprite *s)
 {
 	SDL_Rect dest;
-	if(s->type < 0) return;
-	dest.x = s->x; dest.y = s->y;
-	SDL_BlitSurface(s->image, NULL, surf_screen, &dest);
+	if(s->flags & DRAW_FLAG) {
+		dest.x = s->x; dest.y = s->y;
+		SDL_BlitSurface(s->image, NULL, surf_screen, &dest);
+	}
 }
 
 #endif // VOR_SPRITE_H

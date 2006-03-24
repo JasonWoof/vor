@@ -66,7 +66,7 @@ struct bangdots bdot[MAXBANGDOTS], *bdotptr = bdot;
 char topline[1024];
 char *initerror = "";
 
-struct ship ship = { SHIP, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
+struct ship ship = { SHIP, ALL_FLAGS, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
 	  
 float screendx = SCREENDXMIN, screendy = 0.0;
 float xscroll, yscroll;
@@ -531,9 +531,9 @@ void
 do_collision(Sprite *a, Sprite *b)
 {
 	if(a->type == SHIP) {
-		a->type = -SHIP; bang = true;
+		a->flags = MOVE_FLAG; bang = true;
 	} else if (b->type == SHIP) {
-		b->type = -SHIP; bang = true;
+		b->flags = MOVE_FLAG; bang = true;
 	} else {
 		bounce(a, b);
 	}
@@ -553,7 +553,7 @@ gameloop() {
 				switch(state) {
 					case DEAD_PAUSE:
 						// Create a new ship and start all over again
-						ship.sprite_type = SHIP;
+						ship.flags = ALL_FLAGS;
 						state = GAMEPLAY;
 						play_tune(TUNE_GAMEPLAY);
 						break;
@@ -668,6 +668,7 @@ gameloop() {
 				ship.x = XSIZE/2.2; ship.y = YSIZE/2;
 				ship.dx = screendx; ship.dy = screendy;
 				ship.lives = 4;
+				ship.flags = ALL_FLAGS;
 				add_sprite(SPRITE(&ship));
 
 				score = 0;
