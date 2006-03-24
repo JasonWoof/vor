@@ -27,6 +27,7 @@
 #include "common.h"
 #include "config.h"
 #include "file.h"
+#include "globals.h"
 #include "score.h"
 
 // High score table
@@ -121,11 +122,13 @@ snprintscore(char *s, size_t n, int score)
 	}
 }
 
-int
-snprintscore_line(char *s, size_t n, int score)
+void
+show_score(void)
 {
-	int r = snprintf(s, n, "Time: ");
-	return r + snprintscore(s+r, n-r, score);
+	char s[16];
+	int r = snprintf(s, 16, "Time: ");
+	snprintscore(s+r, 16-r, score);
+	SFont_Write(surf_screen, g_font, XSIZE-250, 0, s);
 }
 
 void

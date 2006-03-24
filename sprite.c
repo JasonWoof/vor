@@ -130,8 +130,7 @@ reset_sprites(void)
 void
 move_sprite(Sprite *s)
 {
-	if(s->flags & DRAW_FLAG) {
-		// move it.
+	if(s->flags & MOVE) {
 		s->x += (s->dx - screendx)*t_frame;
 		s->y += (s->dy - screendy)*t_frame;
 	}

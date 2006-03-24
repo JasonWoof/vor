@@ -26,12 +26,11 @@ struct sprite {
 	uint32_t area;
 };
 
-#define MOVE_FLAG 1
-#define DRAW_FLAG 2
-#define COLLIDE_FLAG 4
-#define ALL_FLAGS (~0)
+#define MOVE 1
+#define DRAW 2
+#define COLLIDE 4
 
-#define COLLIDES(sprite) ((sprite)->flags & COLLIDE_FLAG)
+#define COLLIDES(sprite) ((sprite)->flags & COLLIDE)
 
 Sprite *free_sprites[N_TYPES];  // lists of free sprites, by type.
 
@@ -109,7 +108,7 @@ static inline void
 draw_sprite(Sprite *s)
 {
 	SDL_Rect dest;
-	if(s->flags & DRAW_FLAG) {
+	if(s->flags & DRAW) {
 		dest.x = s->x; dest.y = s->y;
 		SDL_BlitSurface(s->image, NULL, surf_screen, &dest);
 	}

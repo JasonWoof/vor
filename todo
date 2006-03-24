@@ -2,10 +2,18 @@
 
 **	BUG: Rocks can be created touching, often giving a high-velocity bounce.
 
-***	Add a scripting language and separate game logic from the engine.
-	Forth?  Scheme?  Lua?
+***	Move game logic into a script so we can have "variations".
+*	Then an in-game menu to choose which game.
 
 **	Switch to a TTF font and all ray-traced graphics
 *	Then we can run at the native screen size
 
 *	Deltas on high score display?
+
+
+Comments from HappyPenguin (and solution ideas by Josh)
+
+***	Too hard: should be able to choose difficulty from within game.
+**	What do you do at game over?  "Press SPACE to start a new game".
+**	Multiple deaths is a problem: fade new ship in? [DONE 2006-03-24]
+**	Why can't you go left?  You're trying to outrun a blast wave.

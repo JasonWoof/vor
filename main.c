@@ -66,7 +66,7 @@ struct bangdots bdot[MAXBANGDOTS], *bdotptr = bdot;
 char topline[1024];
 char *initerror = "";
 
-struct ship ship = { SHIP, ALL_FLAGS, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
+struct ship ship = { SHIP, 0, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
 	  
 float screendx = SCREENDXMIN, screendy = 0.0;
 float xscroll, yscroll;
@@ -400,36 +400,32 @@ init(void) {
 }
 
 void
-draw(void) {
+show_lives(void)
+{
 	int i;
+	SDL_Rect dest;
+
+	for(i=0; i<ship.lives-1; i++) {
+		dest.x = (i + 1)*(surf_life->w + 10);
+		dest.y = 20;
+		SDL_BlitSurface(surf_life, NULL, surf_screen, &dest);
+	}
+}
+
+void
+draw(void) {
 	SDL_Rect dest;
 	int x;
 	char *text;
 	float fadegame,fadeover;
 
-	// Draw a fully black background
-	SDL_FillRect(surf_screen,NULL,0);
-
-	// Draw the background dots
-	drawdots(surf_screen);
-
-	// Draw ship
-	if(state == GAMEPLAY) draw_sprite(SPRITE(&ship));
-
+	SDL_FillRect(surf_screen,NULL,0);  // black background
+	drawdots(surf_screen);             // background dots
+	draw_sprite(SPRITE(&ship));
 	draw_rocks();
 
-	// Draw the life indicators.
-	if(state == GAMEPLAY || state == DEAD_PAUSE || state == GAME_OVER) {
-		for(i = 0; i<ship.lives-1; i++) {
-			dest.x = (i + 1)*(surf_life->w + 10);
-			dest.y = 20;
-			SDL_BlitSurface(surf_life, NULL, surf_screen, &dest);
-		}
-	}
-
-	// Draw the score
-	snprintscore_line(topline, 50, score);
-	SFont_Write(surf_screen, g_font, XSIZE-250, 0, topline);
+	show_lives();
+	show_score();
 
 	// If it's game over, show the game over graphic in the dead centre
 	switch (state) {
@@ -513,47 +509,47 @@ draw(void) {
 
 	ms_frame = SDL_GetTicks() - ms_end;
 	ms_end += ms_frame;
-	if(ms_frame>200 || ms_frame<0) {
-		// We won't run at all below 5 frames per second.
-		// This also happens if we were paused, grr.
-		t_frame = 0;
-		ms_frame = 0;
-	} else {
-		t_frame = opt_gamespeed * ms_frame / 50;
-		if(state == GAMEPLAY) score += ms_frame;
-	}
+	t_frame = opt_gamespeed * ms_frame / 50;
+	if(state == GAMEPLAY) score += ms_frame;
 
 	// Update the surface
 	SDL_Flip(surf_screen);
 }
 
+static inline void
+kill_ship(Sprite *ship)
+{
+	ship->flags = MOVE|DRAW;
+	SDL_SetAlpha(ship->image, SDL_SRCALPHA, 0);
+	bang = true;
+}
+
 void
 do_collision(Sprite *a, Sprite *b)
 {
-	if(a->type == SHIP) {
-		a->flags = MOVE_FLAG; bang = true;
-	} else if (b->type == SHIP) {
-		b->flags = MOVE_FLAG; bang = true;
-	} else {
-		bounce(a, b);
-	}
+	if(a->type == SHIP) kill_ship(a);
+	else if (b->type == SHIP) kill_ship(b);
+	else bounce(a, b);
 }
 
-int
+void
 gameloop() {
 	Uint8 *keystate = SDL_GetKeyState(NULL);
 	float tmp;
 
 
 	for(;;) {
+		SDL_PumpEvents();
+		keystate = SDL_GetKeyState(NULL);
+
 		if(!paused) {
 			// Count down the game loop timer, and change state when it gets to zero or less;
 
 			if((state_timeout -= t_frame*3) < 0) {
 				switch(state) {
 					case DEAD_PAUSE:
-						// Create a new ship and start all over again
-						ship.flags = ALL_FLAGS;
+						// Restore the ship and continue playing
+						ship.flags = DRAW|MOVE|COLLIDE;
 						state = GAMEPLAY;
 						play_tune(TUNE_GAMEPLAY);
 						break;
@@ -565,7 +561,7 @@ gameloop() {
 							SDL_EnableUNICODE(1);
 							while(SDL_PollEvent(&e))
 								;
-						} else if(!keystate[SDLK_SPACE]) {
+						} else {
 							state = HIGH_SCORE_DISPLAY;
 							state_timeout = 400;
 						}
@@ -585,13 +581,16 @@ gameloop() {
 				}
 			} else {
 				if(state == DEAD_PAUSE) {
-					float blast_radius;
+					float blast_radius, alpha;
 					if(state_timeout >= DEAD_PAUSE_LENGTH - 20.0) {
 						blast_radius = BLAST_RADIUS * (DEAD_PAUSE_LENGTH - state_timeout) / 20.0;
 						blast_rocks(bangx, bangy, blast_radius);
 					}
 
 					if(bangx < 60) bangx = 60;
+
+					alpha = 255.0 * (DEAD_PAUSE_LENGTH - state_timeout) / DEAD_PAUSE_LENGTH;
+					SDL_SetAlpha(ship.image, SDL_SRCALPHA, (uint8_t)alpha);
 				}
 			}
 
@@ -621,16 +620,14 @@ gameloop() {
 			move_sprites();
 
 
-			// BOUNCE X
-			if(ship.x<0 || ship.x>XSIZE-ship.image->w) {
-				// BOUNCE from left and right wall
+			// BOUNCE off left or right edge of screen
+			if(ship.x < 0 || ship.x+ship.w > XSIZE) {
 				ship.x -= (ship.dx-screendx)*t_frame;
 				ship.dx = screendx - (ship.dx-screendx)*opt_bounciness;
 			}
 
-			// BOUNCE Y
-			if(ship.y<0 || ship.y>YSIZE-ship.image->h) {
-				// BOUNCE from top and bottom wall
+			// BOUNCE off top or bottom of screen
+			if(ship.y < 0 || ship.y+ship.h > YSIZE) {
 				ship.y -= (ship.dy-screendy)*t_frame;
 				ship.dy = screendy - (ship.dy-screendy)*opt_bounciness;
 			}
@@ -657,18 +654,19 @@ gameloop() {
 				}
 			}
 
-			SDL_PumpEvents();
-			keystate = SDL_GetKeyState(NULL);
-
 			// new game
-			if(keystate[SDLK_SPACE] && (state == HIGH_SCORE_DISPLAY || state == TITLE_PAGE)) {
+			if(keystate[SDLK_SPACE]
+			   && (state == HIGH_SCORE_DISPLAY
+			       || state == TITLE_PAGE
+			       || state == GAME_OVER)) {
 				reset_sprites();
 				reset_rocks();
 
 				ship.x = XSIZE/2.2; ship.y = YSIZE/2;
 				ship.dx = screendx; ship.dy = screendy;
 				ship.lives = 4;
-				ship.flags = ALL_FLAGS;
+				ship.flags = MOVE|DRAW|COLLIDE;
+				SDL_SetAlpha(ship.image, SDL_SRCALPHA, SDL_ALPHA_OPAQUE);
 				add_sprite(SPRITE(&ship));
 
 				score = 0;
@@ -678,12 +676,9 @@ gameloop() {
 			}
 
 			ship.jets = 0;
-		} else {
-			SDL_PumpEvents();
-			keystate = SDL_GetKeyState(NULL);
 		}
 
-		if(state == GAMEPLAY) {
+		if(state == GAMEPLAY || state == DEAD_PAUSE) {
 			if(!paused) {
 				if(keystate[SDLK_LEFT]  | keystate[SDLK_h]) { ship.dx -= 1.5*t_frame; ship.jets |= 1<<0;}
 				if(keystate[SDLK_DOWN]  | keystate[SDLK_t]) { ship.dy += 1.5*t_frame; ship.jets |= 1<<1;}
@@ -696,19 +691,15 @@ gameloop() {
 				if(!pausedown) {
 					paused = !paused;
 					pausedown = 1;
+					if(!paused) ms_end = SDL_GetTicks();
 				}
 			} else {
 				pausedown = 0;
 			}
-		} else if(state == GAME_OVER) {
-			if(keystate[SDLK_SPACE]) {
-				state_timeout = -1;
-			}
 		}
 
-		if(state != HIGH_SCORE_ENTRY && (keystate[SDLK_q] || keystate[SDLK_ESCAPE])) {
-			return 0;
-		}
+		if(state != HIGH_SCORE_ENTRY && (keystate[SDLK_q] || keystate[SDLK_ESCAPE]))
+			return;
 
 	}
 }

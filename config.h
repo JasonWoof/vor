@@ -24,7 +24,7 @@
 
 // initial/final counts for rocks-on-screen
 #define I_ROCKS 20
-#define F_ROCKS 40
+#define F_ROCKS 35
 
 // number of rock structs to allocate
 #define MAXROCKS 120
