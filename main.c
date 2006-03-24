@@ -532,6 +532,17 @@ do_collision(Sprite *a, Sprite *b)
 }
 
 void
+init_score_entry(void)
+{
+	SDL_Event e;
+	state = HIGH_SCORE_ENTRY;
+	state_timeout = 5.0e6;
+	SDL_EnableUNICODE(1);
+	while(SDL_PollEvent(&e))
+		;
+}
+
+void
 gameloop() {
 	Uint8 *keystate = SDL_GetKeyState(NULL);
 	float tmp;
@@ -553,14 +564,8 @@ gameloop() {
 						play_tune(TUNE_GAMEPLAY);
 						break;
 					case GAME_OVER:
-						if(new_high_score(score)) {
-							SDL_Event e;
-							state = HIGH_SCORE_ENTRY;
-							state_timeout = 5.0e6;
-							SDL_EnableUNICODE(1);
-							while(SDL_PollEvent(&e))
-								;
-						} else {
+						if(new_high_score(score)) init_score_entry();
+						else {
 							state = HIGH_SCORE_DISPLAY;
 							state_timeout = 400;
 						}
@@ -655,21 +660,25 @@ gameloop() {
 			   && (state == HIGH_SCORE_DISPLAY
 			       || state == TITLE_PAGE
 			       || state == GAME_OVER)) {
-				reset_sprites();
-				reset_rocks();
-				screendx = SCREENDXMIN; screendy = 0;
+				if(state == GAME_OVER && new_high_score(score))
+					init_score_entry();
+				else {
+					reset_sprites();
+					reset_rocks();
+					screendx = SCREENDXMIN; screendy = 0;
 
-				ship.x = XSIZE/2.2; ship.y = YSIZE/2;
-				ship.dx = screendx; ship.dy = screendy;
-				ship.lives = 4;
-				ship.flags = MOVE|DRAW|COLLIDE;
-				SDL_SetAlpha(ship.image, SDL_SRCALPHA, SDL_ALPHA_OPAQUE);
-				add_sprite(SPRITE(&ship));
+					ship.x = XSIZE/2.2; ship.y = YSIZE/2;
+					ship.dx = screendx; ship.dy = screendy;
+					ship.lives = 4;
+					ship.flags = MOVE|DRAW|COLLIDE;
+					SDL_SetAlpha(ship.image, SDL_SRCALPHA, SDL_ALPHA_OPAQUE);
+					add_sprite(SPRITE(&ship));
 
-				score = 0;
+					score = 0;
 
-				state = GAMEPLAY;
-				play_tune(TUNE_GAMEPLAY);
+					state = GAMEPLAY;
+					play_tune(TUNE_GAMEPLAY);
+				}
 			}
 
 			ship.jets = 0;
