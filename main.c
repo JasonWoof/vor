@@ -77,6 +77,7 @@ float t_frame;  // length of this frame (in ticks = 1/20th second)
 int ms_frame;   // length of this frame (milliseconds)
 int ms_end;     // end of this frame (milliseconds)
 
+int bang = false;
 float bangx, bangy, bangdx, bangdy;
 
 int score;
@@ -388,6 +389,7 @@ init(void) {
 	init_dust();
 
 	init_sprites();
+	add_sprite(SPRITE(&ship));
 
 	// Remove the mouse cursor
 #ifdef SDL_DISABLE
@@ -397,15 +399,13 @@ init(void) {
 	return 0;
 }
 
-int
-draw() {
+void
+draw(void) {
 	int i;
 	SDL_Rect dest;
-	int bang, x;
+	int x;
 	char *text;
 	float fadegame,fadeover;
-
-	bang = 0;
 
 	// Draw a fully black background
 	SDL_FillRect(surf_screen,NULL,0);
@@ -509,13 +509,7 @@ draw() {
 			; // no action necessary
 	}
 
-	if(state == GAMEPLAY) {
-		Sprite *r = collides(SPRITE(&ship));
-		if(r) {
-			bounce(r, SPRITE(&ship));
-		}
-		collisions();
-	}
+	collisions();
 
 	ms_frame = SDL_GetTicks() - ms_end;
 	ms_end += ms_frame;
@@ -531,15 +525,18 @@ draw() {
 
 	// Update the surface
 	SDL_Flip(surf_screen);
-
-
-	return bang;
 }
 
 void
 do_collision(Sprite *a, Sprite *b)
 {
-	bounce(a, b);
+	if(a->type == SHIP) {
+		a->type = -SHIP; bang = true;
+	} else if (b->type == SHIP) {
+		b->type = -SHIP; bang = true;
+	} else {
+		bounce(a, b);
+	}
 }
 
 int
@@ -556,6 +553,7 @@ gameloop() {
 				switch(state) {
 					case DEAD_PAUSE:
 						// Create a new ship and start all over again
+						ship.sprite_type = SHIP;
 						state = GAMEPLAY;
 						play_tune(TUNE_GAMEPLAY);
 						break;
@@ -620,7 +618,6 @@ gameloop() {
 			bangx += bangdx*t_frame - xscroll;
 			bangy += bangdy*t_frame - yscroll;
 
-			move_sprite(SPRITE(&ship));
 			move_sprites();
 
 
@@ -638,13 +635,15 @@ gameloop() {
 				ship.dy = screendy - (ship.dy-screendy)*opt_bounciness;
 			}
 
+			draw();
 
-			if(draw() && state == GAMEPLAY) {
+			if(state == GAMEPLAY && bang) {
 				// Died
+				bang = false;
 				play_sound(SOUND_BANG); // Play the explosion sound
 				bangx = ship.x; bangy = ship.y; bangdx = ship.dx; bangdy = ship.dy;
-					new_bang_dots(ship.x,ship.y,ship.dx,ship.dy,ship.image);
-					ship.dx *= 0.5; ship.dy *= 0.5;
+				new_bang_dots(ship.x,ship.y,ship.dx,ship.dy,ship.image);
+				ship.dx *= 0.5; ship.dy *= 0.5;
 				if(ship.dx < SCREENDXMIN) ship.dx = SCREENDXMIN;
 				if(--ship.lives <= 0) {
 					state = GAME_OVER;
@@ -652,8 +651,7 @@ gameloop() {
 					state_timeout = 200.0;
 					fadetimer = 0.0;
 					faderate = t_frame;
-				}
-				else {
+				} else {
 					state = DEAD_PAUSE;
 					state_timeout = DEAD_PAUSE_LENGTH;
 				}
@@ -664,17 +662,18 @@ gameloop() {
 
 			// new game
 			if(keystate[SDLK_SPACE] && (state == HIGH_SCORE_DISPLAY || state == TITLE_PAGE)) {
-
+				reset_sprites();
 				reset_rocks();
 
+				ship.x = XSIZE/2.2; ship.y = YSIZE/2;
+				ship.dx = screendx; ship.dy = screendy;
 				ship.lives = 4;
+				add_sprite(SPRITE(&ship));
+
 				score = 0;
 
 				state = GAMEPLAY;
 				play_tune(TUNE_GAMEPLAY);
-
-				ship.x = XSIZE/2.2; ship.y = YSIZE/2;
-				ship.dx = screendx; ship.dy = screendy;
 			}
 
 			ship.jets = 0;

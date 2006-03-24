@@ -75,7 +75,7 @@ main.o: args.h common.h dust.h file.h globals.h mt.h rocks.h score.h sprite.h so
 
 mt.o: mt.h
 
-rocks.o: rocks.h common.h file.h globals.h mt.h
+rocks.o: rocks.h common.h file.h globals.h mt.h sprite.h
 
 score.o: score.h common.h file.h
 

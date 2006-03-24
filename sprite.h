@@ -31,6 +31,7 @@ void do_collision(Sprite *a, Sprite *b);
 void collisions(void);
 
 void init_sprites(void);
+void reset_sprites(void);
 void add_sprite(Sprite *s);
 void move_sprite(Sprite *s);
 void move_sprites(void);
@@ -98,7 +99,7 @@ static inline void
 draw_sprite(Sprite *s)
 {
 	SDL_Rect dest;
-	if(s->type == NONE) return;
+	if(s->type < 0) return;
 	dest.x = s->x; dest.y = s->y;
 	SDL_BlitSurface(s->image, NULL, surf_screen, &dest);
 }

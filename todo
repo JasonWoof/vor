@@ -1,7 +1,6 @@
 ****	Finish porting to Windows (should be only file.c and args.c, I think)
 
-***	Switch over to sprites rather than totally separate structures.
-*	Rocks collide with each other?
+**	BUG: Rocks can be created touching, often giving a high-velocity bounce.
 
 ***	Add a scripting language and separate game logic from the engine.
 	Forth?  Scheme?  Lua?
