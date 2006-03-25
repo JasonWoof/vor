@@ -412,11 +412,63 @@ show_lives(void)
 }
 
 void
-draw(void) {
+draw_game_over(void)
+{
+	float a_game = 0, a_over = 0;
 	SDL_Rect dest;
+
+	// fade in "GAME", then "OVER".
+	a_game = min(1.0, faderate*fadetimer/3.0);
+	if(a_game == 1.0) a_over = min(1.0, faderate*fadetimer/3.0 - 1);
+
+	fadetimer += t_frame;
+
+	dest.x = (XSIZE-surf_b_game->w)/2;
+	dest.y = (YSIZE-surf_b_game->h)/2-40;
+	SDL_SetAlpha(surf_b_game, SDL_SRCALPHA, (int)(a_game*(200 + 55*cos(fadetimer))));
+	SDL_BlitSurface(surf_b_game,NULL,surf_screen,&dest);
+
+	dest.x = (XSIZE-surf_b_over->w)/2;
+	dest.y = (YSIZE-surf_b_over->h)/2 + 40;
+	SDL_SetAlpha(surf_b_over, SDL_SRCALPHA, (int)(a_over*(200 + 55*sin(fadetimer))));
+	SDL_BlitSurface(surf_b_over,NULL,surf_screen,&dest);
+}
+
+void
+draw_title_page(void)
+{
 	int x;
 	char *text;
-	float fadegame,fadeover;
+	SDL_Rect dest;
+
+	fadetimer += t_frame/2.0;
+
+	dest.x = (XSIZE-surf_b_variations->w)/2 + cos(fadetimer/6.5)*10;
+	dest.y = (YSIZE/2-surf_b_variations->h)/2 + sin(fadetimer/5.0)*10;
+	SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer)));
+	SDL_BlitSurface(surf_b_variations,NULL,surf_screen,&dest);
+
+	dest.x = (XSIZE-surf_b_on->w)/2 + cos((fadetimer + 1.0)/6.5)*10;
+	dest.y = (YSIZE/2-surf_b_on->h)/2 + surf_b_variations->h + 20 + sin((fadetimer + 1.0)/5.0)*10;
+	SDL_SetAlpha(surf_b_on, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-1.0)));
+	SDL_BlitSurface(surf_b_on,NULL,surf_screen,&dest);
+
+	dest.x = (XSIZE-surf_b_rockdodger->w)/2 + cos((fadetimer + 2.0)/6.5)*10;
+	dest.y = (YSIZE/2-surf_b_rockdodger->h)/2 + surf_b_variations->h + surf_b_on->h + 40 + sin((fadetimer + 2.0)/5)*10;
+	SDL_SetAlpha(surf_b_rockdodger, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-2.0)));
+	SDL_BlitSurface(surf_b_rockdodger,NULL,surf_screen,&dest);
+
+	text = "Version " VERSION;
+	x = (XSIZE-SFont_TextWidth(g_font,text))/2 + sin(fadetimer/4.5)*10;
+	SFont_Write(surf_screen,g_font,x,YSIZE-50 + sin(fadetimer/2)*5,text);
+
+	text = sequence[(int)(fadetimer/40)%NSEQUENCE];
+	x = (XSIZE-SFont_TextWidth(g_font,text))/2 + cos(fadetimer/4.5)*10;
+	SFont_Write(surf_screen,g_font,x,YSIZE-100 + cos(fadetimer/3)*5,text);
+}
+
+void
+draw(void) {
 
 	SDL_FillRect(surf_screen,NULL,0);  // black background
 	drawdots(surf_screen);             // background dots
@@ -428,58 +480,9 @@ draw(void) {
 
 	// If it's game over, show the game over graphic in the dead centre
 	switch (state) {
-		case GAME_OVER:
-			if(fadetimer<3.0/faderate) {
-				fadegame = fadetimer/(3.0/faderate);
-			} else {
-				fadegame = 1.0;
-			}
+		case GAME_OVER: draw_game_over(); break;
 
-			if(fadetimer<3.0/faderate) {
-				fadeover = 0.0;
-			} else if(fadetimer<6.0/faderate) {
-				fadeover = ((3.0/faderate)-fadetimer)/(6.0/faderate);
-			} else {
-				fadeover = 1.0;
-			}
-
-			dest.x = (XSIZE-surf_b_game->w)/2;
-			dest.y = (YSIZE-surf_b_game->h)/2-40;
-			SDL_SetAlpha(surf_b_game, SDL_SRCALPHA, (int)(fadegame*(200 + 55*cos(fadetimer += t_frame/1.0))));
-			SDL_BlitSurface(surf_b_game,NULL,surf_screen,&dest);
-
-			dest.x = (XSIZE-surf_b_over->w)/2;
-			dest.y = (YSIZE-surf_b_over->h)/2 + 40;
-			SDL_SetAlpha(surf_b_over, SDL_SRCALPHA, (int)(fadeover*(200 + 55*sin(fadetimer))));
-			SDL_BlitSurface(surf_b_over,NULL,surf_screen,&dest);
-		break;
-
-		case TITLE_PAGE:
-
-			dest.x = (XSIZE-surf_b_variations->w)/2 + cos(fadetimer/6.5)*10;
-			dest.y = (YSIZE/2-surf_b_variations->h)/2 + sin(fadetimer/5.0)*10;
-			SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer += t_frame/2.0)));
-			SDL_BlitSurface(surf_b_variations,NULL,surf_screen,&dest);
-
-			dest.x = (XSIZE-surf_b_on->w)/2 + cos((fadetimer + 1.0)/6.5)*10;
-			dest.y = (YSIZE/2-surf_b_on->h)/2 + surf_b_variations->h + 20 + sin((fadetimer + 1.0)/5.0)*10;
-			SDL_SetAlpha(surf_b_on, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-1.0)));
-			SDL_BlitSurface(surf_b_on,NULL,surf_screen,&dest);
-
-			dest.x = (XSIZE-surf_b_rockdodger->w)/2 + cos((fadetimer + 2.0)/6.5)*10;
-			dest.y = (YSIZE/2-surf_b_rockdodger->h)/2 + surf_b_variations->h + surf_b_on->h + 40 + sin((fadetimer + 2.0)/5)*10;
-			SDL_SetAlpha(surf_b_rockdodger, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-2.0)));
-			SDL_BlitSurface(surf_b_rockdodger,NULL,surf_screen,&dest);
-
-			text = "Version " VERSION;
-			x = (XSIZE-SFont_TextWidth(g_font,text))/2 + sin(fadetimer/4.5)*10;
-			SFont_Write(surf_screen,g_font,x,YSIZE-50 + sin(fadetimer/2)*5,text);
-
-			text = sequence[(int)(fadetimer/40)%NSEQUENCE];
-			//text = "Press SPACE to start!";
-			x = (XSIZE-SFont_TextWidth(g_font,text))/2 + cos(fadetimer/4.5)*10;
-			SFont_Write(surf_screen,g_font,x,YSIZE-100 + cos(fadetimer/3)*5,text);
-		break;
+		case TITLE_PAGE: draw_title_page(); break;
 
 		case HIGH_SCORE_ENTRY:
 			play_tune(TUNE_HIGH_SCORE_ENTRY);
@@ -518,8 +521,9 @@ draw(void) {
 static inline void
 kill_ship(Sprite *ship)
 {
-	ship->flags = MOVE|DRAW;
-	SDL_SetAlpha(ship->image, SDL_SRCALPHA, 0);
+	ship->flags = MOVE;
+	// ship->flags = MOVE|DRAW;  // FADE SHIP
+	// SDL_SetAlpha(ship->image, SDL_SRCALPHA, 0); // FADE SHIP
 	bang = true;
 }
 
@@ -585,7 +589,8 @@ gameloop() {
 				}
 			} else {
 				if(state == DEAD_PAUSE) {
-					float blast_radius, alpha;
+					float blast_radius;
+					// float alpha;  // FADE SHIP
 					if(state_timeout >= DEAD_PAUSE_LENGTH - 20.0) {
 						blast_radius = BLAST_RADIUS * (DEAD_PAUSE_LENGTH - state_timeout) / 20.0;
 						blast_rocks(bangx, bangy, blast_radius);
@@ -593,8 +598,9 @@ gameloop() {
 
 					if(bangx < 60) bangx = 60;
 
-					alpha = 255.0 * (DEAD_PAUSE_LENGTH - state_timeout) / DEAD_PAUSE_LENGTH;
-					SDL_SetAlpha(ship.image, SDL_SRCALPHA, (uint8_t)alpha);
+					// FADE SHIP
+					// alpha = 255.0 * (DEAD_PAUSE_LENGTH - state_timeout) / DEAD_PAUSE_LENGTH;
+					// SDL_SetAlpha(ship.image, SDL_SRCALPHA, (uint8_t)alpha);
 				}
 			}
 
@@ -671,7 +677,7 @@ gameloop() {
 					ship.dx = screendx; ship.dy = screendy;
 					ship.lives = 4;
 					ship.flags = MOVE|DRAW|COLLIDE;
-					SDL_SetAlpha(ship.image, SDL_SRCALPHA, SDL_ALPHA_OPAQUE);
+					// SDL_SetAlpha(ship.image, SDL_SRCALPHA, SDL_ALPHA_OPAQUE);  // FADE SHIP
 					add_sprite(SPRITE(&ship));
 
 					score = 0;

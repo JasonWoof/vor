@@ -13,7 +13,9 @@
 
 Comments from HappyPenguin (and solution ideas by Josh)
 
-***	Too hard: should be able to choose difficulty from within game.
-**	What do you do at game over?  "Press SPACE to start a new game".
-**	Multiple deaths is a problem: fade new ship in? [DONE 2006-03-24]
-**	Why can't you go left?  You're trying to outrun a blast wave.
+***	Too hard.  Add easy setting (press 'e' to start easy game).
+**	What do you do at game over?  Need an explanatory message.
+**	Why can't you go left?  Blast wave.  Fire/explosion graphics?
+
+DONE 2006-03-24
+**	Multiple deaths is a problem: sqrt(ship speed).

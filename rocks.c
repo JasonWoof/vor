@@ -219,7 +219,6 @@ blast_rocks(float x, float y, float radius)
 			n *= 15;
 			r->dx += 54.0*dx/n;
 			r->dy += 54.0*dy/n;
-			r->flags &= ~COLLIDE;
 		}
 	}
 }

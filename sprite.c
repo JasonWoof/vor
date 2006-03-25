@@ -292,6 +292,8 @@ int
 pixel_collide(Sprite *s, int x, int y)
 {
 	uint32_t pmask;
+
+	if(!COLLIDES(s)) return false;
 	
 	if(x < s->x || y < s->y || x >= s->x + s->w || y >= s->y + s->h) return 0;
 
