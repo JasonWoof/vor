@@ -340,8 +340,8 @@ void
 bounce(Sprite *a, Sprite *b)
 {
 	float x, y, n;
-	float va, vb;
-	float ma, mb, mr;
+	float va, vb, vc;
+	float ma, mb;
 
 	// (x, y) is unit vector pointing from A's center to B's center.
 	x = (b->x + b->w / 2) - (a->x + a->w / 2);
@@ -352,10 +352,9 @@ bounce(Sprite *a, Sprite *b)
 	va = max(x*a->dx + y*a->dy, 0);
 	vb = min(x*b->dx + y*b->dy, 0);
 
-	// mass ratio
 	ma = sprite_mass(a); mb = sprite_mass(b);
-	if(ma && mb) mr = mb/ma; else mr = 1;
+	vc = (va*ma + vb*mb) / (ma+mb);
 
-	a->dx += x*(mb*vb - ma*va)/ma; a->dy += y*(mb*vb - ma*va)/ma;
-	b->dx += x*(ma*va - mb*vb)/mb; b->dy += y*(ma*va - mb*vb)/mb;
+	a->dx += 2*x*(vc-va); a->dy += 2*y*(vc-va);
+	b->dx += 2*x*(vc-vb); b->dy += 2*y*(vc-vb);
 }
