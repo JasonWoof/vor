@@ -349,8 +349,9 @@ bounce(Sprite *a, Sprite *b)
 	n = sqrt(x*x + y*y); x /= n; y /= n;
 
 	// velocities along (x, y), or 0 if already moving away.
-	va = max(x*a->dx + y*a->dy, 0);
-	vb = min(x*b->dx + y*b->dy, 0);
+	va = x*a->dx + y*a->dy;
+	vb = x*b->dx + y*b->dy;
+	if(vb-va > 0) return;
 
 	ma = sprite_mass(a); mb = sprite_mass(b);
 	vc = (va*ma + vb*mb) / (ma+mb);
