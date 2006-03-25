@@ -302,36 +302,37 @@ pixel_collide(Sprite *s, int x, int y)
 	return s->mask[(y*s->mask_w) + (x>>5)] & pmask;
 }
 
-int
+Sprite *
 pixel_hit_in_square(Sprite *r, float x, float y)
 {
 	for(; r; r=r->next) {
-		if(COLLIDES(r) && pixel_collide(r, x, y)) return 1;
+		if(COLLIDES(r) && pixel_collide(r, x, y)) return r;
 	}
 	return 0;
 }
 
-int
+Sprite *
 pixel_collides(float x, float y)
 {
 	int l, t;
 	Sprite **sq;
+	Sprite *ret;
 
 	l = (x + grid_size) / grid_size; t = (y + grid_size) / grid_size;
 	sq = &sprites[set][l + t*gw];
-	if(pixel_hit_in_square(*sq, x, y)) return true;
-	if(l > 0 && pixel_hit_in_square(*(sq-1), x, y)) return true;
-	if(t > 0 && pixel_hit_in_square(*(sq-gw), x, y)) return true;
-	if(l > 0 && t > 0 && pixel_hit_in_square(*(sq-1-gw), x, y)) return true;
-	return false;
+	if((ret = pixel_hit_in_square(*sq, x, y))) return ret;
+	if(l > 0 && (ret = pixel_hit_in_square(*(sq-1), x, y))) return ret;
+	if(t > 0 && (ret = pixel_hit_in_square(*(sq-gw), x, y))) return ret;
+	if(l > 0 && t > 0 && (ret = pixel_hit_in_square(*(sq-1-gw), x, y))) return ret;
+	return 0;
 }
 
 
-static float
+float
 sprite_mass(Sprite *s)
 {
 	if(s->type == SHIP) return s->area;
-	else if(s->type == ROCK) return 3*s->area;
+	else if(s->type == ROCK) return 3 * s->area;
 	else return 0;
 }
 

@@ -256,6 +256,7 @@ draw_engine_dots(SDL_Surface *s) {
 	uint16_t *pixels = (uint16_t *) s->pixels;
 	int row_inc = s->pitch/sizeof(uint16_t);
 	int heatindex;
+	Sprite *hit;
 
 	for(i = 0; i<MAXENGINEDOTS; i++) {
 		if(!edot[i].active) continue;
@@ -268,7 +269,15 @@ draw_engine_dots(SDL_Surface *s) {
 			edot[i].active = 0;
 			continue;
 		}
-		if(pixel_collides(edot[i].x, edot[i].y)) { edot[i].active = 0; continue; }
+		// check collisions
+		if((hit = pixel_collides(edot[i].x, edot[i].y))) {
+			if(hit->type != SHIP) { // they shouldn't hit the ship, but they do
+				edot[i].active = 0;
+				hit->dx += ENGINE_DOT_WEIGHT * edot[i].life * edot[i].dx / sprite_mass(hit);
+				hit->dy += ENGINE_DOT_WEIGHT * edot[i].life * edot[i].dy / sprite_mass(hit);
+				continue;
+			}
+		}
 		heatindex = edot[i].life * 6;
 		c = heatindex>3*W ? heatcolor[3*W-1] : heatcolor[heatindex];
 		pixels[row_inc*(int)(edot[i].y) + (int)(edot[i].x)] = c;

@@ -34,6 +34,9 @@
 #define W 100
 #define M 255
 
+// determines how hard they push the rocks. Set to 0 to disable pushing rocks
+#define ENGINE_DOT_WEIGHT 0.1
+
 // radius^2 (pixels) which will be cleared of rocks when you die
 #define BLAST_RADIUS 300
 
