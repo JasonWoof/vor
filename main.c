@@ -563,8 +563,6 @@ static inline void
 kill_ship(Sprite *ship)
 {
 	ship->flags = MOVE;
-	// ship->flags = MOVE|DRAW;  // FADE SHIP
-	// SDL_SetAlpha(ship->image, SDL_SRCALPHA, 0); // FADE SHIP
 	bang = true;
 }
 
@@ -632,13 +630,7 @@ gameloop() {
 				}
 			} else {
 				if(state == DEAD_PAUSE) {
-					// float alpha;  // FADE SHIP
-
 					if(bangx < 60) bangx = 60;
-
-					// FADE SHIP
-					// alpha = 255.0 * (DEAD_PAUSE_LENGTH - state_timeout) / DEAD_PAUSE_LENGTH;
-					// SDL_SetAlpha(ship.image, SDL_SRCALPHA, (uint8_t)alpha);
 				}
 			}
 
@@ -727,7 +719,6 @@ gameloop() {
 					ship.dx = screendx; ship.dy = screendy;
 					ship.lives = 4;
 					ship.flags = MOVE|DRAW|COLLIDE;
-					// SDL_SetAlpha(ship.image, SDL_SRCALPHA, SDL_ALPHA_OPAQUE);  // FADE SHIP
 					add_sprite(SPRITE(&ship));
 
 					score = 0;
