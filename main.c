@@ -99,21 +99,18 @@ enum states {
 enum states state = TITLE_PAGE;
 float state_timeout = 600.0;
 
-char *space_msgs[3] = {
-	"Press SPACE to start a new game",
-	"Press SPACE for easy game",
-	"Press SPACE for normal game"
-};
-
-char *other_msgs[2] = {
-	"Press 'e' for easy game",
-	"Press 'n' for normal game"
-};
 #define NSEQUENCE 3
-char *sequence[] = {
-	"Press SPACE for normal game",
-	"Press 'e' for easy game",
-	"http://jasonwoof.org/vor"
+char *msgs[2][3] = {
+	{
+		"Press SPACE for normal game",
+		"Press 'e' for easy game",
+		"http://jasonwoof.org/vor"
+	},
+	{
+		"Press SPACE for easy game",
+		"Press 'n' for normal game",
+		"http://jasonwoof.org/vor"
+	}
 };
 
 int bangdotlife, nbangdots;
@@ -458,12 +455,9 @@ draw_game_over(void)
 	if(new_high_score(score)) {
 		text0 = "New High Score!";
 		text1 = "Press SPACE to continue";
-	} else if(initial_rocks == EASY_I_ROCKS) {
-		text0 = space_msgs[1]; sequence[0] = text0;
-		text1 = other_msgs[1]; sequence[1] = text1;
 	} else {
-		text0 = space_msgs[0]; sequence[0] = space_msgs[2];
-		text1 = other_msgs[0]; sequence[1] = text1;
+		text0 = msgs[g_easy][0];
+		text1 = msgs[g_easy][1];
 	}
 
 	x = (XSIZE-SFont_TextWidth(g_font,text0))/2 + cos(fadetimer/9)*10;
@@ -497,7 +491,7 @@ draw_title_page(void)
 	SDL_SetAlpha(surf_b_rockdodger, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-2.0)));
 	SDL_BlitSurface(surf_b_rockdodger,NULL,surf_screen,&dest);
 
-	text = sequence[(int)(fadetimer/35)%NSEQUENCE];
+	text = msgs[g_easy][(int)(fadetimer/35)%NSEQUENCE];
 	x = (XSIZE-SFont_TextWidth(g_font,text))/2 + cos(fadetimer/4.5)*10;
 	SFont_Write(surf_screen,g_font,x,YSIZE-100 + cos(fadetimer/3)*5,text);
 
