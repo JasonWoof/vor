@@ -17,9 +17,11 @@ static struct rock prototypes[NROCKS];
 // timers for rock generation.
 static float rtimers[4];
 
-uint32_t nrocks = I_ROCKS;
+uint32_t nrocks = NORMAL_I_ROCKS;
+uint32_t initial_rocks = NORMAL_I_ROCKS;
+uint32_t final_rocks = NORMAL_F_ROCKS;
 float nrocks_timer = 0;
-float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
+float nrocks_inc_ticks = 2*60*20/(NORMAL_F_ROCKS-NORMAL_I_ROCKS);
 
 // constants for rock generation.
 #define KH (32*20)  // 32 s for a speed=1 rock to cross the screen horizontally.
@@ -30,7 +32,8 @@ float nrocks_inc_ticks = 2*60*20/(F_ROCKS-I_ROCKS);
 void
 reset_rocks(void)
 {
-	nrocks = I_ROCKS;
+	nrocks = initial_rocks;
+	nrocks_inc_ticks = 2*60*20/(final_rocks-initial_rocks);
 	nrocks_timer = 0;
 }
 
@@ -134,7 +137,7 @@ new_rocks(void)
 	float rmin[4];
 	float rmax[4];
 
-	if(nrocks < F_ROCKS) {
+	if(nrocks < final_rocks) {
 		nrocks_timer += t_frame;
 		if(nrocks_timer >= nrocks_inc_ticks) {
 			nrocks_timer -= nrocks_inc_ticks;

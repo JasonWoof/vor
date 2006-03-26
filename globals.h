@@ -2,6 +2,7 @@
 #define VOR_GLOBALS_H
 
 #include <SDL.h>
+#include <inttypes.h>
 #include "SFont.h"
 
 struct bangdots {
@@ -65,5 +66,7 @@ extern int bangdotlife, nbangdots;
 extern Uint16 heatcolor[W*3];
 
 extern char *data_dir;
+
+extern uint32_t initial_rocks, final_rocks;
 
 #endif // VOR_GLOBALS_H
