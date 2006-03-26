@@ -132,7 +132,7 @@ find_score_file(void)
 	if(s) {
 		g_score_file = s;
 		g_score_mask = 0177;
-		return is_file(s);
+		return true;
 	} else return false;
 }
 

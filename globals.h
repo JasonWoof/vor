@@ -55,6 +55,7 @@ extern float screendx, screendy;
 extern float t_frame;  // length of this frame (in ticks = 1/20th second)
 
 extern int score;
+extern int g_easy;
 extern float fadetimer, faderate;
 
 extern int pausedown, paused;

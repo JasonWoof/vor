@@ -583,6 +583,7 @@ init_score_entry(void)
 	SDL_EnableUNICODE(1);
 	while(SDL_PollEvent(&e))
 		;
+	insert_score(score);
 }
 
 void
@@ -710,11 +711,13 @@ gameloop() {
 					init_score_entry();
 				else {
 					if((keystate[SDLK_SPACE] && !initial_rocks) || keystate[SDLK_n]) {
+						g_easy = 0;
 						initial_rocks = NORMAL_I_ROCKS;
 						final_rocks = NORMAL_F_ROCKS;
 						if(opt_gamespeed == EASY_GAMESPEED)
 							opt_gamespeed = NORMAL_GAMESPEED;
 					} else if(keystate[SDLK_e]) {
+						g_easy = 1;
 						initial_rocks = EASY_I_ROCKS;
 						final_rocks = EASY_F_ROCKS;
 						opt_gamespeed = EASY_GAMESPEED;
@@ -758,6 +761,11 @@ gameloop() {
 			} else {
 				pausedown = 0;
 			}
+		}
+
+		if(state == TITLE_PAGE && keystate[SDLK_h]) {
+			state = HIGH_SCORE_DISPLAY;
+			state_timeout = 400;
 		}
 
 		if(state != HIGH_SCORE_ENTRY && (keystate[SDLK_q] || keystate[SDLK_ESCAPE]))

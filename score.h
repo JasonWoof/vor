@@ -31,7 +31,7 @@ struct highscore {
 	char name[32];
 };
 
-extern struct highscore g_scores[N_SCORES];
+extern struct highscore g_scores[2][N_SCORES];
 
 void read_high_score_table(void);
 void write_high_score_table(void);
@@ -39,6 +39,7 @@ int snprintscore(char *s, size_t n, int score);
 void show_score(void);
 void display_scores(SDL_Surface *s, uint32_t x, uint32_t y);
 int new_high_score(int score);
+int insert_score(int score);
 int process_score_input(void);
 
 #endif // VOR_SCORE_H
