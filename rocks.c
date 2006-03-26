@@ -201,27 +201,3 @@ draw_rocks(void)
 	int i;
 	for(i=0; i<MAXROCKS; i++) draw_sprite(SPRITE(&rocks[i]));
 }
-
-void
-blast_rocks(float x, float y, float radius)
-{
-	int i;
-	Sprite *r;
-	float dx, dy, n;
-
-	for(i=0; i<MAXROCKS; i++) {
-		if(!rocks[i].flags) continue;
-		r = SPRITE(&rocks[i]);
-		if(r->x <= 0) continue;
-
-		dx = r->x - x;
-		dy = r->y - y;
-
-		n = sqrt(dx*dx + dy*dy);
-		if(n < radius) {
-			n *= 15;
-			r->dx += 54.0*dx/n;
-			r->dy += 54.0*dy/n;
-		}
-	}
-}

@@ -190,6 +190,7 @@ draw_bang_dots(SDL_Surface *s)
 	int first_i, last_i;
 	uint16_t *pixels, *pixel, c;
 	int row_inc = s->pitch/sizeof(uint16_t);
+	Sprite *hit;
 
 	pixels = (uint16_t *) s->pixels;
 	first_i = -1;
@@ -211,7 +212,14 @@ draw_bang_dots(SDL_Surface *s)
 		}
 
 		// check collisions
-		if(pixel_collides(bdot[i].x, bdot[i].y)) { bdot[i].active = 0; continue; }
+		if((hit = pixel_collides(bdot[i].x, bdot[i].y))) {
+			if(hit->type != SHIP) { // they shouldn't hit the ship, but they do
+				bdot[i].active = 0;
+				hit->dx += ENGINE_DOT_WEIGHT * bdot[i].life * bdot[i].dx / sprite_mass(hit);
+				hit->dy += ENGINE_DOT_WEIGHT * bdot[i].life * bdot[i].dy / sprite_mass(hit);
+				continue;
+			}
+		}
 
 		pixel = pixels + row_inc*(int)(bdot[i].y) + (int)(bdot[i].x);
 		if(bdot[i].c) c = bdot[i].c; else c = heatcolor[(int)(bdot[i].life)*3];
