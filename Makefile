@@ -18,7 +18,7 @@
 DATA_PREFIX := /usr/share/vor
 PROGRAM_PREFIX := /usr/games/bin
 
-CFLAGS := -Wall -ggdb
+CFLAGS := -Wall -O3
 LDFLAGS := 
 
 paths := -DDATA_PREFIX=\"$(DATA_PREFIX)\"
