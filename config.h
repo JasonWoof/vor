@@ -1,7 +1,7 @@
 #ifndef VOR_CONFIG_H
 #define VOR_CONFIG_H
 
-#define VERSION "0.4pre"
+#define VERSION "0.4"
 
 // screen size
 #define XSIZE 640
