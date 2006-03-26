@@ -1,21 +1,28 @@
 ****	Finish porting to Windows (should be only file.c and args.c, I think)
 
-**	BUG: Rocks can be created touching, often giving a high-velocity bounce.
-
 ***	Move game logic into a script so we can have "variations".
-*	Then an in-game menu to choose which game.
+*	Then an in-game menu to choose which game:
+	Rock Dodger
+	Free-form/Practice
+	Crazy Taxi
+*	Add networking for multiplayer games:
+	Tag
+	Deathmatch
 
-**	Switch to a TTF font and all ray-traced graphics
+**	Switch to a scalable font and all ray-traced graphics
 *	Then we can run at the native screen size
+
+*	BUG: Rocks can be created touching, causing a high-velocity bounce.
 
 *	Deltas on high score display?
 
 
 Comments from HappyPenguin (and solution ideas by Josh)
 
-***	Too hard.  Add easy setting (press 'e' to start easy game).
-**	What do you do at game over?  Need an explanatory message.
 **	Why can't you go left?  Blast wave.  Fire/explosion graphics?
 
+DONE 2006-03-25
+***	Too hard.  Add easy setting (press 'e' to start easy game).
+**	What do you do at game over?  Need an explanatory message.
 DONE 2006-03-24
 **	Multiple deaths is a problem: sqrt(ship speed).
