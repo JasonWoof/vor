@@ -632,12 +632,7 @@ gameloop() {
 				}
 			} else {
 				if(state == DEAD_PAUSE) {
-					float blast_radius;
 					// float alpha;  // FADE SHIP
-					if(state_timeout >= DEAD_PAUSE_LENGTH - 20.0) {
-						blast_radius = BLAST_RADIUS * (DEAD_PAUSE_LENGTH - state_timeout) / 20.0;
-						blast_rocks(bangx, bangy, blast_radius);
-					}
 
 					if(bangx < 60) bangx = 60;
 
