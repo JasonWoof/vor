@@ -31,12 +31,11 @@
 
 char *g_data_dir;
 char *g_score_file;
-mode_t g_score_mask;
 
-char *
+static char *
 add_path(char *path, char *file)
 {
-	char *s;
+	char *r, *s;
 	size_t plen, flen;
 
 	if(!path || !file) return NULL;
@@ -58,27 +57,23 @@ add_data_path(char *filename)
 
 #ifdef WIN32
 
-bool
-is_dir(char *dirname)
+static bool
+find_data_dir(void)
 {
-	WIN32_FILE_ATTRIBUTE_DATA buf;
-	if(!GetFileAttributesEx(dirname, GetFileExInfoStandard, &buf))
-		return false;
-	return buf.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+	g_data_dir = ".";
+	return true;
 }
 
-bool
-is_file(char *filename)
+static bool
+find_score_file(void)
 {
-	WIN32_FILE_ATTRIBUTE_DATA buf;
-	if(!GetFileAttributesEx(filename, GetFileExInfoStandard, &buf))
-		return false;
-	return buf.dwFileAttributes & FILE_ATTRIBUTE_NORMAL;
+	g_score_file = "scores";
+	return true;
 }
 
 #else /* !WIN32 */
 
-bool
+static bool
 is_dir(char *dirname)
 {
 	struct stat buf;
@@ -86,17 +81,7 @@ is_dir(char *dirname)
 	return S_ISDIR(buf.st_mode);
 }
 
-bool
-is_file(char *filename)
-{
-	struct stat buf;
-	stat(filename, &buf);
-	return S_ISREG(buf.st_mode);
-}
-
-#endif /* !WIN32 */
-
-bool
+static bool
 find_data_dir(void)
 {
 	int i;
@@ -119,7 +104,7 @@ find_data_dir(void)
 	return false;
 }
 
-bool
+static bool
 find_score_file(void)
 {
 	char *dir, *s;
@@ -131,10 +116,11 @@ find_score_file(void)
 	s = add_path(dir, ".vor-scores");
 	if(s) {
 		g_score_file = s;
-		g_score_mask = 0177;
 		return true;
 	} else return false;
 }
+
+#endif /* !WIN32 */
 
 bool
 find_files(void)
@@ -145,13 +131,6 @@ find_files(void)
 FILE *
 open_score_file(char *mode)
 {
-	mode_t old_mask;
-	FILE *f;
-
 	if(!g_score_file) return NULL;
-
-	old_mask = umask(g_score_mask);
-	f = fopen(g_score_file, mode);
-	umask(old_mask);
-	return f;
+	return fopen(g_score_file, mode);
 }

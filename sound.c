@@ -20,16 +20,16 @@ int audio_channels;
 
 char *add_data_path(char *);
 char *wav_file[] = {
-	"sounds/booom.wav",
-	"sounds/cboom.wav",
-	"sounds/boom.wav",
-	"sounds/bzboom.wav"
+	"booom.wav",
+	"cboom.wav",
+	"boom.wav",
+	"bzboom.wav"
 };
 
 char *tune_file[] = {
-	"music/magic.mod",
-	"music/getzznew.mod",
-	"music/4est_fulla3s.mod"
+	"magic.mod",
+	"getzznew.mod",
+	"4est_fulla3s.mod"
 };
 
 // Return 1 if the sound is ready to roll, and 0 if not.

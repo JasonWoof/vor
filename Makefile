@@ -38,8 +38,8 @@ rocks += 10 11 12 13 14 15 16 17 18 19
 rocks += 20 21 22 23 24 25 26 27 28 29
 rocks += 30 31 32 33 34 35 36 37 38 39
 rocks += 40 41 42 43 44 45 46 47 48 49
-rocks := $(rocks:%=data/sprites/rock%.png)
-graphics := data/sprites/ship.png data/indicators/life.png $(rocks)
+rocks := $(rocks:%=data/rock%.png)
+graphics := data/ship.png data/life.png $(rocks)
 
 INSTALL := install
 INSTALL_PROGRAM := $(INSTALL) -o games -g games
@@ -105,22 +105,10 @@ data-clean:
 
 mkinstalldirs:
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
-	if [ ! -d $(DATA_PREFIX)/banners ]; then mkdir $(DATA_PREFIX)/banners; fi
-	if [ ! -d $(DATA_PREFIX)/fonts ]; then mkdir $(DATA_PREFIX)/fonts; fi
 	if [ ! -d $(DATA_PREFIX)/icons ]; then mkdir $(DATA_PREFIX)/icons; fi
-	if [ ! -d $(DATA_PREFIX)/indicators ]; then mkdir $(DATA_PREFIX)/indicators; fi
-	if [ ! -d $(DATA_PREFIX)/music ]; then mkdir $(DATA_PREFIX)/music; fi
-	if [ ! -d $(DATA_PREFIX)/sounds ]; then mkdir $(DATA_PREFIX)/sounds; fi
-	if [ ! -d $(DATA_PREFIX)/sprites ]; then mkdir $(DATA_PREFIX)/sprites; fi
 
 rminstalldirs:
-	if [ -d $(DATA_PREFIX)/banners ]; then rmdir $(DATA_PREFIX)/banners; fi
-	if [ -d $(DATA_PREFIX)/fonts ]; then rmdir $(DATA_PREFIX)/fonts; fi
 	if [ -d $(DATA_PREFIX)/icons ]; then rmdir $(DATA_PREFIX)/icons; fi
-	if [ -d $(DATA_PREFIX)/indicators ]; then rmdir $(DATA_PREFIX)/indicators; fi
-	if [ -d $(DATA_PREFIX)/music ]; then rmdir $(DATA_PREFIX)/music; fi
-	if [ -d $(DATA_PREFIX)/sounds ]; then rmdir $(DATA_PREFIX)/sounds; fi
-	if [ -d $(DATA_PREFIX)/sprites ]; then rmdir $(DATA_PREFIX)/sprites; fi
 	if [ -d $(DATA_PREFIX) ]; then rmdir $(DATA_PREFIX); fi
 
 install: all mkinstalldirs install-program install-data
@@ -129,13 +117,8 @@ install-program: program
 	$(INSTALL_PROGRAM) ./vor $(PROGRAM_PREFIX)
 
 install-data: data
-	$(INSTALL_DATA) ./data/banners/* $(DATA_PREFIX)/banners/
-	$(INSTALL_DATA) ./data/fonts/* $(DATA_PREFIX)/fonts/
+	$(INSTALL_DATA) ./data/* $(DATA_PREFIX)/
 	$(INSTALL_DATA) ./data/icons/* $(DATA_PREFIX)/icons/
-	$(INSTALL_DATA) ./data/indicators/* $(DATA_PREFIX)/indicators/
-	$(INSTALL_DATA) ./data/music/* $(DATA_PREFIX)/music/
-	$(INSTALL_DATA) ./data/sounds/* $(DATA_PREFIX)/sounds/
-	$(INSTALL_DATA) ./data/sprites/* $(DATA_PREFIX)/sprites/
 
 uninstall: uninstall-program uninstall-data rminstalldirs
 
@@ -143,11 +126,5 @@ uninstall-program:
 	rm -f $(PROGRAM_PREFIX)/vor
 
 uninstall-data:
-	rm -f $(DATA_PREFIX)/banners/*
-	rm -f $(DATA_PREFIX)/fonts/*
+	rm -f $(DATA_PREFIX)/*
 	rm -f $(DATA_PREFIX)/icons/*
-	rm -f $(DATA_PREFIX)/indicators/*
-	rm -f $(DATA_PREFIX)/music/*
-	rm -f $(DATA_PREFIX)/sounds/*
-	rm -f $(DATA_PREFIX)/sprites/*
-	rm -f $(DATA_PREFIX)/scores

@@ -103,12 +103,12 @@ float state_timeout = 600.0;
 char *msgs[2][3] = {
 	{
 		"Press SPACE for normal game",
-		"Press 'e' for easy game",
+		"Press '1' for easy game",
 		"http://jasonwoof.org/vor"
 	},
 	{
 		"Press SPACE for easy game",
-		"Press 'n' for normal game",
+		"Press '2' for normal game",
 		"http://jasonwoof.org/vor"
 	}
 };
@@ -339,7 +339,7 @@ load_image(char *filename)
 void
 load_ship(void)
 {
-	load_sprite(SPRITE(&ship), "sprites/ship.png");
+	load_sprite(SPRITE(&ship), "ship.png");
 }
 
 int
@@ -391,18 +391,18 @@ init(void) {
 	}
 
 	// Load the banners
-	NULLERROR(surf_b_variations = load_image("banners/variations.png"));
-	NULLERROR(surf_b_on = load_image("banners/on.png"));
-	NULLERROR(surf_b_rockdodger = load_image("banners/rockdodger.png"));
+	NULLERROR(surf_b_variations = load_image("variations.png"));
+	NULLERROR(surf_b_on = load_image("on.png"));
+	NULLERROR(surf_b_rockdodger = load_image("rockdodger.png"));
 
-	NULLERROR(surf_b_game = load_image("banners/game.png"));
-	NULLERROR(surf_b_over = load_image("banners/over.png"));
+	NULLERROR(surf_b_game = load_image("game.png"));
+	NULLERROR(surf_b_over = load_image("over.png"));
 
 	// Load the life indicator (small ship) graphic.
-	NULLERROR(surf_life = load_image("indicators/life.png"));
+	NULLERROR(surf_life = load_image("life.png"));
 
 	// Load the font image
-	s = add_data_path(BIG_FONT_FILE);
+	s = add_data_path("font.png");
 	if(s) {
 		NULLERROR(surf_font_big = IMG_Load(s));
 		free(s);
@@ -692,20 +692,20 @@ gameloop() {
 			}
 
 			// new game
-			if((keystate[SDLK_SPACE] || keystate[SDLK_e] || keystate[SDLK_n])
+			if((keystate[SDLK_SPACE] || keystate[SDLK_1] || keystate[SDLK_2])
 			   && (state == HIGH_SCORE_DISPLAY
 			       || state == TITLE_PAGE
 			       || state == GAME_OVER)) {
 				if(state == GAME_OVER && new_high_score(score))
 					init_score_entry();
 				else {
-					if((keystate[SDLK_SPACE] && !initial_rocks) || keystate[SDLK_n]) {
+					if((keystate[SDLK_SPACE] && !initial_rocks) || keystate[SDLK_2]) {
 						g_easy = 0;
 						initial_rocks = NORMAL_I_ROCKS;
 						final_rocks = NORMAL_F_ROCKS;
 						if(opt_gamespeed == EASY_GAMESPEED)
 							opt_gamespeed = NORMAL_GAMESPEED;
-					} else if(keystate[SDLK_e]) {
+					} else if(keystate[SDLK_1]) {
 						g_easy = 1;
 						initial_rocks = EASY_I_ROCKS;
 						final_rocks = EASY_F_ROCKS;

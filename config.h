@@ -12,9 +12,6 @@
 
 #define SCREENDXMIN 7.5
 
-// image file containing font for score stuff.
-#define BIG_FONT_FILE "fonts/score.png"
-
 
 // -----------------------------------------------------------------------
 // Rocks

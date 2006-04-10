@@ -23,10 +23,6 @@
 #include <stdio.h>
 
 char *add_data_path(char *filename);
-bool is_dir(char *dirname);
-bool is_file(char *filename);
-bool find_data_dir(void);
-bool find_score_file(void);
 bool find_files(void);
 FILE *open_score_file(char *mode);
 
