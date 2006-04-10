@@ -391,12 +391,12 @@ init(void) {
 	}
 
 	// Load the banners
-	NULLERROR(surf_b_variations = load_image("variations.png"));
-	NULLERROR(surf_b_on = load_image("on.png"));
-	NULLERROR(surf_b_rockdodger = load_image("rockdodger.png"));
+	NULLERROR(surf_b_variations = load_image("b_variations.png"));
+	NULLERROR(surf_b_on = load_image("b_on.png"));
+	NULLERROR(surf_b_rockdodger = load_image("b_rockdodger.png"));
 
-	NULLERROR(surf_b_game = load_image("game.png"));
-	NULLERROR(surf_b_over = load_image("over.png"));
+	NULLERROR(surf_b_game = load_image("b_game.png"));
+	NULLERROR(surf_b_over = load_image("b_over.png"));
 
 	// Load the life indicator (small ship) graphic.
 	NULLERROR(surf_life = load_image("life.png"));

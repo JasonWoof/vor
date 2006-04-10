@@ -117,7 +117,9 @@ install-program: program
 	$(INSTALL_PROGRAM) ./vor $(PROGRAM_PREFIX)
 
 install-data: data
-	$(INSTALL_DATA) ./data/* $(DATA_PREFIX)/
+	$(INSTALL_DATA) ./data/*.png $(DATA_PREFIX)/
+	$(INSTALL_DATA) ./data/*.wav $(DATA_PREFIX)/
+	$(INSTALL_DATA) ./data/*.mod $(DATA_PREFIX)/
 	$(INSTALL_DATA) ./data/icons/* $(DATA_PREFIX)/icons/
 
 uninstall: uninstall-program uninstall-data rminstalldirs
@@ -126,5 +128,7 @@ uninstall-program:
 	rm -f $(PROGRAM_PREFIX)/vor
 
 uninstall-data:
-	rm -f $(DATA_PREFIX)/*
+	rm -f $(DATA_PREFIX)/*.png
+	rm -f $(DATA_PREFIX)/*.wav
+	rm -f $(DATA_PREFIX)/*.mod
 	rm -f $(DATA_PREFIX)/icons/*

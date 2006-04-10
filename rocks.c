@@ -37,7 +37,7 @@ reset_rocks(void)
 	nrocks_timer = 0;
 }
 
-#define ROCK_LEN sizeof("sprites/rockXX.png")
+#define ROCK_LEN sizeof("rockXX.png")
 
 void
 load_rocks(void)
@@ -46,7 +46,7 @@ load_rocks(void)
 	char a[ROCK_LEN];
 
 	for(i=0; i<NROCKS; i++) {
-		snprintf(a, ROCK_LEN, "sprites/rock%02d.png", i);
+		snprintf(a, ROCK_LEN, "rock%02d.png", i);
 		load_sprite(SPRITE(&prototypes[i]), a);
 		prototypes[i].sprite_type = ROCK;
 		prototypes[i].flags = MOVE|DRAW|COLLIDE;
