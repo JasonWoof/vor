@@ -26,10 +26,4 @@ char *add_data_path(char *filename);
 bool find_files(void);
 FILE *open_score_file(char *mode);
 
-#ifdef WIN32
-# define PATH_SEPARATOR '\\'
-#else
-# define PATH_SEPARATOR '/'
-#endif
-
 #endif // VOR_FILE_H

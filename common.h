@@ -21,8 +21,4 @@
 #define CONDERROR(a) if((a)) {initerror = strdup(SDL_GetError());return 1;}
 #define NULLERROR(a) CONDERROR((a) == NULL)
 
-#ifdef WIN32
-# include <windows.h>
-#endif
-
 #endif // VOR_COMMON_H

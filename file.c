@@ -29,13 +29,45 @@
 #include "config.h"
 #include "file.h"
 
+#ifdef WIN32
+
+#define DATA_DIR "data\\"
+
+char *
+add_data_path(char *filename)
+{
+	char *s;
+	if(!filename) return filename;
+	s = malloc(sizeof(DATA_DIR)+strlen(filename));
+	if(s) {
+		strcpy(s, DATA_DIR);
+		strcpy(s+sizeof(DATA_DIR)-1, filename);
+	}
+	return s;
+}
+
+bool
+find_files(void)
+{
+	return true;
+}
+
+FILE *open_score_file(char *mode)
+{
+	return fopen("scores", mode);
+}
+
+
+#else /* !WIN32 */
+
+
 char *g_data_dir;
 char *g_score_file;
 
 static char *
 add_path(char *path, char *file)
 {
-	char *r, *s;
+	char *s;
 	size_t plen, flen;
 
 	if(!path || !file) return NULL;
@@ -44,7 +76,7 @@ add_path(char *path, char *file)
 	s = malloc(2+plen+flen);
 	if(!s) return NULL;
 	memcpy(s, path, plen);
-	s[plen] = PATH_SEPARATOR;
+	s[plen] = '/';
 	memcpy(s+plen+1, file, flen+1);
 	return s;
 }
@@ -54,24 +86,6 @@ add_data_path(char *filename)
 {
 	return add_path(g_data_dir, filename);
 }
-
-#ifdef WIN32
-
-static bool
-find_data_dir(void)
-{
-	g_data_dir = ".";
-	return true;
-}
-
-static bool
-find_score_file(void)
-{
-	g_score_file = "scores";
-	return true;
-}
-
-#else /* !WIN32 */
 
 static bool
 is_dir(char *dirname)
@@ -120,8 +134,6 @@ find_score_file(void)
 	} else return false;
 }
 
-#endif /* !WIN32 */
-
 bool
 find_files(void)
 {
@@ -134,3 +146,5 @@ open_score_file(char *mode)
 	if(!g_score_file) return NULL;
 	return fopen(g_score_file, mode);
 }
+
+#endif /* !WIN32 */
