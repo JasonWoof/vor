@@ -1,0 +1,68 @@
+#   Variations on Rockdodger
+#   Copyright (C) 2004  Joshua Grams <josh@qualdan.com>
+
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+LDFLAGS := -mwindows -lmingw32 -lSDLmain -lSDL -lSDL_image -lSDL_mixer
+CFLAGS := -Wall -O3
+
+my_objects := args.o dust.o file.o mt.o rocks.o score.o sprite.o sound.o
+my_objects += main.o
+libs := SFont.o
+objects := $(libs) $(my_objects)
+
+rocks := 00 01 02 03 04 05 06 07 08 09
+rocks += 10 11 12 13 14 15 16 17 18 19
+rocks += 20 21 22 23 24 25 26 27 28 29
+rocks += 30 31 32 33 34 35 36 37 38 39
+rocks += 40 41 42 43 44 45 46 47 48 49
+rocks := $(rocks:%=data\rock%.png)
+graphics := data\ship.png data\life.png $(rocks)
+
+
+.PHONY: all clean
+
+all: vor
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(my_objects): config.h
+
+SFont.o: SFont.h
+
+args.o: args.h
+
+dust.o: globals.h dust.h mt.h
+
+file.o: file.h common.h
+
+main.o: args.h common.h dust.h file.h globals.h mt.h rocks.h score.h sprite.h sound.h
+
+mt.o: mt.h
+
+rocks.o: rocks.h common.h file.h globals.h mt.h sprite.h
+
+score.o: score.h common.h file.h
+
+sound.o: sound.h args.h common.h
+
+sprite.o: sprite.h common.h
+
+vor: $(objects)
+	$(CC) $(LDFLAGS) -o $@ $^
+
+clean: 
+	del vor *.o

@@ -13,7 +13,9 @@ extern int opt_fullscreen;
 extern int opt_music;
 extern int opt_sound;
 
+#ifndef WIN32
 struct argp argp;
+#endif
 
 void init_opts(void);
 

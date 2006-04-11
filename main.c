@@ -19,7 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include <argp.h>
+#ifndef WIN32
+# include <argp.h>
+#endif
 #include <math.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -765,7 +767,9 @@ gameloop() {
 int
 main(int argc, char **argv) {
 	init_opts();
+#ifndef WIN32
 	argp_parse(&argp, argc, argv, 0, 0, 0);
+#endif
 
 	if(init()) {
 		printf ("ta: '%s'\n",initerror);

@@ -12,6 +12,9 @@ int opt_fullscreen;
 int opt_music;
 int opt_sound;
 
+
+#ifndef WIN32
+
 error_t parse_opt(int, char*, struct argp_state *);
 
 const char *argp_program_version = "Variations on Rockdodger " VERSION;
@@ -33,6 +36,8 @@ static struct argp_option opts[] = {
 
 struct argp argp = { opts, &parse_opt, 0, doc };
 
+#endif // !WIN32
+
 void
 init_opts(void)
 {
@@ -46,6 +51,8 @@ init_opts(void)
 	opt_sound = 1;
 	opt_music = 0;
 }
+
+#ifndef WIN32
 
 error_t
 parse_opt(int key, char *arg, struct argp_state *state)
@@ -83,3 +90,5 @@ parse_opt(int key, char *arg, struct argp_state *state)
 	}
 	return 0;
 }
+
+#endif // !WIN32

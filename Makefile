@@ -85,7 +85,7 @@ sprite.o: sprite.h common.h
 
 vor: $(objects)
 	@echo linking $@ from $^
-	@$(CC) $(ldflags) -o $@ $^ $(LIBRARIES)
+	@$(CC) $(ldflags) -o $@ $^
 
 include gfx.mk
 
