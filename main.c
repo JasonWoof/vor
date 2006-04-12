@@ -41,6 +41,10 @@
 #include "sprite.h"
 #include "sound.h"
 
+#ifdef WIN32
+#define SetAlpha(surf, flag, alpha)
+#endif
+
 // ************************************* VARS
 // SDL_Surface global variables
 SDL_Surface 
@@ -526,17 +530,6 @@ draw(void) {
 
 		case HIGH_SCORE_ENTRY:
 			play_tune(TUNE_HIGH_SCORE_ENTRY);
-			if(!process_score_input()) {  // done inputting name
-
-				// Change state to briefly show high scores page
-				state = HIGH_SCORE_DISPLAY;
-				state_timeout = 200;
-
-				// Write the high score table to the file
-				write_high_score_table();
-		
-				play_tune(TUNE_TITLE_PAGE);
-			}
 		// FALL THROUGH TO
 		case HIGH_SCORE_DISPLAY:
 			// Display de list o high scores mon.
@@ -594,7 +587,25 @@ gameloop() {
 
 	for(;;) {
 		while(SDL_PollEvent(&e)) {
-			if(e.type == SDL_QUIT) return;
+			switch(e.type) {
+				case SDL_QUIT: return;
+				case SDL_KEYUP:
+					if(e.key.keysym.sym == SDLK_ESCAPE
+					   || e.key.keysym.sym == SDLK_q)
+						return;
+					break;
+				case SDL_KEYDOWN:
+					if(state == HIGH_SCORE_ENTRY)
+						if(!process_score_input(&e.key.keysym)) {
+							// Write the high score table to the file
+							write_high_score_table();
+							// continue to display the scores briefly
+							state = HIGH_SCORE_DISPLAY;
+							state_timeout = 200;
+							play_tune(TUNE_TITLE_PAGE);
+						}
+					break;
+			}
 		}
 		keystate = SDL_GetKeyState(NULL);
 
@@ -757,10 +768,6 @@ gameloop() {
 			state = HIGH_SCORE_DISPLAY;
 			state_timeout = 400;
 		}
-
-		if(state != HIGH_SCORE_ENTRY && (keystate[SDLK_q] || keystate[SDLK_ESCAPE]))
-			return;
-
 	}
 }
 

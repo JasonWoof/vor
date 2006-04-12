@@ -181,27 +181,22 @@ display_scores(SDL_Surface *s, uint32_t x, uint32_t y)
 }
 
 int
-process_score_input(void)
+process_score_input(SDL_keysym *key)
 {
 	char *name;
-	int c,k,n;
-	SDL_Event e;
+	int n;
 	
 	name = g_scores[g_easy][cur_score].name;
 	n = strlen(name);
 
-	while(SDL_PollEvent(&e) && e.type == SDL_KEYDOWN) {
-		c = e.key.keysym.unicode;
-		k = e.key.keysym.sym;
-		if(k == SDLK_BACKSPACE) {
-			if(n > 0) name[--n]=0;
-		} else {
-			if(k == SDLK_RETURN) {
-				SDL_EnableUNICODE(0);
-				cur_score = -1;
-				return false;
-			} else name[n++] = c;
-		}
+	if(key->sym == SDLK_BACKSPACE) {
+		if(n > 0) name[--n]=0;
+	} else {
+		if(key->sym == SDLK_RETURN) {
+			SDL_EnableUNICODE(0);
+			cur_score = -1;
+			return false;
+		} else name[n++] = key->unicode;
 	}
 	return true;
 }

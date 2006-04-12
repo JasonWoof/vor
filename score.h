@@ -40,6 +40,6 @@ void show_score(void);
 void display_scores(SDL_Surface *s, uint32_t x, uint32_t y);
 int new_high_score(int score);
 int insert_score(int score);
-int process_score_input(void);
+int process_score_input(SDL_keysym *key);
 
 #endif // VOR_SCORE_H
