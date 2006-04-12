@@ -19,9 +19,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef WIN32
-# include <argp.h>
-#endif
 #include <math.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -590,12 +587,15 @@ init_score_entry(void)
 
 void
 gameloop() {
-	Uint8 *keystate = SDL_GetKeyState(NULL);
+	SDL_Event e;
+	Uint8 *keystate;
 	float tmp;
 
 
 	for(;;) {
-		SDL_PumpEvents();
+		while(SDL_PollEvent(&e)) {
+			if(e.type == SDL_QUIT) return;
+		}
 		keystate = SDL_GetKeyState(NULL);
 
 		if(!paused) {
@@ -766,10 +766,7 @@ gameloop() {
 
 int
 main(int argc, char **argv) {
-	init_opts();
-#ifndef WIN32
-	argp_parse(&argp, argc, argv, 0, 0, 0);
-#endif
+	if(!parse_opts(argc, argv)) return 1;
 
 	if(init()) {
 		printf ("ta: '%s'\n",initerror);

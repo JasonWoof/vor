@@ -13,10 +13,6 @@ extern int opt_fullscreen;
 extern int opt_music;
 extern int opt_sound;
 
-#ifndef WIN32
-struct argp argp;
-#endif
-
-void init_opts(void);
+int parse_opts(int argc, char *argv[]);
 
 #endif // VOR_ARGS_H
