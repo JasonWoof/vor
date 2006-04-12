@@ -15,8 +15,9 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+CC := gcc
 LDFLAGS := -mwindows -lmingw32 -lSDLmain -lSDL -lSDL_image -lSDL_mixer
-CFLAGS := -Wall -O3
+CFLAGS := -Wall -O3 -ISDL
 
 my_objects := args.o dust.o file.o mt.o rocks.o score.o sprite.o sound.o
 my_objects += main.o
@@ -62,7 +63,8 @@ sound.o: sound.h args.h common.h
 sprite.o: sprite.h common.h
 
 vor: $(objects)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $^ $(LDFLAGS) -o $@
 
 clean: 
-	del vor *.o
+	del vor
+	del *.o
