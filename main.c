@@ -42,7 +42,7 @@
 #include "sound.h"
 
 #ifdef WIN32
-#define SetAlpha(surf, flag, alpha)
+#define SDL_SetAlpha(surf, flag, alpha)
 #endif
 
 // ************************************* VARS
