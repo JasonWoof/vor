@@ -1,8 +1,6 @@
 #ifndef VOR_ARGS_H
 #define VOR_ARGS_H
 
-#include <argp.h>
-
 // Gameplay Variations
 extern float opt_bounciness;
 extern float opt_gamespeed;
