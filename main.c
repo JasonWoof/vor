@@ -138,19 +138,20 @@ init_engine_dots() {
 void
 new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 {
-	int i, x, y;
+	int i, n, x, y;
 	uint16_t *pixel, c;
 	uint32_t colorkey;
 	int row_inc;
 	double theta, r;
 
+	n = 24.0 * t_frame;
 	pixel = s->pixels;
 	row_inc = s->pitch/sizeof(uint16_t) - s->w;
 	colorkey = s->format->colorkey;
 
 	SDL_LockSurface(s);
 
-	for(i=0; i<10; i++) {
+	for(i=0; i<n; i++) {
 		pixel = s->pixels;
 		for(y=0; y<s->h; y++) {
 			for(x = 0; x<s->w; x++) {
@@ -163,13 +164,10 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 					bdot[bd2].dy = 45*r*sin(theta) + dy;
 					bdot[bd2].x = x + xbang;
 					bdot[bd2].y = y + ybang;
-					bdot[bd2].c = 0;
+					bdot[bd2].c = (i < n-3) ? 0 : c;
 					bdot[bd2].life = 100;
 					bdot[bd2].decay = frnd()*3 + 1;
 					bdot[bd2].active = 1;
-
-					// Replace the last few bang dots with the pixels from the exploding object
-					if(i>6) bdot[bd2].c = c;
 
 					bd2 = (bd2+1) % MAXBANGDOTS;
 				}
