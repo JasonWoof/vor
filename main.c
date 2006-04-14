@@ -138,22 +138,19 @@ init_engine_dots() {
 void
 new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 {
-	int x,y,endcount;
-	uint16_t *pixel,c;
+	int i, x, y;
+	uint16_t *pixel, c;
 	uint32_t colorkey;
 	int row_inc;
-	double theta,r;
-	int begin_generate;
+	double theta, r;
 
-	begin_generate = SDL_GetTicks();
 	pixel = s->pixels;
 	row_inc = s->pitch/sizeof(uint16_t) - s->w;
 	colorkey = s->format->colorkey;
 
 	SDL_LockSurface(s);
 
-	endcount = 0;
-	while (endcount<3) {
+	for(i=0; i<10; i++) {
 		pixel = s->pixels;
 		for(y=0; y<s->h; y++) {
 			for(x = 0; x<s->w; x++) {
@@ -161,7 +158,6 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 				if(c && c != colorkey) {
 					theta = frnd()*M_PI*2;
 					r = frnd(); r = 1 - r*r;
-					// r = 1 - frnd()*frnd();
 
 					bdot[bd2].dx = 45*r*cos(theta) + dx;
 					bdot[bd2].dy = 45*r*sin(theta) + dy;
@@ -173,14 +169,13 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 					bdot[bd2].active = 1;
 
 					// Replace the last few bang dots with the pixels from the exploding object
-					if(endcount>0) bdot[bd2].c = c;
+					if(i>6) bdot[bd2].c = c;
 
 					bd2 = (bd2+1) % MAXBANGDOTS;
 				}
 				pixel += row_inc;
 			}
 		}
-		if(SDL_GetTicks() - begin_generate > 7) endcount++;
 	}
 
 	SDL_UnlockSurface(s);
@@ -310,7 +305,7 @@ drawdots(SDL_Surface *s) {
 	// Create engine dots out the side we're moving from
 	for(m = 0; m<4; m++) {
 		if(ship.jets & 1<<m) { // 'jets' is a bit field
-			new_engine_dots(80,m);
+			new_engine_dots(200.0*t_frame,m);
 		}
 	}
 
