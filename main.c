@@ -144,7 +144,7 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 	int row_inc;
 	double theta, r;
 
-	n = 12.0 * t_frame;
+	n = 24.0 * t_frame;
 	pixel = s->pixels;
 	row_inc = s->pitch/sizeof(uint16_t) - s->w;
 	colorkey = s->format->colorkey;

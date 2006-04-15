@@ -18,7 +18,7 @@
 DATA_PREFIX := /usr/share/vor
 PROGRAM_PREFIX := /usr/games/bin
 
-CFLAGS := -ggdb
+CFLAGS := -Wall -O3
 LDFLAGS := 
 
 paths := -DDATA_PREFIX=\"$(DATA_PREFIX)\"
@@ -58,8 +58,8 @@ data: $(graphics)
 program: vor
 
 %.o: %.c
-	#@echo compiling $@ from $<
-	$(CC) $(cflags) -c -o $@ $<
+	@echo compiling $@ from $<
+	@$(CC) $(cflags) -c -o $@ $<
 
 $(my_objects): config.h
 
