@@ -35,9 +35,9 @@ move_dust(void)
 	for(i=0; i<N_DUST_MOTES; i++) {
 		motes[i].x -= xscroll / (1.3 + motes[i].z);
 		motes[i].y -= yscroll / (1.3 + motes[i].z);
-		if(motes[i].y >= XSIZE) motes[i].x -= XSIZE;
+		if(motes[i].x >= XSIZE) motes[i].x -= XSIZE;
 		else if(motes[i].x < 0) motes[i].x += XSIZE;
-		if(motes[i].y > YSIZE) motes[i].y -= YSIZE;
+		if(motes[i].y >= YSIZE) motes[i].y -= YSIZE;
 		else if(motes[i].y < 0) motes[i].y += YSIZE;
 	}
 }
