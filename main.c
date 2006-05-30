@@ -75,7 +75,7 @@ float screendx = SCREENDXMIN, screendy = 0.0;
 float back_dist;
 
 // all movement is based on t_frame.
-float t_frame;  // length of this frame (in ticks = 1/20th second)
+float t_frame;  // length of this frame (in ticks = 1/20th second)  adjusted for gamespeed
 int ms_frame;   // length of this frame (milliseconds)
 int ms_end;     // end of this frame (milliseconds)
 
@@ -225,12 +225,15 @@ draw_bang_dots(SDL_Surface *s)
 
 
 void
-new_engine_dots(int n, int dir) {
+new_engine_dots(float time_span, int dir) {
 	int i;
+	int n = time_span * ENGINE_DOTS_PER_TIC;
 	float a, r;  // angle, random length
 	float dx, dy;
 	float hx, hy; // half ship width/height.
 	static const int s[4] = { 2, 1, 0, 1 };
+	float time;
+	float accelh, accelv, past_ship_dx, past_ship_dy;
 
 	hx = ship.image->w / 2;
 	hy = ship.image->h / 2;
@@ -243,20 +246,58 @@ new_engine_dots(int n, int dir) {
 			dy = r * -sin(a);  // screen y is "backwards".
 
 			dotptr->active = 1;
-			dotptr->x = ship.x + s[dir]*hx + (frnd()-0.5)*3;
-			dotptr->y = ship.y + s[(dir+1)&3]*hy + (frnd()-0.5)*3;
+
+			// dot was created at a random time during the time span
+			time = frnd() * time_span; // this is how long ago
+
+			// calculate how fast the ship was going when this engine dot was
+			// created (as if it had a smoothe accelleration). This is used in
+			// determining the velocity of the dots, but not their starting
+			// location.
+			accelh = ((ship.jets >> 2) & 1) - (ship.jets & 1);
+			accelh *= THRUSTER_STRENGTH * time;
+			past_ship_dx = ship.dx - accelh;
+			accelv = ((ship.jets >> 1) & 1) - ((ship.jets >> 3) & 1);
+			accelv *= THRUSTER_STRENGTH * time;
+			past_ship_dy = ship.dy - accelv;
+
+			// the starting position (not speed) of the dot is calculated as
+			// though the ship were traveling at a constant speed for this
+			// time_span.
+			dotptr->x = (ship.x - (ship.dx - screendx) * time) + s[dir]*hx;
+			dotptr->y = (ship.y - (ship.dy - screendy) * time) + s[(dir+1)&3]*hy;
 			if(dir&1) {
-				dotptr->dx = ship.dx + 2*dx;
-				dotptr->dy = ship.dy + 20*dy;
+				dotptr->dx = past_ship_dx + 2*dx;
+				dotptr->dy = past_ship_dy + 20*dy;
 				dotptr->life = 60 * fabs(dy);
 			} else {
-				dotptr->dx = ship.dx + 20*dx;
-				dotptr->dy = ship.dy + 2*dy;
+				dotptr->dx = past_ship_dx + 20*dx;
+				dotptr->dy = past_ship_dy + 2*dy;
 				dotptr->life = 60 * fabs(dx);
 			}
 
+			// move the dot as though it were created in the past
+			dotptr->x += (dotptr->dx - screendx) * time;
+			dotptr->y += (dotptr->dy - screendy) * time;
+
 			if(dotptr - edot < MAXENGINEDOTS-1) dotptr++;
 			else dotptr = edot;
+		}
+	}
+}
+
+void
+move_engine_dots() {
+	int i;
+	for(i = 0; i<MAXENGINEDOTS; i++) {
+		if(!edot[i].active) {
+			continue;
+		}
+		edot[i].x += (edot[i].dx - screendx)*t_frame;
+		edot[i].y += (edot[i].dy - screendy)*t_frame;
+		edot[i].life -= t_frame*3;
+		if(edot[i].life < 0 || edot[i].x<0 || edot[i].x >= XSIZE || edot[i].y < 0 || edot[i].y >= YSIZE) {
+			edot[i].active = 0;
 		}
 	}
 }
@@ -271,14 +312,7 @@ draw_engine_dots(SDL_Surface *s) {
 	Sprite *hit;
 
 	for(i = 0; i<MAXENGINEDOTS; i++) {
-		if(!edot[i].active) continue;
-		edot[i].x += (edot[i].dx - screendx)*t_frame;
-		edot[i].y += (edot[i].dy - screendy)*t_frame;
-		edot[i].life -= t_frame*3;
-		if(edot[i].life < 0
-				|| edot[i].x<0 || edot[i].x >= XSIZE
-				|| edot[i].y<0 || edot[i].y >= YSIZE) {
-			edot[i].active = 0;
+		if(!edot[i].active) {
 			continue;
 		}
 		// check collisions
@@ -300,10 +334,12 @@ void
 drawdots(SDL_Surface *s) {
 	int m;
 
-	// Create engine dots out the side we're moving from
+	move_engine_dots();
+
+	// Create engine dots
 	for(m = 0; m<4; m++) {
 		if(ship.jets & 1<<m) { // 'jets' is a bit field
-			new_engine_dots(200.0*t_frame,m);
+			new_engine_dots(t_frame,m);
 		}
 	}
 
@@ -739,10 +775,11 @@ gameloop() {
 
 		if(state == GAMEPLAY) {
 			if(!paused) {
-				if(keystate[SDLK_LEFT]  | keystate[SDLK_h]) { ship.dx -= 1.5*t_frame; ship.jets |= 1<<0;}
-				if(keystate[SDLK_DOWN]  | keystate[SDLK_t]) { ship.dy += 1.5*t_frame; ship.jets |= 1<<1;}
-				if(keystate[SDLK_RIGHT] | keystate[SDLK_n]) { ship.dx += 1.5*t_frame; ship.jets |= 1<<2;}
-				if(keystate[SDLK_UP]    | keystate[SDLK_c]) { ship.dy -= 1.5*t_frame; ship.jets |= 1<<3;}
+				// FIXME why is this at the bottom? Shouldn't it be up before the ship movement?
+				if(keystate[SDLK_LEFT]  || keystate[SDLK_h]) { ship.dx -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<0;}
+				if(keystate[SDLK_DOWN]  || keystate[SDLK_t]) { ship.dy += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<1;}
+				if(keystate[SDLK_RIGHT] || keystate[SDLK_n]) { ship.dx += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<2;}
+				if(keystate[SDLK_UP]    || keystate[SDLK_c]) { ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;}
 				if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
 			}
 
