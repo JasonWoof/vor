@@ -180,28 +180,21 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 }
 
 void
-draw_bang_dots(SDL_Surface *s)
+move_bang_dots(float ticks)
 {
 	int i;
-	int first_i, last_i;
-	uint16_t *pixels, *pixel, c;
-	int row_inc = s->pitch/sizeof(uint16_t);
 	Sprite *hit;
-
-	pixels = (uint16_t *) s->pixels;
-	first_i = -1;
-	last_i = 0;
 
 	for(i=0; i<MAXBANGDOTS; i++) {
 		if(!bdot[i].active) continue;
 
 		// decrement life and maybe kill
 		bdot[i].life -= bdot[i].decay;
-		if(bdot[i].life<0) { bdot[i].active = 0; continue; }
-
+		if(bdot[i].life < 0) { bdot[i].active = 0; continue; }
+		
 		// move and clip
-		bdot[i].x += (bdot[i].dx - screendx)*t_frame;
-		bdot[i].y += (bdot[i].dy - screendy)*t_frame;
+		bdot[i].x += (bdot[i].dx - screendx)*ticks;
+		bdot[i].y += (bdot[i].dy - screendy)*ticks;
 		if(bdot[i].x < 0 || bdot[i].x >= XSIZE || bdot[i].y < 0 || bdot[i].y >= YSIZE) {
 			bdot[i].active = 0;
 			continue;
@@ -216,6 +209,21 @@ draw_bang_dots(SDL_Surface *s)
 				continue;
 			}
 		}
+	}
+}
+
+
+void
+draw_bang_dots(SDL_Surface *s)
+{
+	int i;
+	uint16_t *pixels, *pixel, c;
+	int row_inc = s->pitch/sizeof(uint16_t);
+
+	pixels = (uint16_t *) s->pixels;
+
+	for(i=0; i<MAXBANGDOTS; i++) {
+		if(bdot[i].active) continue;
 
 		pixel = pixels + row_inc*(int)(bdot[i].y) + (int)(bdot[i].x);
 		if(bdot[i].c) c = bdot[i].c; else c = heatcolor[(int)(bdot[i].life)*3];
@@ -251,7 +259,7 @@ new_engine_dots(float time_span, int dir) {
 			time = frnd() * time_span; // this is how long ago
 
 			// calculate how fast the ship was going when this engine dot was
-			// created (as if it had a smoothe accelleration). This is used in
+			// created (as if it had a smooth acceleration). This is used in
 			// determining the velocity of the dots, but not their starting
 			// location.
 			accelh = ((ship.jets >> 2) & 1) - (ship.jets & 1);
@@ -287,17 +295,28 @@ new_engine_dots(float time_span, int dir) {
 }
 
 void
-move_engine_dots() {
+move_engine_dots(float ticks) {
 	int i;
+	Sprite *hit;
+
 	for(i = 0; i<MAXENGINEDOTS; i++) {
-		if(!edot[i].active) {
-			continue;
-		}
-		edot[i].x += (edot[i].dx - screendx)*t_frame;
-		edot[i].y += (edot[i].dy - screendy)*t_frame;
+		if(!edot[i].active) continue;
+
+		edot[i].x += (edot[i].dx - screendx)*ticks;
+		edot[i].y += (edot[i].dy - screendy)*ticks;
 		edot[i].life -= t_frame*3;
 		if(edot[i].life < 0 || edot[i].x<0 || edot[i].x >= XSIZE || edot[i].y < 0 || edot[i].y >= YSIZE) {
 			edot[i].active = 0;
+		}
+
+		// check collisions
+		if((hit = pixel_collides(edot[i].x, edot[i].y))) {
+			if(hit->type != SHIP) { // they shouldn't hit the ship, but they do
+				edot[i].active = 0;
+				hit->dx += ENGINE_DOT_WEIGHT * edot[i].life * edot[i].dx / sprite_mass(hit);
+				hit->dy += ENGINE_DOT_WEIGHT * edot[i].life * edot[i].dy / sprite_mass(hit);
+				continue;
+			}
 		}
 	}
 }
@@ -309,21 +328,10 @@ draw_engine_dots(SDL_Surface *s) {
 	uint16_t *pixels = (uint16_t *) s->pixels;
 	int row_inc = s->pitch/sizeof(uint16_t);
 	int heatindex;
-	Sprite *hit;
 
 	for(i = 0; i<MAXENGINEDOTS; i++) {
-		if(!edot[i].active) {
-			continue;
-		}
-		// check collisions
-		if((hit = pixel_collides(edot[i].x, edot[i].y))) {
-			if(hit->type != SHIP) { // they shouldn't hit the ship, but they do
-				edot[i].active = 0;
-				hit->dx += ENGINE_DOT_WEIGHT * edot[i].life * edot[i].dx / sprite_mass(hit);
-				hit->dy += ENGINE_DOT_WEIGHT * edot[i].life * edot[i].dy / sprite_mass(hit);
-				continue;
-			}
-		}
+		if(!edot[i].active) continue;
+
 		heatindex = edot[i].life * 6;
 		c = heatindex>3*W ? heatcolor[3*W-1] : heatcolor[heatindex];
 		pixels[row_inc*(int)(edot[i].y) + (int)(edot[i].x)] = c;
@@ -331,10 +339,8 @@ draw_engine_dots(SDL_Surface *s) {
 }
 
 void
-drawdots(SDL_Surface *s) {
+draw_dots(SDL_Surface *s) {
 	int m;
-
-	move_engine_dots();
 
 	// Create engine dots
 	for(m = 0; m<4; m++) {
@@ -342,8 +348,6 @@ drawdots(SDL_Surface *s) {
 			new_engine_dots(t_frame,m);
 		}
 	}
-
-	move_dust(t_frame);
 
 	SDL_LockSurface(s);
 	draw_dust(s);
@@ -544,7 +548,7 @@ void
 draw(void) {
 
 	SDL_FillRect(surf_screen,NULL,0);  // black background
-	drawdots(surf_screen);             // background dots
+	draw_dots(surf_screen);             // background dots
 	draw_sprite(SPRITE(&ship));
 	draw_rocks();
 
@@ -676,8 +680,6 @@ gameloop() {
 				}
 			}
 
-			new_rocks(t_frame);
-
 			// SCROLLING
 			tmp = (ship.y+ship.dy*t_frame-YSCROLLTO)/25 + (ship.dy-screendy);
 			screendy += tmp * t_frame/12;
@@ -695,7 +697,9 @@ gameloop() {
 			bangy += (bangdy - screendy)*t_frame;
 
 			move_sprites(t_frame);
-
+			move_engine_dots(t_frame);
+			move_bang_dots(t_frame);
+			move_dust(t_frame);
 
 			// BOUNCE off left or right edge of screen
 			if(ship.x < 0 || ship.x+ship.w > XSIZE) {
@@ -708,6 +712,8 @@ gameloop() {
 				ship.y -= (ship.dy-screendy)*t_frame;
 				ship.dy = screendy - (ship.dy-screendy)*opt_bounciness;
 			}
+
+			new_rocks(t_frame);
 
 			draw();
 
