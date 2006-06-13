@@ -27,11 +27,11 @@ init_dust(void)
 }
 
 void
-move_dust(void)
+move_dust(float ticks)
 {
 	int i;
-	float xscroll = screendx * t_frame;
-	float yscroll = screendy * t_frame;
+	float xscroll = screendx * ticks;
+	float yscroll = screendy * ticks;
 	for(i=0; i<N_DUST_MOTES; i++) {
 		motes[i].x -= xscroll / (1.3 + motes[i].z);
 		motes[i].y -= yscroll / (1.3 + motes[i].z);

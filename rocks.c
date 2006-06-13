@@ -129,7 +129,7 @@ weighted_rnd_range(float min, float max) {
 }
 
 void
-new_rocks(void)
+new_rocks(float ticks)
 {
 	int i, type;
 	struct rock *r;
@@ -138,7 +138,7 @@ new_rocks(void)
 	float rmax[4];
 
 	if(nrocks < final_rocks) {
-		nrocks_timer += t_frame;
+		nrocks_timer += ticks;
 		if(nrocks_timer >= nrocks_inc_ticks) {
 			nrocks_timer -= nrocks_inc_ticks;
 			nrocks++;
@@ -148,7 +148,7 @@ new_rocks(void)
 	rock_sides(ti, rmin, rmax);
 
 	// increment timers
-	for(i=0; i<4; i++) rtimers[i] += ti[i]*t_frame;
+	for(i=0; i<4; i++) rtimers[i] += ti[i]*ticks;
 
 	// generate rocks
 	for(i=0; i<4; i++) {

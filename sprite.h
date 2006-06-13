@@ -40,8 +40,8 @@ void collisions(void);
 void init_sprites(void);
 void reset_sprites(void);
 void add_sprite(Sprite *s);
-void move_sprite(Sprite *s);
-void move_sprites(void);
+void move_sprite(Sprite *s, float ticks);
+void move_sprites(float ticks);
 
 Sprite *collides(Sprite *s);
 Sprite * pixel_collides(float x, float y);

@@ -50,10 +50,6 @@ extern char *initerror;
 
 extern float screendx, screendy;
 
-// All movement is based on t_frame.
-// All speeds are pixels/tick, with 20 ticks per second.
-extern float t_frame;  // length of this frame (in ticks = 1/20th second)
-
 extern int score;
 extern int g_easy;
 extern float fadetimer, faderate;

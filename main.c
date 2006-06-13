@@ -343,7 +343,7 @@ drawdots(SDL_Surface *s) {
 		}
 	}
 
-	move_dust();
+	move_dust(t_frame);
 
 	SDL_LockSurface(s);
 	draw_dust(s);
@@ -676,7 +676,7 @@ gameloop() {
 				}
 			}
 
-			new_rocks();
+			new_rocks(t_frame);
 
 			// SCROLLING
 			tmp = (ship.y+ship.dy*t_frame-YSCROLLTO)/25 + (ship.dy-screendy);
@@ -694,7 +694,7 @@ gameloop() {
 			bangx += (bangdx - screendx)*t_frame;
 			bangy += (bangdy - screendy)*t_frame;
 
-			move_sprites();
+			move_sprites(t_frame);
 
 
 			// BOUNCE off left or right edge of screen

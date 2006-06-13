@@ -11,7 +11,7 @@
 #define MAX_DUST_DEPTH 2
 
 void init_dust(void);
-void move_dust(void);
+void move_dust(float ticks);
 void draw_dust(SDL_Surface *);
 
 #endif // VOR_DUST_H
