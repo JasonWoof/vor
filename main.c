@@ -681,9 +681,9 @@ gameloop() {
 			}
 
 			// SCROLLING
-			tmp = (ship.y+ship.dy*t_frame-YSCROLLTO)/25 + (ship.dy-screendy);
+			tmp = (ship.y+ship.h/2+ship.dy*t_frame-YSCROLLTO)/25 + (ship.dy-screendy);
 			screendy += tmp * t_frame/12;
-			tmp = (ship.x+ship.dx*t_frame-XSCROLLTO)/25 + (ship.dx-screendx);
+			tmp = (ship.x+ship.w/2+ship.dx*t_frame-XSCROLLTO)/25 + (ship.dx-screendx);
 			screendx += tmp * t_frame/12;
 			// taper off so we don't hit the barrier abruptly.
 			// (if we would hit in < 2 seconds, adjust to 2 seconds).
