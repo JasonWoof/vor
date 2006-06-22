@@ -223,7 +223,7 @@ draw_bang_dots(SDL_Surface *s)
 	pixels = (uint16_t *) s->pixels;
 
 	for(i=0; i<MAXBANGDOTS; i++) {
-		if(bdot[i].active) continue;
+		if(!bdot[i].active) continue;
 
 		pixel = pixels + row_inc*(int)(bdot[i].y) + (int)(bdot[i].x);
 		if(bdot[i].c) c = bdot[i].c; else c = heatcolor[(int)(bdot[i].life)*3];
