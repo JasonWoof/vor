@@ -763,7 +763,7 @@ gameloop() {
 					reset_rocks();
 					screendx = SCREENDXMIN; screendy = 0;
 
-					ship.x = XSIZE/2.2; ship.y = YSIZE/2;
+					ship.x = XSIZE/2.2; ship.y = YSIZE/2 - ship.w/2;
 					ship.dx = screendx; ship.dy = screendy;
 					ship.lives = 4;
 					ship.flags = MOVE|DRAW|COLLIDE;
