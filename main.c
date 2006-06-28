@@ -233,8 +233,8 @@ draw_bang_dots(SDL_Surface *s)
 
 
 void
-new_engine_dots(float time_span, int dir) {
-	int i;
+new_engine_dots(float time_span) {
+	int dir, i;
 	int n = time_span * ENGINE_DOTS_PER_TIC;
 	float a, r;  // angle, random length
 	float dx, dy;
@@ -246,50 +246,54 @@ new_engine_dots(float time_span, int dir) {
 	hx = ship.image->w / 2;
 	hy = ship.image->h / 2;
 
-	for(i = 0; i<n; i++) {
-		if(dotptr->active == 0) {
-			a = frnd()*M_PI + (dir-1)*M_PI_2;
-			r = sin(frnd()*M_PI);
-			dx = r * cos(a);
-			dy = r * -sin(a);  // screen y is "backwards".
+	for(dir=0; dir<4; dir++) {
+		if(!(ship.jets & 1<<dir)) continue;
 
-			dotptr->active = 1;
+		for(i = 0; i<n; i++) {
+			if(dotptr->active == 0) {
+				a = frnd()*M_PI + (dir-1)*M_PI_2;
+				r = sin(frnd()*M_PI);
+				dx = r * cos(a);
+				dy = r * -sin(a);  // screen y is "backwards".
 
-			// dot was created at a random time during the time span
-			time = frnd() * time_span; // this is how long ago
+				dotptr->active = 1;
 
-			// calculate how fast the ship was going when this engine dot was
-			// created (as if it had a smooth acceleration). This is used in
-			// determining the velocity of the dots, but not their starting
-			// location.
-			accelh = ((ship.jets >> 2) & 1) - (ship.jets & 1);
-			accelh *= THRUSTER_STRENGTH * time;
-			past_ship_dx = ship.dx - accelh;
-			accelv = ((ship.jets >> 1) & 1) - ((ship.jets >> 3) & 1);
-			accelv *= THRUSTER_STRENGTH * time;
-			past_ship_dy = ship.dy - accelv;
+				// dot was created at a random time during the time span
+				time = frnd() * time_span; // this is how long ago
 
-			// the starting position (not speed) of the dot is calculated as
-			// though the ship were traveling at a constant speed for this
-			// time_span.
-			dotptr->x = (ship.x - (ship.dx - screendx) * time) + s[dir]*hx;
-			dotptr->y = (ship.y - (ship.dy - screendy) * time) + s[(dir+1)&3]*hy;
-			if(dir&1) {
-				dotptr->dx = past_ship_dx + 2*dx;
-				dotptr->dy = past_ship_dy + 20*dy;
-				dotptr->life = 60 * fabs(dy);
-			} else {
-				dotptr->dx = past_ship_dx + 20*dx;
-				dotptr->dy = past_ship_dy + 2*dy;
-				dotptr->life = 60 * fabs(dx);
+				// calculate how fast the ship was going when this engine dot was
+				// created (as if it had a smooth acceleration). This is used in
+				// determining the velocity of the dots, but not their starting
+				// location.
+				accelh = ((ship.jets >> 2) & 1) - (ship.jets & 1);
+				accelh *= THRUSTER_STRENGTH * time;
+				past_ship_dx = ship.dx - accelh;
+				accelv = ((ship.jets >> 1) & 1) - ((ship.jets >> 3) & 1);
+				accelv *= THRUSTER_STRENGTH * time;
+				past_ship_dy = ship.dy - accelv;
+
+				// the starting position (not speed) of the dot is calculated as
+				// though the ship were traveling at a constant speed for this
+				// time_span.
+				dotptr->x = (ship.x - (ship.dx - screendx) * time) + s[dir]*hx;
+				dotptr->y = (ship.y - (ship.dy - screendy) * time) + s[(dir+1)&3]*hy;
+				if(dir&1) {
+					dotptr->dx = past_ship_dx + 2*dx;
+					dotptr->dy = past_ship_dy + 20*dy;
+					dotptr->life = 60 * fabs(dy);
+				} else {
+					dotptr->dx = past_ship_dx + 20*dx;
+					dotptr->dy = past_ship_dy + 2*dy;
+					dotptr->life = 60 * fabs(dx);
+				}
+
+				// move the dot as though it were created in the past
+				dotptr->x += (dotptr->dx - screendx) * time;
+				dotptr->y += (dotptr->dy - screendy) * time;
+
+				if(dotptr - edot < MAXENGINEDOTS-1) dotptr++;
+				else dotptr = edot;
 			}
-
-			// move the dot as though it were created in the past
-			dotptr->x += (dotptr->dx - screendx) * time;
-			dotptr->y += (dotptr->dy - screendy) * time;
-
-			if(dotptr - edot < MAXENGINEDOTS-1) dotptr++;
-			else dotptr = edot;
 		}
 	}
 }
@@ -340,15 +344,6 @@ draw_engine_dots(SDL_Surface *s) {
 
 void
 draw_dots(SDL_Surface *s) {
-	int m;
-
-	// Create engine dots
-	for(m = 0; m<4; m++) {
-		if(ship.jets & 1<<m) { // 'jets' is a bit field
-			new_engine_dots(t_frame,m);
-		}
-	}
-
 	SDL_LockSurface(s);
 	draw_dust(s);
 	draw_engine_dots(s);
@@ -575,11 +570,6 @@ draw(void) {
 
 	collisions();
 
-	ms_frame = SDL_GetTicks() - ms_end;
-	ms_end += ms_frame;
-	t_frame = opt_gamespeed * ms_frame / 50;
-	if(state == GAMEPLAY) score += ms_frame;
-
 	// Update the surface
 	SDL_Flip(surf_screen);
 }
@@ -611,14 +601,54 @@ init_score_entry(void)
 	insert_score(score);
 }
 
+// Count down the state timer, and change state when it gets to zero or less;
+void
+update_state(float ticks)
+{
+	state_timeout -= ticks*3;
+	if(state_timeout > 0) return;
+
+	switch(state) {
+		case DEAD_PAUSE:
+			// Restore the ship and continue playing
+			ship.flags = DRAW|MOVE|COLLIDE;
+			state = GAMEPLAY;
+			play_tune(TUNE_GAMEPLAY);
+			break;
+		case GAME_OVER:
+			if(new_high_score(score)) init_score_entry();
+			else {
+				state = HIGH_SCORE_DISPLAY;
+				state_timeout = 400;
+			}
+			break;
+		case HIGH_SCORE_DISPLAY:
+			state = TITLE_PAGE;
+			state_timeout = 600.0;
+			fadetimer = 0.0;
+			break;
+		case HIGH_SCORE_ENTRY:
+			break;
+		case TITLE_PAGE:
+			state = HIGH_SCORE_DISPLAY;
+			state_timeout = 200.0;
+			break;
+		case GAMEPLAY:
+			; // no action necessary
+	}
+}
+
 void
 gameloop() {
 	SDL_Event e;
 	Uint8 *keystate;
 	float tmp;
 
-
 	for(;;) {
+		ms_frame = SDL_GetTicks() - ms_end;
+		ms_end += ms_frame;
+		t_frame = opt_gamespeed * ms_frame / 50;
+
 		while(SDL_PollEvent(&e)) {
 			switch(e.type) {
 				case SDL_QUIT: return;
@@ -642,43 +672,32 @@ gameloop() {
 		}
 		keystate = SDL_GetKeyState(NULL);
 
-		if(!paused) {
-			// Count down the game loop timer, and change state when it gets to zero or less;
+		if(state == GAMEPLAY) {
+			if(!paused) {
+				score += ms_frame;
+				
+				if(keystate[SDLK_LEFT]  || keystate[SDLK_h]) { ship.dx -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<0;}
+				if(keystate[SDLK_DOWN]  || keystate[SDLK_t]) { ship.dy += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<1;}
+				if(keystate[SDLK_RIGHT] || keystate[SDLK_n]) { ship.dx += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<2;}
+				if(keystate[SDLK_UP]    || keystate[SDLK_c]) { ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;}
+				if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
+			}
 
-			if((state_timeout -= t_frame*3) < 0) {
-				switch(state) {
-					case DEAD_PAUSE:
-						// Restore the ship and continue playing
-						ship.flags = DRAW|MOVE|COLLIDE;
-						state = GAMEPLAY;
-						play_tune(TUNE_GAMEPLAY);
-						break;
-					case GAME_OVER:
-						if(new_high_score(score)) init_score_entry();
-						else {
-							state = HIGH_SCORE_DISPLAY;
-							state_timeout = 400;
-						}
-						break;
-					case HIGH_SCORE_DISPLAY:
-						state = TITLE_PAGE;
-						state_timeout = 600.0;
-						fadetimer = 0.0;
-						break;
-					case HIGH_SCORE_ENTRY:
-						break;
-					case TITLE_PAGE:
-						state = HIGH_SCORE_DISPLAY;
-						state_timeout = 200.0;
-						break;
-					case GAMEPLAY:
-						; // no action necessary
+			if(keystate[SDLK_p] | keystate[SDLK_s]) {
+				if(!pausedown) {
+					paused = !paused;
+					pausedown = 1;
+					if(!paused) ms_end = SDL_GetTicks();
 				}
 			} else {
-				if(state == DEAD_PAUSE) {
-					if(bangx < 60) bangx = 60;
-				}
+				pausedown = 0;
 			}
+		}
+
+		if(!paused) {
+			update_state(t_frame);
+
+			if(state == DEAD_PAUSE && bangx < 60) bangx = 60;
 
 			// SCROLLING
 			tmp = (ship.y+ship.h/2+ship.dy*t_frame-YSCROLLTO)/25 + (ship.dy-screendy);
@@ -714,6 +733,7 @@ gameloop() {
 			}
 
 			new_rocks(t_frame);
+			new_engine_dots(t_frame);
 
 			draw();
 
@@ -777,27 +797,6 @@ gameloop() {
 			}
 
 			ship.jets = 0;
-		}
-
-		if(state == GAMEPLAY) {
-			if(!paused) {
-				// FIXME why is this at the bottom? Shouldn't it be up before the ship movement?
-				if(keystate[SDLK_LEFT]  || keystate[SDLK_h]) { ship.dx -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<0;}
-				if(keystate[SDLK_DOWN]  || keystate[SDLK_t]) { ship.dy += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<1;}
-				if(keystate[SDLK_RIGHT] || keystate[SDLK_n]) { ship.dx += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<2;}
-				if(keystate[SDLK_UP]    || keystate[SDLK_c]) { ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;}
-				if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
-			}
-
-			if(keystate[SDLK_p] | keystate[SDLK_s]) {
-				if(!pausedown) {
-					paused = !paused;
-					pausedown = 1;
-					if(!paused) ms_end = SDL_GetTicks();
-				}
-			} else {
-				pausedown = 0;
-			}
 		}
 
 		if(state == TITLE_PAGE && keystate[SDLK_h]) {
