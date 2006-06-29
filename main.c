@@ -75,6 +75,7 @@ float screendx = SCREENDXMIN, screendy = 0.0;
 float back_dist;
 
 // all movement is based on t_frame.
+unsigned long frames, start, end;
 float t_frame;  // length of this frame (in ticks = 1/20th second)  adjusted for gamespeed
 int ms_frame;   // length of this frame (milliseconds)
 int ms_end;     // end of this frame (milliseconds)
@@ -542,7 +543,7 @@ draw_title_page(void)
 void
 draw(void) {
 
-	SDL_FillRect(surf_screen,NULL,0);  // black background
+	// SDL_FillRect(surf_screen,NULL,0);  // black background
 	draw_dots(surf_screen);             // background dots
 	draw_sprite(SPRITE(&ship));
 	draw_rocks();
@@ -648,6 +649,7 @@ gameloop() {
 		ms_frame = SDL_GetTicks() - ms_end;
 		ms_end += ms_frame;
 		t_frame = opt_gamespeed * ms_frame / 50;
+		frames++;
 
 		while(SDL_PollEvent(&e)) {
 			switch(e.type) {
@@ -815,7 +817,11 @@ main(int argc, char **argv) {
 		return 1;
 	}
 
+	start = SDL_GetTicks();
+	frames = 0;
 	gameloop();
+	end = SDL_GetTicks();
+	printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
 
 	return 0;
 }
