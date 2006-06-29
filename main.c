@@ -543,7 +543,7 @@ draw_title_page(void)
 void
 draw(void) {
 
-	// SDL_FillRect(surf_screen,NULL,0);  // black background
+	SDL_FillRect(surf_screen,NULL,0);  // black background
 	draw_dots(surf_screen);             // background dots
 	draw_sprite(SPRITE(&ship));
 	draw_rocks();
