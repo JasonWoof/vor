@@ -145,12 +145,12 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 	int row_inc;
 	double theta, r;
 
-	n = 24.0 * t_frame;
+	n = 20;
 	pixel = s->pixels;
 	row_inc = s->pitch/sizeof(uint16_t) - s->w;
 	colorkey = s->format->colorkey;
 
-	SDL_LockSurface(s);
+	if(SDL_MUSTLOCK(s)) { SDL_LockSurface(s); }
 
 	for(i=0; i<n; i++) {
 		pixel = s->pixels;
@@ -165,8 +165,8 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 					bdot[bd2].dy = 45*r*sin(theta) + dy;
 					bdot[bd2].x = x + xbang;
 					bdot[bd2].y = y + ybang;
-					bdot[bd2].c = (i < n-3) ? 0 : c;
-					bdot[bd2].life = 100;
+					//bdot[bd2].c = (i < n-3) ? 0 : c;
+					bdot[bd2].life = frnd() * 99;
 					bdot[bd2].decay = frnd()*3 + 1;
 					bdot[bd2].active = 1;
 
@@ -177,7 +177,7 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 		}
 	}
 
-	SDL_UnlockSurface(s);
+	if(SDL_MUSTLOCK(s)) { SDL_UnlockSurface(s); }
 }
 
 void
@@ -190,7 +190,7 @@ move_bang_dots(float ticks)
 		if(!bdot[i].active) continue;
 
 		// decrement life and maybe kill
-		bdot[i].life -= bdot[i].decay;
+		bdot[i].life -= bdot[i].decay * ticks/2.0;
 		if(bdot[i].life < 0) { bdot[i].active = 0; continue; }
 		
 		// move and clip
@@ -312,6 +312,7 @@ move_engine_dots(float ticks) {
 		edot[i].life -= t_frame*3;
 		if(edot[i].life < 0 || edot[i].x<0 || edot[i].x >= XSIZE || edot[i].y < 0 || edot[i].y >= YSIZE) {
 			edot[i].active = 0;
+			continue;
 		}
 
 		// check collisions
@@ -345,11 +346,11 @@ draw_engine_dots(SDL_Surface *s) {
 
 void
 draw_dots(SDL_Surface *s) {
-	SDL_LockSurface(s);
+	if(SDL_MUSTLOCK(s)) { SDL_LockSurface(s); }
 	draw_dust(s);
 	draw_engine_dots(s);
 	draw_bang_dots(s);
-	SDL_UnlockSurface(s);
+	if(SDL_MUSTLOCK(s)) { SDL_UnlockSurface(s); }
 }
 
 SDL_Surface *
@@ -484,12 +485,12 @@ draw_game_over(void)
 
 	dest.x = (XSIZE-surf_b_game->w)/2;
 	dest.y = (YSIZE-surf_b_game->h)/2-40;
-	SDL_SetAlpha(surf_b_game, SDL_SRCALPHA, (int)(a_game*(200 + 55*cos(fadetimer))));
+	//SDL_SetAlpha(surf_b_game, SDL_SRCALPHA, (int)(a_game*(200 + 55*cos(fadetimer))));
 	SDL_BlitSurface(surf_b_game,NULL,surf_screen,&dest);
 
 	dest.x = (XSIZE-surf_b_over->w)/2;
 	dest.y = (YSIZE-surf_b_over->h)/2 + 40;
-	SDL_SetAlpha(surf_b_over, SDL_SRCALPHA, (int)(a_over*(200 + 55*sin(fadetimer))));
+	//SDL_SetAlpha(surf_b_over, SDL_SRCALPHA, (int)(a_over*(200 + 55*sin(fadetimer))));
 	SDL_BlitSurface(surf_b_over,NULL,surf_screen,&dest);
 
 	if(new_high_score(score)) {
@@ -518,17 +519,17 @@ draw_title_page(void)
 
 	dest.x = (XSIZE-surf_b_variations->w)/2 + cos(fadetimer/6.5)*10;
 	dest.y = (YSIZE/2-surf_b_variations->h)/2 + sin(fadetimer/5.0)*10;
-	SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer)));
+	//SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer)));
 	SDL_BlitSurface(surf_b_variations,NULL,surf_screen,&dest);
 
 	dest.x = (XSIZE-surf_b_on->w)/2 + cos((fadetimer + 1.0)/6.5)*10;
 	dest.y = (YSIZE/2-surf_b_on->h)/2 + surf_b_variations->h + 20 + sin((fadetimer + 1.0)/5.0)*10;
-	SDL_SetAlpha(surf_b_on, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-1.0)));
+	//SDL_SetAlpha(surf_b_on, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-1.0)));
 	SDL_BlitSurface(surf_b_on,NULL,surf_screen,&dest);
 
 	dest.x = (XSIZE-surf_b_rockdodger->w)/2 + cos((fadetimer + 2.0)/6.5)*10;
 	dest.y = (YSIZE/2-surf_b_rockdodger->h)/2 + surf_b_variations->h + surf_b_on->h + 40 + sin((fadetimer + 2.0)/5)*10;
-	SDL_SetAlpha(surf_b_rockdodger, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-2.0)));
+	//SDL_SetAlpha(surf_b_rockdodger, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-2.0)));
 	SDL_BlitSurface(surf_b_rockdodger,NULL,surf_screen,&dest);
 
 	text = msgs[g_easy][(int)(fadetimer/35)%NSEQUENCE];
@@ -813,7 +814,7 @@ main(int argc, char **argv) {
 	if(!parse_opts(argc, argv)) return 1;
 
 	if(init()) {
-		printf ("ta: '%s'\n",initerror);
+		printf ("vor: SDL error: '%s'\n",initerror);
 		return 1;
 	}
 

@@ -48,7 +48,7 @@ get_shape(Sprite *s)
 		exit(1);
 	}
 
-	SDL_LockSurface(s->image);
+	if(SDL_MUSTLOCK(s->image)) { SDL_LockSurface(s->image); }
 	px = s->image->pixels;
 	transp = s->image->format->colorkey;
 	p = s->mask;
@@ -62,7 +62,7 @@ get_shape(Sprite *s)
 		}
 		px = (uint16_t *) ((uint8_t *) px + s->image->pitch - 2*s->image->w);
 	}
-	SDL_UnlockSurface(s->image);
+	if(SDL_MUSTLOCK(s->image)) { SDL_UnlockSurface(s->image); }
 }
 
 

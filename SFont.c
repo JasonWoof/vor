@@ -79,7 +79,7 @@ SFont_InitFont(SDL_Surface* Surface)
     Font = (SFont_Font *) malloc(sizeof(SFont_Font));
     Font->Surface = Surface;
 
-    SDL_LockSurface(Surface);
+    if(SDL_MUSTLOCK(Surface)) { SDL_LockSurface(Surface); }
 
     pink = SDL_MapRGB(Surface->format, 255, 0, 255);
     while (x < Surface->w) {
@@ -94,7 +94,7 @@ SFont_InitFont(SDL_Surface* Surface)
     Font->MaxPos = x-1;
     
     pixel = GetPixel(Surface, 0, Surface->h-1);
-    SDL_UnlockSurface(Surface);
+    if(SDL_MUSTLOCK(Surface)) { SDL_UnlockSurface(Surface); }
     SDL_SetColorKey(Surface, SDL_SRCCOLORKEY, pixel);
 
     return Font;
