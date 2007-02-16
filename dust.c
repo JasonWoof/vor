@@ -32,13 +32,34 @@ move_dust(float ticks)
 	int i;
 	float xscroll = screendx * ticks;
 	float yscroll = screendy * ticks;
+
+	// Originally this code was much simpler, but it would crash sometimes
+	// because the floating point numbers wouldn't always round the same
+	// direction, and we'd ocanially try to draw off the screen.
+	
 	for(i=0; i<N_DUST_MOTES; i++) {
 		motes[i].x -= xscroll / (1.3 + motes[i].z);
 		motes[i].y -= yscroll / (1.3 + motes[i].z);
-		if(motes[i].x >= XSIZE) motes[i].x -= XSIZE;
-		else if(motes[i].x < 0) motes[i].x += XSIZE;
-		if(motes[i].y >= YSIZE) motes[i].y -= YSIZE;
-		else if(motes[i].y < 0) motes[i].y += YSIZE;
+
+		if(motes[i].x < 0) {
+			motes[i].x += XSIZE;
+		}
+		if(motes[i].x > (XSIZE - 0.000001)) {
+			motes[i].x -= XSIZE;
+			if(motes[i].x < 0) {
+				motes[i].x = 0;
+			}
+		}
+
+		if(motes[i].y < 0) {
+			motes[i].y += YSIZE;
+		}
+		if(motes[i].y > (YSIZE - 0.000001)) {
+			motes[i].y -= YSIZE;
+			if(motes[i].y < 0) {
+				motes[i].y = 0;
+			}
+		}
 	}
 }
 

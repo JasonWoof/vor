@@ -3,7 +3,7 @@
 
 #include <SDL.h>
 #include <inttypes.h>
-#include "SFont.h"
+#include "font.h"
 
 struct bangdots {
 	// Bang dots have the same colour as shield dots.
@@ -38,7 +38,7 @@ extern SDL_Surface
 	*surf_rock[NROCKS],	// THE ROCKS
 	*surf_font_big;	// The big font
 
-extern SFont_Font *g_font;
+extern font *g_font;
 
 // Structure global variables
 extern struct enginedots edot[MAXENGINEDOTS], *dotptr;

@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "SFont.h"
+#include "font.h"
 
 #include "args.h"
 #include "common.h"
@@ -59,7 +59,7 @@ SDL_Surface
 	*surf_font_big;	// The big font
 	
 
-SFont_Font *g_font;
+font *g_font;
 
 // Structure global variables
 struct enginedots edot[MAXENGINEDOTS], *dotptr = edot;
@@ -196,7 +196,7 @@ move_bang_dots(float ticks)
 		// move and clip
 		bdot[i].x += (bdot[i].dx - screendx)*ticks;
 		bdot[i].y += (bdot[i].dy - screendy)*ticks;
-		if(bdot[i].x < 0 || bdot[i].x >= XSIZE || bdot[i].y < 0 || bdot[i].y >= YSIZE) {
+		if(bdot[i].x < 0 || bdot[i].x >= (XSIZE - 0.000001) || bdot[i].y < 0 || bdot[i].y >= (YSIZE - 0.000001)) {
 			bdot[i].active = 0;
 			continue;
 		}
@@ -310,7 +310,7 @@ move_engine_dots(float ticks) {
 		edot[i].x += (edot[i].dx - screendx)*ticks;
 		edot[i].y += (edot[i].dy - screendy)*ticks;
 		edot[i].life -= t_frame*3;
-		if(edot[i].life < 0 || edot[i].x<0 || edot[i].x >= XSIZE || edot[i].y < 0 || edot[i].y >= YSIZE) {
+		if(edot[i].life < 0 || edot[i].x<0 || edot[i].x >= (XSIZE - 0.000001) || edot[i].y < 0 || edot[i].y >= (YSIZE - 0.000001)) {
 			edot[i].active = 0;
 			continue;
 		}
@@ -375,6 +375,10 @@ load_ship(void)
 	load_sprite(SPRITE(&ship), "ship.png");
 }
 
+void font_cleanup() {
+	font_free(g_font);
+}
+
 int
 init(void) {
 
@@ -437,9 +441,11 @@ init(void) {
 	// Load the font image
 	s = add_data_path("font.png");
 	if(s) {
-		NULLERROR(surf_font_big = IMG_Load(s));
-		free(s);
-		g_font = SFont_InitFont(surf_font_big);
+		g_font = font_load(s);
+		atexit(&font_cleanup);
+	} else {
+		fprintf(stderr, "could create path to font\n");
+		exit(1);
 	}
 
 	init_engine_dots();
@@ -501,11 +507,11 @@ draw_game_over(void)
 		text1 = msgs[g_easy][1];
 	}
 
-	x = (XSIZE-SFont_TextWidth(g_font,text0))/2 + cos(fadetimer/9)*10;
-	SFont_Write(surf_screen,g_font,x,YSIZE-100 + cos(fadetimer/6)*5,text0);
+	x = (XSIZE-font_width(text0))/2 + cos(fadetimer/9)*10;
+	font_write(x,YSIZE-100 + cos(fadetimer/6)*5,text0);
 
-	x = (XSIZE-SFont_TextWidth(g_font,text1))/2 + sin(fadetimer/9)*10;
-	SFont_Write(surf_screen,g_font,x,YSIZE-50 + sin(fadetimer/4)*5,text1);
+	x = (XSIZE-font_width(text1))/2 + sin(fadetimer/9)*10;
+	font_write(x,YSIZE-50 + sin(fadetimer/4)*5,text1);
 }
 
 void
@@ -533,12 +539,12 @@ draw_title_page(void)
 	SDL_BlitSurface(surf_b_rockdodger,NULL,surf_screen,&dest);
 
 	text = msgs[g_easy][(int)(fadetimer/35)%NSEQUENCE];
-	x = (XSIZE-SFont_TextWidth(g_font,text))/2 + cos(fadetimer/4.5)*10;
-	SFont_Write(surf_screen,g_font,x,YSIZE-100 + cos(fadetimer/3)*5,text);
+	x = (XSIZE-font_width(text))/2 + cos(fadetimer/4.5)*10;
+	font_write(x,YSIZE-100 + cos(fadetimer/3)*5,text);
 
 	text = "Version " VERSION;
-	x = (XSIZE-SFont_TextWidth(g_font,text))/2 + sin(fadetimer/4.5)*10;
-	SFont_Write(surf_screen,g_font,x,YSIZE-50 + sin(fadetimer/2)*5,text);
+	x = (XSIZE-font_width(text))/2 + sin(fadetimer/4.5)*10;
+	font_write(x,YSIZE-50 + sin(fadetimer/2)*5,text);
 }
 
 void
@@ -649,19 +655,17 @@ gameloop() {
 	for(;;) {
 		ms_frame = SDL_GetTicks() - ms_end;
 		ms_end += ms_frame;
+		if(ms_frame > 1000) {
+			ms_frame = 1000;
+		}
 		t_frame = opt_gamespeed * ms_frame / 50;
 		frames++;
 
 		while(SDL_PollEvent(&e)) {
 			switch(e.type) {
 				case SDL_QUIT: return;
-				case SDL_KEYUP:
-					if(e.key.keysym.sym == SDLK_ESCAPE
-					   || e.key.keysym.sym == SDLK_q)
-						return;
-					break;
 				case SDL_KEYDOWN:
-					if(state == HIGH_SCORE_ENTRY)
+					if(state == HIGH_SCORE_ENTRY) {
 						if(!process_score_input(&e.key.keysym)) {
 							// Write the high score table to the file
 							write_high_score_table();
@@ -670,6 +674,13 @@ gameloop() {
 							state_timeout = 200;
 							play_tune(TUNE_TITLE_PAGE);
 						}
+					} else if(e.key.keysym.sym == SDLK_q) {
+						return;
+					}
+
+					if(e.key.keysym.sym == SDLK_ESCAPE) {
+						return;
+					}
 					break;
 			}
 		}
@@ -822,7 +833,7 @@ main(int argc, char **argv) {
 	frames = 0;
 	gameloop();
 	end = SDL_GetTicks();
-	printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
+	// printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
 
 	return 0;
 }

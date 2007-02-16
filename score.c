@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "SFont.h"
+#include "font.h"
 
 #include "common.h"
 #include "config.h"
@@ -55,8 +55,6 @@ struct highscore g_scores[2][N_SCORES] = {
 };
 
 static char *titles[2] = { "Normal\n", "Easy\n" };
-
-extern SFont_Font *g_font;
 
 int g_easy = 0;
 int cur_score = -1; // which score we're currently entering.
@@ -155,28 +153,28 @@ show_score(void)
 	char s[16];
 	int r = snprintf(s, 16, "Time: ");
 	snprintscore(s+r, 16-r, score);
-	SFont_Write(surf_screen, g_font, XSIZE-250, 0, s);
+	font_write(XSIZE-250, 0, s);
 }
 
 void
 display_scores(SDL_Surface *s, uint32_t x, uint32_t y)
 {
 	char t[1024];
-	int i,h = SFont_TextHeight(g_font);
+	int i,h = font_height();
 
-	SFont_Write(s,g_font,x+30,y,"High scores");
+	font_write(x+30, y, "High scores");
 	y += h;
-	if(g_easy) SFont_Write(s,g_font,x+75,y,"(easy)");
-	else SFont_Write(s,g_font,x+60,y,"(normal)");
+	if(g_easy) font_write(x+75,y,"(easy)");
+	else font_write(x+60,y,"(normal)");
 	for(i = 0; i<N_SCORES; i++) {
 		y += h;
 		snprintf(t, 1024, "#%1d",i+1);
-		SFont_Write(s, g_font, x, y, t);
+		font_write(x, y, t);
 		snprintscore(t, 1024, g_scores[g_easy][i].score);
-		SFont_Write(s, g_font, x+50, y, t);
+		font_write(x+50, y, t);
 		if(i == cur_score) snprintf(t, 1024, "%s_", g_scores[g_easy][i].name);
 		else snprintf(t, 1024, "%s", g_scores[g_easy][i].name);
-		SFont_Write(s, g_font, x+180, y, t);
+		font_write(x+180, y, t);
 	}
 }
 
@@ -195,8 +193,15 @@ process_score_input(SDL_keysym *key)
 		if(key->sym == SDLK_RETURN) {
 			SDL_EnableUNICODE(0);
 			cur_score = -1;
+			if(n == 0) {
+				name[0] = '-';
+			}
 			return false;
-		} else name[n++] = key->unicode;
+		} else if(n < 12) {
+			if(key->unicode >= 32 && key->unicode <= 126) {
+				name[n++] = key->unicode;
+			}
+		} // else drop it
 	}
 	return true;
 }
