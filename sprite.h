@@ -26,6 +26,7 @@ struct sprite {
 	uint32_t area;
 };
 
+// flags
 #define MOVE 1
 #define DRAW 2
 #define COLLIDE 4

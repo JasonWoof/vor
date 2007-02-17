@@ -41,10 +41,6 @@
 #include "sprite.h"
 #include "sound.h"
 
-#ifdef WIN32
-#define SDL_SetAlpha(surf, flag, alpha)
-#endif
-
 // ************************************* VARS
 // SDL_Surface global variables
 SDL_Surface 
@@ -80,12 +76,9 @@ float t_frame;  // length of this frame (in ticks = 1/20th second)  adjusted for
 int ms_frame;   // length of this frame (milliseconds)
 int ms_end;     // end of this frame (milliseconds)
 
-int bang = false;
-float bangx, bangy, bangdx, bangdy;
-
 int score;
 
-float fadetimer = 0, faderate;
+float fadetimer = 0;
 
 int pausedown = 0, paused = 0;
 
@@ -137,34 +130,35 @@ init_engine_dots() {
 }
 
 void
-new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
+new_bang_dots(struct sprite *s)
 {
 	int i, n, x, y;
 	uint16_t *pixel, c;
 	uint32_t colorkey;
 	int row_inc;
 	double theta, r;
+	SDL_Surface *img = s->image;
 
 	n = 20;
-	pixel = s->pixels;
-	row_inc = s->pitch/sizeof(uint16_t) - s->w;
-	colorkey = s->format->colorkey;
+	pixel = img->pixels;
+	row_inc = img->pitch/sizeof(uint16_t) - img->w;
+	colorkey = img->format->colorkey;
 
-	if(SDL_MUSTLOCK(s)) { SDL_LockSurface(s); }
+	if(SDL_MUSTLOCK(img)) { SDL_LockSurface(img); }
 
 	for(i=0; i<n; i++) {
-		pixel = s->pixels;
-		for(y=0; y<s->h; y++) {
-			for(x = 0; x<s->w; x++) {
+		pixel = img->pixels;
+		for(y=0; y<img->h; y++) {
+			for(x = 0; x<img->w; x++) {
 				c = *pixel++;
 				if(c && c != colorkey) {
 					theta = frnd()*M_PI*2;
 					r = frnd(); r = 1 - r*r;
 
-					bdot[bd2].dx = 45*r*cos(theta) + dx;
-					bdot[bd2].dy = 45*r*sin(theta) + dy;
-					bdot[bd2].x = x + xbang;
-					bdot[bd2].y = y + ybang;
+					bdot[bd2].dx = 45*r*cos(theta) + s->dx;
+					bdot[bd2].dy = 45*r*sin(theta) + s->dy;
+					bdot[bd2].x = x + s->x;
+					bdot[bd2].y = y + s->y;
 					//bdot[bd2].c = (i < n-3) ? 0 : c;
 					bdot[bd2].life = frnd() * 99;
 					bdot[bd2].decay = frnd()*3 + 1;
@@ -177,7 +171,7 @@ new_bang_dots(int xbang, int ybang, int dx, int dy, SDL_Surface *s)
 		}
 	}
 
-	if(SDL_MUSTLOCK(s)) { SDL_UnlockSurface(s); }
+	if(SDL_MUSTLOCK(img)) { SDL_UnlockSurface(img); }
 }
 
 void
@@ -481,22 +475,15 @@ draw_game_over(void)
 	int x;
 	char *text0, *text1;
 	SDL_Rect dest;
-	float a_game = 0, a_over = 0;
-
-	// fade in "GAME", then "OVER".
-	a_game = min(1.0, faderate*fadetimer/3.0);
-	if(a_game == 1.0) a_over = min(1.0, faderate*fadetimer/3.0 - 1);
 
 	fadetimer += t_frame;
 
 	dest.x = (XSIZE-surf_b_game->w)/2;
 	dest.y = (YSIZE-surf_b_game->h)/2-40;
-	//SDL_SetAlpha(surf_b_game, SDL_SRCALPHA, (int)(a_game*(200 + 55*cos(fadetimer))));
 	SDL_BlitSurface(surf_b_game,NULL,surf_screen,&dest);
 
 	dest.x = (XSIZE-surf_b_over->w)/2;
 	dest.y = (YSIZE-surf_b_over->h)/2 + 40;
-	//SDL_SetAlpha(surf_b_over, SDL_SRCALPHA, (int)(a_over*(200 + 55*sin(fadetimer))));
 	SDL_BlitSurface(surf_b_over,NULL,surf_screen,&dest);
 
 	if(new_high_score(score)) {
@@ -525,17 +512,14 @@ draw_title_page(void)
 
 	dest.x = (XSIZE-surf_b_variations->w)/2 + cos(fadetimer/6.5)*10;
 	dest.y = (YSIZE/2-surf_b_variations->h)/2 + sin(fadetimer/5.0)*10;
-	//SDL_SetAlpha(surf_b_variations, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer)));
 	SDL_BlitSurface(surf_b_variations,NULL,surf_screen,&dest);
 
 	dest.x = (XSIZE-surf_b_on->w)/2 + cos((fadetimer + 1.0)/6.5)*10;
 	dest.y = (YSIZE/2-surf_b_on->h)/2 + surf_b_variations->h + 20 + sin((fadetimer + 1.0)/5.0)*10;
-	//SDL_SetAlpha(surf_b_on, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-1.0)));
 	SDL_BlitSurface(surf_b_on,NULL,surf_screen,&dest);
 
 	dest.x = (XSIZE-surf_b_rockdodger->w)/2 + cos((fadetimer + 2.0)/6.5)*10;
 	dest.y = (YSIZE/2-surf_b_rockdodger->h)/2 + surf_b_variations->h + surf_b_on->h + 40 + sin((fadetimer + 2.0)/5)*10;
-	//SDL_SetAlpha(surf_b_rockdodger, SDL_SRCALPHA, (int)(200 + 55*sin(fadetimer-2.0)));
 	SDL_BlitSurface(surf_b_rockdodger,NULL,surf_screen,&dest);
 
 	text = msgs[g_easy][(int)(fadetimer/35)%NSEQUENCE];
@@ -548,25 +532,23 @@ draw_title_page(void)
 }
 
 void
-draw(void) {
-
+draw(void)
+{
 	SDL_FillRect(surf_screen,NULL,0);  // black background
-	draw_dots(surf_screen);             // background dots
+	draw_dots(surf_screen);            // background dots
 	draw_sprite(SPRITE(&ship));
 	draw_rocks();
 
 	show_lives();
 	show_score();
 
-	// If it's game over, show the game over graphic in the dead centre
 	switch (state) {
 		case GAME_OVER: draw_game_over(); break;
 
 		case TITLE_PAGE: draw_title_page(); break;
 
-		case HIGH_SCORE_ENTRY:
-			play_tune(TUNE_HIGH_SCORE_ENTRY);
-		// FALL THROUGH TO
+		case HIGH_SCORE_ENTRY: play_tune(TUNE_HIGH_SCORE_ENTRY);
+			// and fall through to
 		case HIGH_SCORE_DISPLAY:
 			// Display de list o high scores mon.
 			display_scores(surf_screen, 150,50);
@@ -576,24 +558,39 @@ draw(void) {
 			; // no action necessary
 	}
 
-	collisions();
-
 	// Update the surface
 	SDL_Flip(surf_screen);
 }
 
 static inline void
-kill_ship(Sprite *ship)
+kill_ship(struct ship *ship)
 {
-	ship->flags = MOVE;
-	bang = true;
+	play_sound(SOUND_BANG);
+	new_bang_dots(SPRITE(ship));
+	if(--ship->lives) {
+		state = DEAD_PAUSE;
+		state_timeout = DEAD_PAUSE_LENGTH;
+		// want ship to be invisible, but keep drifting at sqrt(speed)
+		// to leave it in the middle of the space from the explosion.
+		ship->flags = MOVE;
+		ship->dx = (ship->dx < 0) ? -sqrt(-ship->dx) : sqrt(ship->dx);
+		ship->dy = (ship->dy < 0) ? -sqrt(-ship->dy) : sqrt(ship->dy);
+		if(ship->dx < SCREENDXMIN) ship->dx = SCREENDXMIN;
+	} else {
+		state = GAME_OVER;
+		state_timeout = 200.0;
+		fadetimer = 0.0;
+		ship->flags = 0;
+		// scrolling is based on the ship speed, so we need to reset it.
+		ship->dx = SCREENDXMIN; ship->dy = 0;
+	}
 }
 
 void
 do_collision(Sprite *a, Sprite *b)
 {
-	if(a->type == SHIP) kill_ship(a);
-	else if (b->type == SHIP) kill_ship(b);
+	if(a->type == SHIP) kill_ship((struct ship *)a);
+	else if(b->type == SHIP) kill_ship((struct ship *)b);
 	else bounce(a, b);
 }
 
@@ -617,6 +614,7 @@ update_state(float ticks)
 	if(state_timeout > 0) return;
 
 	switch(state) {
+		case GAMEPLAY: break;  // no action necessary
 		case DEAD_PAUSE:
 			// Restore the ship and continue playing
 			ship.flags = DRAW|MOVE|COLLIDE;
@@ -641,8 +639,6 @@ update_state(float ticks)
 			state = HIGH_SCORE_DISPLAY;
 			state_timeout = 200.0;
 			break;
-		case GAMEPLAY:
-			; // no action necessary
 	}
 }
 
@@ -711,8 +707,6 @@ gameloop() {
 		if(!paused) {
 			update_state(t_frame);
 
-			if(state == DEAD_PAUSE && bangx < 60) bangx = 60;
-
 			// SCROLLING
 			tmp = (ship.y+ship.h/2+ship.dy*t_frame-YSCROLLTO)/25 + (ship.dy-screendy);
 			screendy += tmp * t_frame/12;
@@ -725,14 +719,12 @@ gameloop() {
 			back_dist += (screendx - SCREENDXMIN)*t_frame;
 			if(opt_max_lead >= 0) back_dist = min(back_dist, opt_max_lead);
 
-			// move bang center
-			bangx += (bangdx - screendx)*t_frame;
-			bangy += (bangdy - screendy)*t_frame;
-
-			move_sprites(t_frame);
-			move_engine_dots(t_frame);
+			move_sprites(t_frame);  new_rocks(t_frame);
+			move_engine_dots(t_frame); new_engine_dots(t_frame);
 			move_bang_dots(t_frame);
 			move_dust(t_frame);
+
+			collisions();
 
 			// BOUNCE off left or right edge of screen
 			if(ship.x < 0 || ship.x+ship.w > XSIZE) {
@@ -746,32 +738,7 @@ gameloop() {
 				ship.dy = screendy - (ship.dy-screendy)*opt_bounciness;
 			}
 
-			new_rocks(t_frame);
-			new_engine_dots(t_frame);
-
 			draw();
-
-			if(state == GAMEPLAY && bang) {
-				// Died
-				bang = false;
-				play_sound(SOUND_BANG); // Play the explosion sound
-				bangx = ship.x; bangy = ship.y; bangdx = ship.dx; bangdy = ship.dy;
-				new_bang_dots(ship.x,ship.y,ship.dx,ship.dy,ship.image);
-
-				if(--ship.lives) {
-					state = DEAD_PAUSE;
-					state_timeout = DEAD_PAUSE_LENGTH;
-					ship.dx = (ship.dx < 0) ? -sqrt(-ship.dx) : sqrt(ship.dx);
-					ship.dy = (ship.dy < 0) ? -sqrt(-ship.dy) : sqrt(ship.dy);
-					if(ship.dx < SCREENDXMIN) ship.dx = SCREENDXMIN;
-				} else {
-					state = GAME_OVER;
-					ship.dx = SCREENDXMIN; ship.dy = 0;
-					state_timeout = 200.0;
-					fadetimer = 0.0;
-					faderate = t_frame;
-				}
-			}
 
 			// new game
 			if((keystate[SDLK_SPACE] || keystate[SDLK_1] || keystate[SDLK_2])
