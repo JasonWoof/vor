@@ -105,10 +105,8 @@ data-clean:
 
 mkinstalldirs:
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
-	if [ ! -d $(DATA_PREFIX)/icons ]; then mkdir $(DATA_PREFIX)/icons; fi
 
 rminstalldirs:
-	if [ -d $(DATA_PREFIX)/icons ]; then rmdir $(DATA_PREFIX)/icons; fi
 	if [ -d $(DATA_PREFIX) ]; then rmdir $(DATA_PREFIX); fi
 
 install: all mkinstalldirs install-program install-data
@@ -120,7 +118,9 @@ install-data: data
 	$(INSTALL_DATA) ./data/*.png $(DATA_PREFIX)/
 	$(INSTALL_DATA) ./data/*.wav $(DATA_PREFIX)/
 	$(INSTALL_DATA) ./data/*.mod $(DATA_PREFIX)/
-	$(INSTALL_DATA) ./data/icons/* $(DATA_PREFIX)/icons/
+	@echo
+	@echo "We recommend using $(DATA_PREFIX)/ship.png as an icon."
+	@echo
 
 uninstall: uninstall-program uninstall-data rminstalldirs
 
@@ -131,4 +131,3 @@ uninstall-data:
 	rm -f $(DATA_PREFIX)/*.png
 	rm -f $(DATA_PREFIX)/*.wav
 	rm -f $(DATA_PREFIX)/*.mod
-	rm -f $(DATA_PREFIX)/icons/*
