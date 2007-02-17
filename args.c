@@ -35,7 +35,7 @@ show_help(void)
 	puts("Mandatory or optional arguments to long options are also mandatory or optional");
 	puts("for any corresponding short options.");
 	putchar('\n');
-	puts("Report bugs at http://jasonwoof.com/contact.pl");
+	puts("Report bugs at http://jasonwoof.com/contact.html");
 }
 
 int
