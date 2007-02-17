@@ -12,8 +12,8 @@ data/rock%.png: rocks.pov $(gfx-deps)
 
 font_guts: font_guts.c
 
-font_guts.pov: font_guts font_template.txt.gz
-	gunzip font_template.txt.gz -c | ./font_guts > $@ || sh -c "rm $@ && false"
+font_guts.pov: font_guts font_template.txt
+	./font_guts < font_template.txt > $@ || sh -c "rm $@ && false"
 
 data/font.png: font.pov font_guts.pov
 	./povimg.sh +W3000 +H40 $< > $@ || sh -c "rm $@; false"
