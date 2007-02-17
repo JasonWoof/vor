@@ -122,7 +122,7 @@ init_opts(void)
 	// Look and Feel
 	opt_fullscreen = 0;
 	opt_sound = 1;
-	opt_music = 0;
+	opt_music = 1;
 }
 
 int
