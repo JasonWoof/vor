@@ -8,7 +8,6 @@ extern float opt_max_lead;
 
 // Look and Feel
 extern int opt_fullscreen;
-extern int opt_music;
 extern int opt_sound;
 
 int parse_opts(int argc, char *argv[]);

@@ -70,14 +70,14 @@ void
 play_sound(int i)  {
 	if(!opt_sound) return;
 	Mix_PlayChannel(-1, wav[i], 0);
-}/*}}}*/
+}
 
 int playing=-1;
 
 
 void
-play_tune(int i) {/*{{{*/
-	if(!opt_music) return;
+play_tune(int i) {
+	if(!opt_sound) return;
 	if (playing==i)
 	return;
 	if (playing) {

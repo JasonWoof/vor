@@ -11,7 +11,6 @@ float opt_max_lead;
 
 // Look and Feel
 int opt_fullscreen;
-int opt_music;
 int opt_sound;
 
 static void
@@ -19,18 +18,10 @@ show_help(void)
 {
 	puts("Dodge the rocks until you die.");
 	putchar('\n');
-	puts(" Gameplay Variations:");
-    puts("  -b, --bounciness=N%        Keep N% of speed when hitting edges (default 50%)");
-	puts("  -g, --game-speed=N%        50-200% (default 100%)");
-	putchar('\n');
-	puts(" Look and Feel:");
 	puts("  -f, --full-screen");
-	puts("  -m, --music                Enable music");
 	puts("  -s, --silent               No explosion sounds or music");
-	putchar('\n');
-	puts(" Informational:");
-	puts("  -?, --help                 Give this help list");
 	puts("  -V, --version              Print program version");
+	puts("  -?, --help                 Give this help list");
 	putchar('\n');
 	puts("Mandatory or optional arguments to long options are also mandatory or optional");
 	puts("for any corresponding short options.");
@@ -41,33 +32,9 @@ show_help(void)
 int
 short_opt(char c, char *arg)
 {
-	int i;
-
 	switch(c) {
-		case 'b': if(!arg || sscanf(arg, "%d%%", &i) != 1 || i < 0 || i > 100) {
-					  fprintf(stderr, "bad --bounciness (-b) value (should be 0-100%%)\n\n");
-					  return 0;
-				  }
-				  opt_bounciness = (float)i / 100;
-				  *arg = 0;
-				  break;
 		case 'f': opt_fullscreen = 1; break;
-		case 'g': if(!arg || sscanf(arg, "%d%%", &i) != 1 || i < 50 || i > 200) {
-					  fprintf(stderr, "bad --game-speed (-g) value (should be 50-200%%)\n\n");
-					  return 0;
-				  }
-				  opt_gamespeed = (float)i / 100;
-				  *arg = 0;
-				  break;
-		case 'l': if(sscanf(arg, "%f", &opt_max_lead) != 1) {
-					  fprintf(stderr, "bad --max-lead (-l) value (must be a number)\n\n");
-					  return 0;
-				  }
-				  opt_max_lead *= XSIZE;
-				  *arg = 0;
-				  break;
-		case 'm': opt_music = 1; break;
-		case 's': opt_sound = 0; opt_music = 0; break;
+		case 's': opt_sound = 0; break;
 		case 'V':
 				  printf("Variations on Rockdodger %s\n", VERSION);
 				  exit(0);
@@ -87,17 +54,9 @@ parse_short_opts(const char *s, char *arg)
 	return short_opt(*s, arg);
 }
 
-static char *long_opts[] = {
-	"bounciness", "game-speed",
-	"full-screen", "music", "silent",
-	"help", "version"
-};
+static char *long_opts[] = { "full-screen", "silent", "version", "help" };
 
-static char short_opts[] = {
-	'b', 'g',
-	'f', 'm', 's',
-	'h', 'V'
-};
+static char short_opts[] = { 'f', 's', 'V', 'h' };
 
 int
 parse_long_opt(const char *s, char *arg)
@@ -122,7 +81,6 @@ init_opts(void)
 	// Look and Feel
 	opt_fullscreen = 0;
 	opt_sound = 1;
-	opt_music = 1;
 }
 
 int
