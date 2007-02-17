@@ -10,7 +10,10 @@
 #define XSCROLLTO (XSIZE/3)
 #define YSCROLLTO (YSIZE/2)
 
-#define SCREENDXMIN 7.5
+#define BARRIER_SPEED 7.5
+
+#define MAX_DIST_AHEAD XSIZE
+#define BOUNCINESS 0.50
 
 
 // -----------------------------------------------------------------------

@@ -4,11 +4,6 @@
 #include "args.h"
 #include "config.h"
 
-// Gameplay Variations
-float opt_bounciness;
-float opt_gamespeed;
-float opt_max_lead;
-
 // Look and Feel
 int opt_fullscreen;
 int opt_sound;
@@ -73,12 +68,6 @@ parse_long_opt(const char *s, char *arg)
 void
 init_opts(void)
 {
-	// Gameplay Variations
-	opt_bounciness = 0.50; // lose 50% when you hit the screen edge.
-	opt_gamespeed = 1.00; // Run game at full speed.
-	opt_max_lead = 1.00*XSIZE;  // you can get 1 screen ahead.
-
-	// Look and Feel
 	opt_fullscreen = 0;
 	opt_sound = 1;
 }

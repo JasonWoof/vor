@@ -65,16 +65,18 @@ struct bangdots bdot[MAXBANGDOTS], *bdotptr = bdot;
 char topline[1024];
 char *initerror = "";
 
-struct ship ship = { SHIP, 0, NULL, XSIZE/2, YSIZE/2, SCREENDXMIN, 0.0 };
+struct ship ship = { SHIP, 0, NULL, XSIZE/2, YSIZE/2, BARRIER_SPEED, 0.0 };
 	  
-float screendx = SCREENDXMIN, screendy = 0.0;
-float back_dist;
+float screendx = BARRIER_SPEED, screendy = 0.0;
+float dist_ahead;
 
 // all movement is based on t_frame.
 unsigned long frames, start, end;
 float t_frame;  // length of this frame (in ticks = 1/20th second)  adjusted for gamespeed
 int ms_frame;   // length of this frame (milliseconds)
 int ms_end;     // end of this frame (milliseconds)
+
+float gamespeed = 1.00;
 
 int score;
 
@@ -117,7 +119,7 @@ char *data_dir;
 extern char *optarg;
 extern int optind, opterr, optopt;
 
-#define TO_TICKS(seconds) ((seconds)*20*opt_gamespeed)
+#define TO_TICKS(seconds) ((seconds)*20*gamespeed)
 
 // ************************************* FUNCS
 
@@ -575,14 +577,14 @@ kill_ship(struct ship *ship)
 		ship->flags = MOVE;
 		ship->dx = (ship->dx < 0) ? -sqrt(-ship->dx) : sqrt(ship->dx);
 		ship->dy = (ship->dy < 0) ? -sqrt(-ship->dy) : sqrt(ship->dy);
-		if(ship->dx < SCREENDXMIN) ship->dx = SCREENDXMIN;
+		if(ship->dx < BARRIER_SPEED) ship->dx = BARRIER_SPEED;
 	} else {
 		state = GAME_OVER;
 		state_timeout = 200.0;
 		fadetimer = 0.0;
 		ship->flags = 0;
 		// scrolling is based on the ship speed, so we need to reset it.
-		ship->dx = SCREENDXMIN; ship->dy = 0;
+		ship->dx = BARRIER_SPEED; ship->dy = 0;
 	}
 }
 
@@ -654,7 +656,7 @@ gameloop() {
 		if(ms_frame > 1000) {
 			ms_frame = 1000;
 		}
-		t_frame = opt_gamespeed * ms_frame / 50;
+		t_frame = gamespeed * ms_frame / 50;
 		frames++;
 
 		while(SDL_PollEvent(&e)) {
@@ -708,16 +710,16 @@ gameloop() {
 			update_state(t_frame);
 
 			// SCROLLING
-			tmp = (ship.y+ship.h/2+ship.dy*t_frame-YSCROLLTO)/25 + (ship.dy-screendy);
+			tmp = (ship.y+ship.h/2 + ship.dy*t_frame - YSCROLLTO)/25 + (ship.dy-screendy);
 			screendy += tmp * t_frame/12;
-			tmp = (ship.x+ship.w/2+ship.dx*t_frame-XSCROLLTO)/25 + (ship.dx-screendx);
+			tmp = (ship.x+ship.w/2 + ship.dx*t_frame - XSCROLLTO)/25 + (ship.dx-screendx);
 			screendx += tmp * t_frame/12;
 			// taper off so we don't hit the barrier abruptly.
 			// (if we would hit in < 2 seconds, adjust to 2 seconds).
-			if(back_dist + (screendx - SCREENDXMIN)*TO_TICKS(2) < 0)
-				screendx = SCREENDXMIN - (back_dist/TO_TICKS(2));
-			back_dist += (screendx - SCREENDXMIN)*t_frame;
-			if(opt_max_lead >= 0) back_dist = min(back_dist, opt_max_lead);
+			if(dist_ahead + (screendx - BARRIER_SPEED)*TO_TICKS(2) < 0)
+				screendx = BARRIER_SPEED - (dist_ahead/TO_TICKS(2));
+			dist_ahead += (screendx - BARRIER_SPEED)*t_frame;
+			if(MAX_DIST_AHEAD >= 0) dist_ahead = min(dist_ahead, MAX_DIST_AHEAD);
 
 			move_sprites(t_frame);  new_rocks(t_frame);
 			move_engine_dots(t_frame); new_engine_dots(t_frame);
@@ -729,13 +731,13 @@ gameloop() {
 			// BOUNCE off left or right edge of screen
 			if(ship.x < 0 || ship.x+ship.w > XSIZE) {
 				ship.x -= (ship.dx-screendx)*t_frame;
-				ship.dx = screendx - (ship.dx-screendx)*opt_bounciness;
+				ship.dx = screendx - (ship.dx-screendx)*BOUNCINESS;
 			}
 
 			// BOUNCE off top or bottom of screen
 			if(ship.y < 0 || ship.y+ship.h > YSIZE) {
 				ship.y -= (ship.dy-screendy)*t_frame;
-				ship.dy = screendy - (ship.dy-screendy)*opt_bounciness;
+				ship.dy = screendy - (ship.dy-screendy)*BOUNCINESS;
 			}
 
 			draw();
@@ -752,17 +754,17 @@ gameloop() {
 						g_easy = 0;
 						initial_rocks = NORMAL_I_ROCKS;
 						final_rocks = NORMAL_F_ROCKS;
-						if(opt_gamespeed == EASY_GAMESPEED)
-							opt_gamespeed = NORMAL_GAMESPEED;
+						if(gamespeed == EASY_GAMESPEED)
+							gamespeed = NORMAL_GAMESPEED;
 					} else if(keystate[SDLK_1]) {
 						g_easy = 1;
 						initial_rocks = EASY_I_ROCKS;
 						final_rocks = EASY_F_ROCKS;
-						opt_gamespeed = EASY_GAMESPEED;
+						gamespeed = EASY_GAMESPEED;
 					}
 					reset_sprites();
 					reset_rocks();
-					screendx = SCREENDXMIN; screendy = 0;
+					screendx = BARRIER_SPEED; screendy = 0;
 
 					ship.x = XSIZE/2.2; ship.y = YSIZE/2 - ship.w/2;
 					ship.dx = screendx; ship.dy = screendy;
