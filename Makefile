@@ -98,10 +98,10 @@ clean: program-clean
 maintainer-clean: program-clean data-clean
 
 program-clean:
-	rm -f *.o vor font_guts font_guts.pov
+	rm -f *.o vor
 
 data-clean:
-	rm -f $(graphics) font_guts.pov
+	rm -f $(graphics) font_guts font_guts.pov
 
 mkinstalldirs:
 	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
