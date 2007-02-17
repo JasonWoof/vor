@@ -39,7 +39,7 @@ rocks += 20 21 22 23 24 25 26 27 28 29
 rocks += 30 31 32 33 34 35 36 37 38 39
 rocks += 40 41 42 43 44 45 46 47 48 49
 rocks := $(rocks:%=data/rock%.png)
-graphics := data/ship.png data/life.png data/font.png $(rocks)
+graphics := data/ship.png data/icon.png data/life.png data/font.png $(rocks)
 
 INSTALL := install
 INSTALL_PROGRAM := $(INSTALL) -o games -g games
@@ -119,7 +119,7 @@ install-data: data
 	$(INSTALL_DATA) ./data/*.wav $(DATA_PREFIX)/
 	$(INSTALL_DATA) ./data/*.mod $(DATA_PREFIX)/
 	@echo
-	@echo "We recommend using $(DATA_PREFIX)/ship.png as an icon."
+	@echo "$(DATA_PREFIX)/icon.png (48x48) or ship.png (32x32) make good icons."
 	@echo
 
 uninstall: uninstall-program uninstall-data rminstalldirs
