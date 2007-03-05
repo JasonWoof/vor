@@ -128,11 +128,11 @@ reset_sprites(void)
 }
 
 void
-move_sprite(Sprite *s, float ticks)
+move_sprite(Sprite *s)
 {
 	if(s->flags & MOVE) {
-		s->x += (s->dx - screendx)*ticks;
-		s->y += (s->dy - screendy)*ticks;
+		s->x += (s->dx - screendx)*t_frame;
+		s->y += (s->dy - screendy)*t_frame;
 	}
 }
 
@@ -148,7 +148,7 @@ sort_sprite(Sprite *s)
 }
 
 void
-move_sprites(float ticks)
+move_sprites(void)
 {
 	int sq;
 	Sprite **head;
@@ -158,7 +158,7 @@ move_sprites(float ticks)
 		head=&sprites[set][sq];
 		while(*head) {
 			Sprite *s = remove_sprite(head);
-			move_sprite(s, ticks); sort_sprite(s);
+			move_sprite(s); sort_sprite(s);
 		}
 	}
 	set = 1-set;  // switch to other set of sprites.

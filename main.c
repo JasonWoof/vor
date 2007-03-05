@@ -142,9 +142,9 @@ init_engine_dots() {
 
 
 void
-new_engine_dots(float time_span) {
+new_engine_dots(void) {
 	int dir, i;
-	int n = time_span * ENGINE_DOTS_PER_TIC;
+	int n = t_frame * ENGINE_DOTS_PER_TIC;
 	float a, r;  // angle, random length
 	float dx, dy;
 	float hx, hy; // half ship width/height.
@@ -170,7 +170,7 @@ new_engine_dots(float time_span) {
 				dotptr->heat = 6;
 
 				// dot was created at a random time during the time span
-				time = frnd() * time_span; // this is how long ago
+				time = frnd() * t_frame; // this is how long ago
 
 				// calculate how fast the ship was going when this engine dot was
 				// created (as if it had a smooth acceleration). This is used in
@@ -185,7 +185,7 @@ new_engine_dots(float time_span) {
 
 				// the starting position (not speed) of the dot is calculated as
 				// though the ship were traveling at a constant speed for this
-				// time_span.
+				// t_frame.
 				dotptr->x = (ship.x - (ship.dx - screendx) * time) + s[dir]*hx;
 				dotptr->y = (ship.y - (ship.dy - screendy) * time) + s[(dir+1)&3]*hy;
 				if(dir&1) {
@@ -257,15 +257,15 @@ new_bang_dots(struct sprite *s)
 
 
 void
-move_dot(struct dot *d, float ticks)
+move_dot(struct dot *d)
 {
 	Sprite *hit;
 	float mass;
 
 	if(d->active) {
-		d->x += (d->dx - screendx) * ticks;
-		d->y += (d->dy - screendy) * ticks;
-		d->mass -= ticks * d->decay;
+		d->x += (d->dx - screendx) * t_frame;
+		d->y += (d->dy - screendy) * t_frame;
+		d->mass -= t_frame * d->decay;
 		if(d->mass < 0 || fclip(d->x, XSIZE) || fclip(d->y, YSIZE))
 			d->active = 0; 
 		else {
@@ -281,38 +281,38 @@ move_dot(struct dot *d, float ticks)
 }
 
 void
-move_dots(float ticks)
+move_dots(void)
 {
 	int i;
 
-	for(i=0; i<MAXBANGDOTS; i++) move_dot(&bdot[i], ticks);
-	for(i=0; i<MAXENGINEDOTS; i++) move_dot(&edot[i], ticks);
+	for(i=0; i<MAXBANGDOTS; i++) move_dot(&bdot[i]);
+	for(i=0; i<MAXENGINEDOTS; i++) move_dot(&edot[i]);
 }
 
 
 void
-draw_dot(SDL_Surface *s, struct dot *d)
+draw_dot(struct dot *d)
 {
 	uint16_t *pixels, *pixel;
 	int row_inc;
 
 	if(d->active) {
-		pixels = (uint16_t *) s->pixels;
-		row_inc = s->pitch / sizeof(uint16_t);
+		pixels = (uint16_t *) surf_screen->pixels;
+		row_inc = surf_screen->pitch / sizeof(uint16_t);
 		pixel = pixels + (int)d->y * row_inc + (int)d->x;
 		*pixel = heatcolor[min(3*W-1, (int)(d->mass * d->heat))];
 	}
 }
 
 void
-draw_dots(SDL_Surface *s) {
+draw_dots(void) {
 	int i;
 
-	if(SDL_MUSTLOCK(s)) { SDL_LockSurface(s); }
-	draw_dust(s);
-	for(i=0; i<MAXBANGDOTS; i++) draw_dot(s, &bdot[i]);
-	for(i=0; i<MAXENGINEDOTS; i++) draw_dot(s, &edot[i]);
-	if(SDL_MUSTLOCK(s)) { SDL_UnlockSurface(s); }
+	if(SDL_MUSTLOCK(surf_screen)) { SDL_LockSurface(surf_screen); }
+	draw_dust();
+	for(i=0; i<MAXBANGDOTS; i++) draw_dot(&bdot[i]);
+	for(i=0; i<MAXENGINEDOTS; i++) draw_dot(&edot[i]);
+	if(SDL_MUSTLOCK(surf_screen)) { SDL_UnlockSurface(surf_screen); }
 }
 
 SDL_Surface *
@@ -503,7 +503,7 @@ void
 draw(void)
 {
 	SDL_FillRect(surf_screen,NULL,0);  // black background
-	draw_dots(surf_screen);            // background dots
+	draw_dots();            // background dots
 	draw_sprite(SPRITE(&ship));
 	draw_rocks();
 
@@ -519,7 +519,7 @@ draw(void)
 			// and fall through to
 		case HIGH_SCORE_DISPLAY:
 			// Display de list o high scores mon.
-			display_scores(surf_screen, 150,50);
+			display_scores(150,50);
 			break;
 		case GAMEPLAY:
 		case DEAD_PAUSE:
@@ -576,9 +576,9 @@ init_score_entry(void)
 
 // Count down the state timer, and change state when it gets to zero or less;
 void
-update_state(float ticks)
+update_state(void)
 {
-	state_timeout -= ticks*3;
+	state_timeout -= t_frame*3;
 	if(state_timeout > 0) return;
 
 	switch(state) {
@@ -673,7 +673,7 @@ gameloop() {
 		}
 
 		if(!paused) {
-			update_state(t_frame);
+			update_state();
 
 			// SCROLLING
 			tmp = (ship.y+ship.h/2 + ship.dy*t_frame - YSCROLLTO)/25 + (ship.dy-screendy);
@@ -687,12 +687,12 @@ gameloop() {
 			dist_ahead += (screendx - BARRIER_SPEED)*t_frame;
 			if(MAX_DIST_AHEAD >= 0) dist_ahead = min(dist_ahead, MAX_DIST_AHEAD);
 
-			move_sprites(t_frame);
-			move_dots(t_frame);
-			move_dust(t_frame);
+			move_sprites();
+			move_dots();
+			move_dust();
 
-			new_rocks(t_frame);
-			new_engine_dots(t_frame);
+			new_rocks();
+			new_engine_dots();
 
 			collisions();
 

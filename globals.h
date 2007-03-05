@@ -19,6 +19,8 @@ extern SDL_Surface
 	*surf_rock[NROCKS],	// THE ROCKS
 	*surf_font_big;	// The big font
 
+extern float t_frame;
+
 extern font *g_font;
 
 // Other global variables

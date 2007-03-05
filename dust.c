@@ -28,11 +28,11 @@ init_dust(void)
 }
 
 void
-move_dust(float ticks)
+move_dust(void)
 {
 	int i;
-	float xscroll = screendx * ticks;
-	float yscroll = screendy * ticks;
+	float xscroll = screendx * t_frame;
+	float yscroll = screendy * t_frame;
 	
 	for(i=0; i<N_DUST_MOTES; i++) {
 		motes[i].x -= xscroll / (1.3 + motes[i].z);
@@ -44,11 +44,11 @@ move_dust(float ticks)
 }
 
 void
-draw_dust(SDL_Surface *s)
+draw_dust(void)
 {
 	int i;
-	uint16_t *pixels = s->pixels;
+	uint16_t *pixels = surf_screen->pixels;
 	for(i=0; i<N_DUST_MOTES; i++) {
-		pixels[s->pitch/2*(int)motes[i].y + (int)motes[i].x] = motes[i].color;
+		pixels[surf_screen->pitch/2*(int)motes[i].y + (int)motes[i].x] = motes[i].color;
 	}
 }

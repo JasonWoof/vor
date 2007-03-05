@@ -157,7 +157,7 @@ show_score(void)
 }
 
 void
-display_scores(SDL_Surface *s, uint32_t x, uint32_t y)
+display_scores(uint32_t x, uint32_t y)
 {
 	char t[1024];
 	int i,h = font_height();
