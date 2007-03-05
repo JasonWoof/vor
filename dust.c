@@ -4,6 +4,7 @@
 #include "config.h"
 #include "globals.h"
 #include "dust.h"
+#include "float.h"
 #include "mt.h"
 
 struct dust_mote {
@@ -12,9 +13,6 @@ struct dust_mote {
 };
 
 struct dust_mote motes[N_DUST_MOTES];
-
-// lower bound to ensure that we don't lose precision when wrapping.
-static float zero;
 
 void
 init_dust(void)
@@ -27,8 +25,6 @@ init_dust(void)
 		b = (MAX_DUST_DEPTH - motes[i].z) * 255.0 / MAX_DUST_DEPTH;
 		motes[i].color = SDL_MapRGB(surf_screen->format, b, b, b);
 	}
-
-	zero = pow(-10, ceil(log10(XSIZE)) - FLT_DIG);
 }
 
 void
@@ -40,12 +36,10 @@ move_dust(float ticks)
 	
 	for(i=0; i<N_DUST_MOTES; i++) {
 		motes[i].x -= xscroll / (1.3 + motes[i].z);
-		if(motes[i].x >= XSIZE) motes[i].x -= XSIZE;
-		else if(motes[i].x < zero) motes[i].x += XSIZE;
+		motes[i].x = fwrap(motes[i].x, XSIZE);
 
 		motes[i].y -= yscroll / (1.3 + motes[i].z);
-		if(motes[i].y >= YSIZE) motes[i].y -= YSIZE;
-		else if(motes[i].y < zero) motes[i].y += YSIZE;
+		motes[i].y = fwrap(motes[i].y, YSIZE);
 	}
 }
 

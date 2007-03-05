@@ -67,11 +67,11 @@ font.o: font.h
 
 args.o: args.h
 
-dust.o: globals.h dust.h mt.h
+dust.o: globals.h dust.h float.h mt.h
 
 file.o: file.h common.h
 
-main.o: args.h common.h dust.h file.h globals.h mt.h rocks.h score.h sprite.h sound.h
+main.o: args.h common.h dust.h file.h float.h globals.h mt.h rocks.h score.h sprite.h sound.h
 
 mt.o: mt.h
 

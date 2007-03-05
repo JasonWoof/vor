@@ -34,6 +34,7 @@
 #include "config.h"
 #include "dust.h"
 #include "file.h"
+#include "float.h"
 #include "globals.h"
 #include "mt.h"
 #include "rocks.h"
@@ -192,7 +193,7 @@ move_bang_dots(float ticks)
 		// move and clip
 		bdot[i].x += (bdot[i].dx - screendx)*ticks;
 		bdot[i].y += (bdot[i].dy - screendy)*ticks;
-		if(bdot[i].x < 0 || bdot[i].x >= (XSIZE - 0.000001) || bdot[i].y < 0 || bdot[i].y >= (YSIZE - 0.000001)) {
+		if(fclip(bdot[i].x, XSIZE) || fclip(bdot[i].y, YSIZE)) {
 			bdot[i].active = 0;
 			continue;
 		}
@@ -306,7 +307,7 @@ move_engine_dots(float ticks) {
 		edot[i].x += (edot[i].dx - screendx)*ticks;
 		edot[i].y += (edot[i].dy - screendy)*ticks;
 		edot[i].life -= t_frame*3;
-		if(edot[i].life < 0 || edot[i].x<0 || edot[i].x >= (XSIZE - 0.000001) || edot[i].y < 0 || edot[i].y >= (YSIZE - 0.000001)) {
+		if(edot[i].life < 0 || fclip(edot[i].x, XSIZE) || fclip(edot[i].y, YSIZE)) {
 			edot[i].active = 0;
 			continue;
 		}
