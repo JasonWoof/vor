@@ -5,25 +5,6 @@
 #include <inttypes.h>
 #include "font.h"
 
-struct bangdots {
-	// Bang dots have the same colour as shield dots.
-	// Bang dots get darker as they age.
-	// Some are coloured the same as the ex-ship.
-	float x,y,dx,dy;
-	Uint16 c; // when zero, use heatcolor[bangdotlife]
-	float life;	// When reduced to 0, set active = 0
-	int active;
-	float decay;// Amount by which to reduce life each time dot is drawn
-};
-struct enginedots {
-	// Engine dots stream out the back of the ship, getting darker as they go.
-	int active;
-	float x,y,dx,dy;
-	// The life of an engine dot 
-	// is a number starting at between 0 and 50 and counting backward.
-	float life;	// When reduced to 0, set active = 0
-};
-
 // ************************************* VARS
 // SDL_Surface global variables
 extern SDL_Surface 
@@ -39,10 +20,6 @@ extern SDL_Surface
 	*surf_font_big;	// The big font
 
 extern font *g_font;
-
-// Structure global variables
-extern struct enginedots edot[MAXENGINEDOTS], *dotptr;
-extern struct bangdots bdot[MAXBANGDOTS], *bdotptr;
 
 // Other global variables
 extern char topline[1024];
