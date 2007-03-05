@@ -64,6 +64,7 @@ struct dot {
 	float dx, dy;
 	float mass;   // in DOT_MASS_UNITs
 	float decay;  // rate at which to reduce mass.
+	int heat;     // heat multiplier (color).
 };
 
 struct dot edot[MAXENGINEDOTS], *dotptr = edot;
@@ -166,6 +167,7 @@ new_engine_dots(float time_span) {
 
 				dotptr->active = 1;
 				dotptr->decay = 3;
+				dotptr->heat = 6;
 
 				// dot was created at a random time during the time span
 				time = frnd() * time_span; // this is how long ago
@@ -240,6 +242,7 @@ new_bang_dots(struct sprite *s)
 					bdot[bd2].y = y + s->y;
 					bdot[bd2].mass = frnd() * 99;
 					bdot[bd2].decay = frnd()*1.5 + 0.5;
+					bdot[bd2].heat = 3;
 					bdot[bd2].active = 1;
 
 					bd2 = (bd2+1) % MAXBANGDOTS;
@@ -288,43 +291,27 @@ move_dots(float ticks)
 
 
 void
-draw_bang_dots(SDL_Surface *s)
+draw_dot(SDL_Surface *s, struct dot *d)
 {
-	int i;
 	uint16_t *pixels, *pixel;
-	int row_inc = s->pitch/sizeof(uint16_t);
+	int row_inc;
 
-	pixels = (uint16_t *) s->pixels;
-
-	for(i=0; i<MAXBANGDOTS; i++) {
-		if(!bdot[i].active) continue;
-		pixel = pixels + row_inc*(int)(bdot[i].y) + (int)(bdot[i].x);
-		*pixel = heatcolor[(int)(bdot[i].mass)*3];
-	}
-}
-
-void
-draw_engine_dots(SDL_Surface *s)
-{
-	int i;
-	uint16_t *pixels, *pixel;
-	int row_inc = s->pitch/sizeof(uint16_t);
-
-	pixels = (uint16_t *) s->pixels;
-
-	for(i = 0; i<MAXENGINEDOTS; i++) {
-		if(!edot[i].active) continue;
-		pixel = pixels + row_inc*(int)(edot[i].y) + (int)(edot[i].x);
-		*pixel = heatcolor[min(3*W-1, (int)(edot[i].mass)*6)];
+	if(d->active) {
+		pixels = (uint16_t *) s->pixels;
+		row_inc = s->pitch / sizeof(uint16_t);
+		pixel = pixels + (int)d->y * row_inc + (int)d->x;
+		*pixel = heatcolor[min(3*W-1, (int)(d->mass * d->heat))];
 	}
 }
 
 void
 draw_dots(SDL_Surface *s) {
+	int i;
+
 	if(SDL_MUSTLOCK(s)) { SDL_LockSurface(s); }
 	draw_dust(s);
-	draw_engine_dots(s);
-	draw_bang_dots(s);
+	for(i=0; i<MAXBANGDOTS; i++) draw_dot(s, &bdot[i]);
+	for(i=0; i<MAXENGINEDOTS; i++) draw_dot(s, &edot[i]);
 	if(SDL_MUSTLOCK(s)) { SDL_UnlockSurface(s); }
 }
 
