@@ -30,5 +30,4 @@ fwrap(float f, float max)
 	return f;
 }
 
-
 #endif // VOR_FLOAT_H
