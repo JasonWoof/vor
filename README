@@ -25,6 +25,9 @@ Changes from Rock Dodgers
 
 User-Visible Changes:
 
+0.5.2:
+  * another attempt at fixing the x86 crashes.
+
 0.5.1:
   * another attempt at fixing the x86 crashes.
 
