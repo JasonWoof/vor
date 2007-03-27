@@ -3,21 +3,32 @@
 
 #include <math.h>
 
+#define SMIDGE 0.0001
+
+// return true if f is OUTSIDE the range [SMIDGE..(max-SMIDGE)]
 static inline int
 fclip(float f, float max)
 {
-	return f < 0 || (float)f >= (float)max;
+	return f < SMIDGE || f >= (max - SMIDGE);
 }
 
+// wrap f so it's within the range [SMIDGE..(max-SMIDGE)]
+// assumes f is not outside this range by more than (max - (2 * SMIDGE))
 static inline float
 fwrap(float f, float max)
 {
-	if((float)f >= (float)max) f = (float)f - (float)max;
-	else if(f < 0) {
-		f += max;
-		if((float)f >= (float)max) f = nextafterf(f, 0);
+	float upper = max - SMIDGE;
+	float range = upper - SMIDGE;
+
+	if(f > upper) {
+		f -= range;
 	}
+	if(f < SMIDGE) {
+		f += range;
+	}
+
 	return f;
 }
+
 
 #endif // VOR_FLOAT_H
