@@ -270,11 +270,11 @@ move_dot(struct dot *d)
 			d->active = 0; 
 		else {
 			hit = pixel_collides(d->x, d->y);
-			if(hit && hit->type != SHIP) {
+			if(hit) if(hit->type != SHIP) {
 				d->active = 0;
 				mass = sprite_mass(hit);
-				hit->dx += DOT_MASS_UNIT * d->mass * d->dx / mass;
-				hit->dy += DOT_MASS_UNIT * d->mass * d->dy / mass;
+				hit->dx += DOT_MASS_UNIT * d->mass * (d->dx - hit->dx) / mass;
+				hit->dy += DOT_MASS_UNIT * d->mass * (d->dy - hit->dy) / mass;
 			}
 		}
 	}
