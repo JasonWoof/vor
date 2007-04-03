@@ -175,14 +175,14 @@ new_rocks(void)
 					r->dy = RDY*crnd();
 					break;
 				case BOTTOM:
-					r->x = frnd()*(XSIZE + r->image->w);
+					r->x = (frnd()*(XSIZE + r->image->w)) - r->image->w;
 					r->y = YSIZE;
 
 					r->dx = RDX*crnd();
 					r->dy = -weighted_rnd_range(rmin[i], rmax[i]) + screendy;
 					break;
 				case TOP:
-					r->x = frnd()*(XSIZE + r->image->w);
+					r->x = (frnd() * (XSIZE + r->image->w)) - r->image->w;
 					r->y = -r->image->h;
 
 					r->dx = RDX*crnd();
