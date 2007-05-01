@@ -113,7 +113,7 @@ find_data_dir(void)
 
 	fprintf(stderr, "Can't find VoR data! Tried:\n");
 	for(i=0; i<3; i++) {
-		fprintf(stderr, "\t%s\n", data_options[i]);
+		if(data_options[i]) fprintf(stderr, "\t%s\n", data_options[i]);
 	}
 	return false;
 }

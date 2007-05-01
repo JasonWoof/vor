@@ -619,8 +619,8 @@ gameloop() {
 	for(;;) {
 		ms_frame = SDL_GetTicks() - ms_end;
 		ms_end += ms_frame;
-		if(ms_frame > 1000) {
-			ms_frame = 1000;
+		if(ms_frame > 100) {
+			ms_frame = 100;
 		}
 		t_frame = gamespeed * ms_frame / 50;
 		frames++;
@@ -770,7 +770,7 @@ main(int argc, char **argv) {
 	frames = 0;
 	gameloop();
 	end = SDL_GetTicks();
-	// printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
+	printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
 
 	return 0;
 }

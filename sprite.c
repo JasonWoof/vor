@@ -88,8 +88,8 @@ init_sprites(void)
 	load_sprites();
 
 	grid_size = grid_size * 3 / 2;
-	gw = (XSIZE-1 + 2*grid_size) / grid_size;
-	gh = (YSIZE-1 + 2*grid_size) / grid_size;
+	gw = (XSIZE + 2*grid_size) / grid_size; // -grid-size to XSIZE inclusive (so sprites can be just off either edge)
+	gh = (YSIZE + 2*grid_size) / grid_size;
 
 	sprites[0] = malloc(2 * gw * gh * sizeof(Sprite *));
 	sprites[1] = (void *)sprites[0] + gw * gh * sizeof(Sprite *);
@@ -105,6 +105,10 @@ static inline Sprite **
 square(int x, int y, int set)
 {
 	int b = (x+grid_size)/grid_size + gw*((y+grid_size)/grid_size);
+	if(b >= gw*gh || b < 0) {
+		fprintf(stderr, "square(%i, %i, %i) = %i\n", x, y, set, b);
+		((int*)0)[0] = 0;
+	}
 	return &sprites[set][b];
 }
 
@@ -165,6 +169,8 @@ move_sprites(void)
 }
 
 
+// xov: number of bits of overlap
+// bit: number of bits in from the left edge of amask where bmask is
 static int
 line_collide(int xov, unsigned bit, uint32_t *amask, uint32_t *bmask)
 {
@@ -182,6 +188,8 @@ line_collide(int xov, unsigned bit, uint32_t *amask, uint32_t *bmask)
 	return false;
 }
 
+// xov: number of bits/pixels of horizontal overlap
+// yov: number of bits/pixels of vertical overlap
 static int
 mask_collide(int xov, int yov, Sprite *a, Sprite *b)
 {
@@ -248,44 +256,6 @@ collisions(void)
 			if(i+gw+1 < end) collide_with_list(s, sprites[set][i+gw+1]);
 		}
 	}
-}
-
-Sprite *
-hit_in_square(Sprite *r, Sprite *s)
-{
-	for(; r; r=r->next)
-		if(collide(r, s)) break;
-	return r;
-}
-
-Sprite *
-collides(Sprite *s)
-{
-	int l, r, t, b;
-	Sprite **sq;
-	Sprite *c;
-
-	l = (s->x + grid_size) / grid_size;
-	r = (s->x + s->w + grid_size) / grid_size;
-	t = (s->y + grid_size) / grid_size;
-	b = (s->y + s->h + grid_size) / grid_size;
-	sq = &sprites[set][l + t*gw];
-
-	if((c = hit_in_square(*sq, s))) return c;
-	if(l > 0 && (c = hit_in_square(*(sq-1), s))) return c;
-	if(t > 0 && (c = hit_in_square(*(sq-gw), s))) return c;
-	if(l > 0 && t > 0 && (c = hit_in_square(*(sq-1-gw), s))) return c;
-
-	if(r > l) {
-		if((c = hit_in_square(*(sq+1), s))) return c;
-		if(t > 0 && hit_in_square(*(sq+1-gw), s)) return c;
-	}
-	if(b > t) {
-		if((c = hit_in_square(*(sq+gw), s))) return c;
-		if(l > 0 && (c = hit_in_square(*(sq-1+gw), s))) return c;
-	}
-	if(r > l && b > t && (c = hit_in_square(*(sq+1+gw), s))) return c;
-	return NULL;
 }
 
 int

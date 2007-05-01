@@ -44,7 +44,6 @@ void add_sprite(Sprite *s);
 void move_sprite(Sprite *s);
 void move_sprites(void);
 
-Sprite *collides(Sprite *s);
 Sprite * pixel_collides(float x, float y);
 void load_sprite(Sprite *sprite, char *filename);
 
