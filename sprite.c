@@ -203,8 +203,8 @@ mask_collide(int xov, int yov, Sprite *a, Sprite *b)
 		bmask = b->mask;
 	} else {
 		yov = -yov;
-		amask = a->mask;
-		bmask = b->mask + ((b->h - yov) * b->mask_w) + word;
+		amask = a->mask + word;
+		bmask = b->mask + ((b->h - yov) * b->mask_w);
 	}
 
 	for(y=0; y<yov; y++) {
