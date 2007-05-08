@@ -41,6 +41,7 @@
 #include "score.h"
 #include "sprite.h"
 #include "sound.h"
+#include "autopilot.h"
 
 // ************************************* VARS
 // SDL_Surface global variables
@@ -165,7 +166,6 @@ new_engine_dots(void) {
 				dx = r * cos(a);
 				dy = r * -sin(a);  // screen y is "backwards".
 
-				dotptr->active = 1;
 				dotptr->decay = 3;
 				dotptr->heat = 6;
 
@@ -202,8 +202,14 @@ new_engine_dots(void) {
 				dotptr->x += (dotptr->dx - screendx) * time;
 				dotptr->y += (dotptr->dy - screendy) * time;
 
-				if(dotptr - edot < MAXENGINEDOTS-1) dotptr++;
-				else dotptr = edot;
+				if(!fclip(dotptr->x, XSIZE) && !fclip(dotptr->y, YSIZE)) {
+					dotptr->active = 1;
+					if(dotptr - edot < MAXENGINEDOTS-1) {
+						dotptr++;
+					} else {
+						dotptr = edot;
+					}
+				}
 			}
 		}
 	}
@@ -619,11 +625,15 @@ gameloop() {
 	for(;;) {
 		ms_frame = SDL_GetTicks() - ms_end;
 		ms_end += ms_frame;
-		if(ms_frame > 100) {
-			ms_frame = 100;
+		if(ms_frame > 50) {
+			ms_frame = 50;
 		}
 		t_frame = gamespeed * ms_frame / 50;
 		frames++;
+
+		if(opt_autopilot) {
+			autopilot(t_frame);
+		}
 
 		while(SDL_PollEvent(&e)) {
 			switch(e.type) {
@@ -649,6 +659,7 @@ gameloop() {
 			}
 		}
 		keystate = SDL_GetKeyState(NULL);
+		autopilot_fix_keystates(keystate);
 
 		if(state == GAMEPLAY) {
 			if(!paused) {
@@ -658,6 +669,10 @@ gameloop() {
 				if(keystate[SDLK_DOWN]  || keystate[SDLK_t]) { ship.dy += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<1;}
 				if(keystate[SDLK_RIGHT] || keystate[SDLK_n]) { ship.dx += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<2;}
 				if(keystate[SDLK_UP]    || keystate[SDLK_c]) { ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;}
+				if(ship.jets) {
+					ship.dx = fconstrain2(ship.dx, -50, 50);
+					ship.dy = fconstrain2(ship.dy, -50, 50);
+				}
 				if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
 			}
 
@@ -692,21 +707,25 @@ gameloop() {
 			move_dust();
 
 			new_rocks();
-			new_engine_dots();
-
-			collisions();
 
 			// BOUNCE off left or right edge of screen
 			if(ship.x < 0 || ship.x+ship.w > XSIZE) {
 				ship.x -= (ship.dx-screendx)*t_frame;
 				ship.dx = screendx - (ship.dx-screendx)*BOUNCINESS;
+				ship.x = fconstrain(ship.x, XSIZE - ship.w);
 			}
 
 			// BOUNCE off top or bottom of screen
 			if(ship.y < 0 || ship.y+ship.h > YSIZE) {
 				ship.y -= (ship.dy-screendy)*t_frame;
 				ship.dy = screendy - (ship.dy-screendy)*BOUNCINESS;
+				ship.y = fconstrain(ship.y, YSIZE - ship.h);
 			}
+
+			new_engine_dots();
+
+			collisions(); // must happen after ship bouncing because it puts pixels where the ship is (thus the ship must be on the screen)
+
 
 			draw();
 

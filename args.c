@@ -8,6 +8,8 @@
 int opt_fullscreen;
 int opt_sound;
 
+int opt_autopilot;
+
 static void
 show_help(void)
 {
@@ -35,6 +37,7 @@ short_opt(char c, char *arg)
 				  exit(0);
 		case '?':
 		case 'h': return 0;
+		case 'a': opt_autopilot = 1; break;
 		default: 
 				  fprintf(stderr, "unknown option -%c\n\n", c);
 				  return 0;
@@ -49,9 +52,9 @@ parse_short_opts(const char *s, char *arg)
 	return short_opt(*s, arg);
 }
 
-static char *long_opts[] = { "full-screen", "silent", "version", "help" };
+static char *long_opts[] = { "full-screen", "silent", "version", "help", "autopilot" };
 
-static char short_opts[] = { 'f', 's', 'V', 'h' };
+static char short_opts[] = { 'f', 's', 'V', 'h', 'a' };
 
 int
 parse_long_opt(const char *s, char *arg)
@@ -70,6 +73,7 @@ init_opts(void)
 {
 	opt_fullscreen = 0;
 	opt_sound = 1;
+	opt_autopilot = 0;
 }
 
 int
