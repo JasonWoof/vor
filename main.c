@@ -659,7 +659,9 @@ gameloop() {
 			}
 		}
 		keystate = SDL_GetKeyState(NULL);
-		autopilot_fix_keystates(keystate);
+		if(opt_autopilot) {
+			autopilot_fix_keystates(keystate);
+		}
 
 		if(state == GAMEPLAY) {
 			if(!paused) {
