@@ -791,7 +791,7 @@ main(int argc, char **argv) {
 	frames = 0;
 	gameloop();
 	end = SDL_GetTicks();
-	//printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
+	// printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
 
 	return 0;
 }
