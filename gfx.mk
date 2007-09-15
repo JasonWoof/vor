@@ -4,6 +4,9 @@ gfx-deps := gfx.mk povimg.sh
 data/icon.png: ship.pov $(gfx-deps)
 	./povimg.sh +W48 +H48 $< > $@ || sh -c "rm $@; false"
 
+data/macicon.png: ship.pov $(gfx-deps)
+	./povimg.sh +W128 +H128 $< > $@ || sh -c "rm $@; false"
+
 data/ship.png: ship.pov $(gfx-deps)
 	./povimg.sh +W32 +H32 $< > $@ || sh -c "rm $@; false"
 
