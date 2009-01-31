@@ -161,6 +161,8 @@ display_scores(uint32_t x, uint32_t y)
 {
 	char t[1024];
 	int i,h = font_height();
+	int display_cursor = (SDL_GetTicks() / CURSOR_BLINK_TIME) % 2;
+
 
 	font_write(x+30, y, "High scores");
 	y += h;
@@ -172,7 +174,7 @@ display_scores(uint32_t x, uint32_t y)
 		font_write(x, y, t);
 		snprintscore(t, 1024, g_scores[g_easy][i].score);
 		font_write(x+50, y, t);
-		if(i == cur_score) snprintf(t, 1024, "%s_", g_scores[g_easy][i].name);
+		if(display_cursor && i == cur_score) snprintf(t, 1024, "%s_", g_scores[g_easy][i].name);
 		else snprintf(t, 1024, "%s", g_scores[g_easy][i].name);
 		font_write(x+180, y, t);
 	}

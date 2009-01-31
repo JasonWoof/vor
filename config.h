@@ -57,4 +57,7 @@
 
 #define MAX_PATH_LEN 1024
 
+// number of milliseconds the blinky cursor stays visible/invisible
+#define CURSOR_BLINK_TIME 300
+
 #endif // VOR_CONFIG_H

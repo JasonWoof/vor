@@ -1,5 +1,3 @@
-****	Finish porting to Windows (should be only file.c and args.c, I think)
-
 ***	Move game logic into a script so we can have "variations".
 *	Then an in-game menu to choose which game:
 	Rock Dodger
@@ -9,10 +7,10 @@
 	Tag
 	Deathmatch
 
-**	Switch to a scalable font and all ray-traced graphics
+**	Switch all ray-traced graphics (only big green messages left)
 *	Then we can run at the native screen size
 
-*	BUG: Rocks can be created touching, causing a high-velocity bounce.
+*	fix rock generation code so they are never created overlapping
 
 *	Deltas on high score display?
 
