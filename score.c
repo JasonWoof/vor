@@ -192,7 +192,7 @@ process_score_input(SDL_keysym *key)
 	if(key->sym == SDLK_BACKSPACE) {
 		if(n > 0) name[--n]=0;
 	} else {
-		if(key->sym == SDLK_RETURN) {
+		if(key->sym == SDLK_RETURN || key->sym == SDLK_KP_ENTER) {
 			SDL_EnableUNICODE(0);
 			cur_score = -1;
 			if(n == 0) {
