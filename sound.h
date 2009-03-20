@@ -29,6 +29,6 @@ void play_tune(int i);
 #define NUM_TUNES		3
 
 #define SOUND_BANG		0
-#define NUM_SOUNDS		4
+#define NUM_SOUNDS		1
 
 #endif // VOR_SOUND_H

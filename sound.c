@@ -11,7 +11,7 @@
 
 
 static Mix_Music *music[NUM_TUNES];
-static int music_volume[NUM_TUNES] = {128,128,128};
+static int music_volume[NUM_TUNES] = {88,88,88};
 static Mix_Chunk *wav[NUM_SOUNDS];
 
 int audio_rate;
@@ -20,10 +20,7 @@ int audio_channels;
 
 char *add_data_path(char *);
 char *wav_file[] = {
-	"booom.wav",
-	"cboom.wav",
-	"boom.wav",
-	"bzboom.wav"
+	"bang.wav"
 };
 
 char *tune_file[] = {
