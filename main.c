@@ -347,12 +347,28 @@ void font_cleanup() {
 	font_free(g_font);
 }
 
+void
+set_video_mode() {
+	Uint32 flag;
+
+	// Attempt to get the required video size
+	flag = SDL_DOUBLEBUF | SDL_HWSURFACE;
+	if(opt_fullscreen) flag |= SDL_FULLSCREEN;
+	surf_screen = SDL_SetVideoMode(XSIZE,YSIZE,16,flag);
+}
+
+void
+toggle_fullscreen() {
+	opt_fullscreen = 1 - opt_fullscreen;
+	set_video_mode();
+}
+
+
 int
 init(void) {
 
 	int i;
 	char *s;
-	Uint32 flag;
 
 	// Where are our data files?
 	if(!find_files()) exit(1);
@@ -377,10 +393,9 @@ init(void) {
 
 	play_tune(TUNE_TITLE_PAGE);
 
+
 	// Attempt to get the required video size
-	flag = SDL_DOUBLEBUF | SDL_HWSURFACE;
-	if(opt_fullscreen) flag |= SDL_FULLSCREEN;
-	surf_screen = SDL_SetVideoMode(XSIZE,YSIZE,16,flag);
+	set_video_mode();
 
 	// Set the title bar text
 	SDL_WM_SetCaption("Variations on Rockdodger", "VoR");
@@ -673,6 +688,10 @@ gameloop() {
 									resume_tune();
 									ms_end = SDL_GetTicks();
 								}
+								break;
+							case SDLK_f:
+							case SDLK_F11:
+								toggle_fullscreen();
 								break;
 							default:
 								// other keys are handled by checking keystate each frame
