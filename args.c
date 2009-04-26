@@ -20,9 +20,6 @@ show_help(void)
 	puts("  -V, --version              Print program version");
 	puts("  -?, --help                 Give this help list");
 	putchar('\n');
-	puts("Mandatory or optional arguments to long options are also mandatory or optional");
-	puts("for any corresponding short options.");
-	putchar('\n');
 	puts("Report bugs at http://jasonwoof.com/contact.html");
 }
 
