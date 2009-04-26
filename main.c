@@ -92,7 +92,7 @@ int score;
 
 float fadetimer = 0;
 
-int pausedown = 0, paused = 0;
+int paused = 0;
 
 // bangdot start (bd1) and end (bd2) position:
 int bd1 = 0, bd2 = 0;
@@ -639,6 +639,11 @@ gameloop() {
 			switch(e.type) {
 				case SDL_QUIT: return;
 				case SDL_KEYDOWN:
+					// even during high-score entry
+					if(e.key.keysym.sym == SDLK_ESCAPE) {
+						return;
+					}
+
 					if(state == HIGH_SCORE_ENTRY) {
 						if(!process_score_input(&e.key.keysym)) {
 							// Write the high score table to the file
@@ -648,12 +653,26 @@ gameloop() {
 							state_timeout = 200;
 							play_tune(TUNE_TITLE_PAGE);
 						}
-					} else if(e.key.keysym.sym == SDLK_q) {
-						return;
-					}
-
-					if(e.key.keysym.sym == SDLK_ESCAPE) {
-						return;
+					} else {
+						switch(e.key.keysym.sym) {
+							case SDLK_q:
+								return;
+							case SDLK_3:
+							case SDLK_PRINT:
+								// FIXME make a unique filename like vor-screenshot-<pid>-<count>.bmp
+								SDL_SaveBMP(surf_screen, "snapshot.bmp");
+								break;
+							case SDLK_p:
+							case SDLK_PAUSE:
+								paused = !paused;
+								if(!paused) {
+									ms_end = SDL_GetTicks();
+								}
+								break;
+							default:
+								// other keys are handled by checking keystate each frame
+								break;
+						}
 					}
 					break;
 			}
@@ -667,26 +686,24 @@ gameloop() {
 			if(!paused) {
 				score += ms_frame;
 				
-				if(keystate[SDLK_LEFT]  || keystate[SDLK_h]) { ship.dx -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<0;}
-				if(keystate[SDLK_DOWN]  || keystate[SDLK_t]) { ship.dy += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<1;}
-				if(keystate[SDLK_RIGHT] || keystate[SDLK_n]) { ship.dx += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<2;}
-				if(keystate[SDLK_UP]    || keystate[SDLK_c]) { ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;}
+				if(keystate[SDLK_LEFT]  || keystate[SDLK_KP4]) {
+					ship.dx -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<0;
+				}
+				if(keystate[SDLK_DOWN]  || keystate[SDLK_KP5] || keystate[SDLK_KP2]) {
+					ship.dy += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<1;
+				}
+				if(keystate[SDLK_RIGHT] || keystate[SDLK_KP6]) {
+					ship.dx += THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<2;
+				}
+				if(keystate[SDLK_UP]    || keystate[SDLK_KP8]) {
+					ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;
+				}
 				if(ship.jets) {
 					ship.dx = fconstrain2(ship.dx, -50, 50);
 					ship.dy = fconstrain2(ship.dy, -50, 50);
 				}
-				if(keystate[SDLK_3])		{ SDL_SaveBMP(surf_screen, "snapshot.bmp"); }
 			}
 
-			if(keystate[SDLK_p] | keystate[SDLK_s]) {
-				if(!pausedown) {
-					paused = !paused;
-					pausedown = 1;
-					if(!paused) ms_end = SDL_GetTicks();
-				}
-			} else {
-				pausedown = 0;
-			}
 		}
 
 		if(!paused) {
