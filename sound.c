@@ -74,16 +74,46 @@ int playing=-1;
 
 void
 play_tune(int i) {
-	if(!opt_sound) return;
-	if (playing==i)
-	return;
-	if (playing) {
-		Mix_FadeOutMusic(1500);
+	if(!opt_sound) {
+		return;
 	}
-	Mix_FadeInMusic(music[i],-1,2000);
-	Mix_VolumeMusic(music_volume[i]);
+	if (playing == i) {
+		return;
+	}
+	if (playing) {
+		Mix_FadeOutMusic(2500);
+	}
+	if(i == TUNE_GAMEPLAY) {
+		Mix_FadeInMusic(music[i],-1,2000);
+		Mix_VolumeMusic(music_volume[i]);
+	}
 
 	playing = i;
+}
+
+
+int tune_paused=0;
+
+void
+pause_tune() {
+	if(!opt_sound) {
+		return;
+	}
+	if(playing == TUNE_GAMEPLAY && !tune_paused) {
+		Mix_PauseMusic();
+		tune_paused = 1;
+	}
+}
+
+void
+resume_tune() {
+	if(!opt_sound) {
+		return;
+	}
+	if(playing == TUNE_GAMEPLAY && tune_paused) {
+		Mix_ResumeMusic();
+		tune_paused = 0;
+	}
 }
 
 /*

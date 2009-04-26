@@ -517,16 +517,19 @@ draw(void)
 	show_score();
 
 	switch (state) {
-		case GAME_OVER: draw_game_over(); break;
+		case GAME_OVER:
+			draw_game_over();
+			break;
 
-		case TITLE_PAGE: draw_title_page(); break;
+		case TITLE_PAGE:
+			draw_title_page();
+			break;
 
-		case HIGH_SCORE_ENTRY: play_tune(TUNE_HIGH_SCORE_ENTRY);
-			// and fall through to
+		case HIGH_SCORE_ENTRY:
 		case HIGH_SCORE_DISPLAY:
-			// Display de list o high scores mon.
 			display_scores(150,50);
 			break;
+
 		case GAMEPLAY:
 		case DEAD_PAUSE:
 			; // no action necessary
@@ -552,6 +555,7 @@ kill_ship(struct ship *ship)
 		if(ship->dx < BARRIER_SPEED) ship->dx = BARRIER_SPEED;
 	} else {
 		state = GAME_OVER;
+		play_tune(TUNE_TITLE_PAGE);
 		state_timeout = 200.0;
 		fadetimer = 0.0;
 		ship->flags = 0;
@@ -593,7 +597,6 @@ update_state(void)
 			// Restore the ship and continue playing
 			ship.flags = DRAW|MOVE|COLLIDE;
 			state = GAMEPLAY;
-			play_tune(TUNE_GAMEPLAY);
 			break;
 		case GAME_OVER:
 			if(new_high_score(score)) init_score_entry();
@@ -651,7 +654,6 @@ gameloop() {
 							// continue to display the scores briefly
 							state = HIGH_SCORE_DISPLAY;
 							state_timeout = 200;
-							play_tune(TUNE_TITLE_PAGE);
 						}
 					} else {
 						switch(e.key.keysym.sym) {
@@ -665,7 +667,10 @@ gameloop() {
 							case SDLK_p:
 							case SDLK_PAUSE:
 								paused = !paused;
-								if(!paused) {
+								if(paused) {
+									pause_tune();
+								} else {
+									resume_tune();
 									ms_end = SDL_GetTicks();
 								}
 								break;

@@ -22,6 +22,8 @@
 int init_sound(void);
 void play_sound(int i);
 void play_tune(int i);
+void pause_tune();
+void resume_tune();
 
 #define TUNE_TITLE_PAGE		0
 #define TUNE_GAMEPLAY		1
