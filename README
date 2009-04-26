@@ -4,6 +4,10 @@ VoR is a quick action game where you drive a space ship and try to avoid
 crashing into rocks. Current information about vor can be found on the
 homepage: http://jasonwoof.org/vor
 
+To play, press space to start (or 1 for an easy game) then use the arrow keys
+(or the numpad if you prefer) to steer around, dodge rocks, and make your way
+rightward. You can also press F to toggle full-screen mode and P to pause.
+
 See INSTALL for instructions on building, running and installing.
 
 VoR is released under the GNU GPL -- see file COPYING for details.
