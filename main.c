@@ -68,6 +68,8 @@ struct dot {
 	int heat;     // heat multiplier (color).
 };
 
+void draw(void);
+
 struct dot edot[MAXENGINEDOTS], *dotptr = edot;
 struct dot bdot[MAXBANGDOTS];
 
@@ -362,6 +364,9 @@ void
 toggle_fullscreen() {
 	opt_fullscreen = 1 - opt_fullscreen;
 	set_video_mode();
+	if(paused) {
+		draw();
+	}
 }
 
 
