@@ -74,6 +74,7 @@ struct dot bdot[MAXBANGDOTS];
 // Other global variables
 char topline[1024];
 char *initerror = "";
+int screenshot_number = 0;
 
 struct ship ship = { SHIP, 0, NULL, XSIZE/2, YSIZE/2, BARRIER_SPEED, 0.0 };
 	  
@@ -676,8 +677,21 @@ gameloop() {
 								return;
 							case SDLK_3:
 							case SDLK_PRINT:
-								// FIXME make a unique filename like vor-screenshot-<pid>-<count>.bmp
-								SDL_SaveBMP(surf_screen, "snapshot.bmp");
+								{
+									FILE *screenshot_fp;
+									char tmp[30];
+									char *screenshot_filename = &(tmp[0]);
+									for(;;) {
+										snprintf(screenshot_filename, 30, "vor-screenshot-%02i.bmp", screenshot_number++);
+										screenshot_fp = fopen(screenshot_filename, "r");
+										if(screenshot_fp) {
+											fclose(screenshot_fp);
+										} else {
+											break;
+										}
+									}
+									SDL_SaveBMP(surf_screen, screenshot_filename);
+								}
 								break;
 							case SDLK_p:
 							case SDLK_PAUSE:
