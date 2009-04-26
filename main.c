@@ -638,7 +638,7 @@ gameloop() {
 			autopilot(t_frame);
 		}
 
-		while(SDL_PollEvent(&e)) {
+		while(paused ? SDL_WaitEvent(&e) : SDL_PollEvent(&e)) {
 			switch(e.type) {
 				case SDL_QUIT: return;
 				case SDL_KEYDOWN:
