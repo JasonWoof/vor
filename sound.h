@@ -25,12 +25,15 @@ void play_tune(int i);
 void pause_tune();
 void resume_tune();
 
-#define TUNE_TITLE_PAGE		0
-#define TUNE_GAMEPLAY		1
-#define TUNE_HIGH_SCORE_ENTRY	2
-#define NUM_TUNES		3
+// Currently there's only one tune (gameplay). Calling play_tune() with the
+// other tune numbers turns the music off, (and makes it easy to add tunes for
+// those screens).
+#define TUNE_GAMEPLAY 0
+#define TUNE_TITLE_PAGE 1
+#define TUNE_HIGH_SCORE_ENTRY 2
+#define NUM_TUNES 1
 
-#define SOUND_BANG		0
-#define NUM_SOUNDS		1
+#define SOUND_BANG 0
+#define NUM_SOUNDS 1
 
 #endif // VOR_SOUND_H

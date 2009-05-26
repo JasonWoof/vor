@@ -117,7 +117,7 @@ install-program: program
 install-data: data
 	$(INSTALL_DATA) ./data/*.png $(DATA_PREFIX)/
 	$(INSTALL_DATA) ./data/*.wav $(DATA_PREFIX)/
-	$(INSTALL_DATA) ./data/*.mod $(DATA_PREFIX)/
+	$(INSTALL_DATA) ./data/*.xm $(DATA_PREFIX)/
 	@echo
 	@echo "$(DATA_PREFIX)/icon.png (48x48) or ship.png (32x32) make good icons."
 	@echo
@@ -130,4 +130,4 @@ uninstall-program:
 uninstall-data:
 	rm -f $(DATA_PREFIX)/*.png
 	rm -f $(DATA_PREFIX)/*.wav
-	rm -f $(DATA_PREFIX)/*.mod
+	rm -f $(DATA_PREFIX)/*.xm

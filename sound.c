@@ -11,7 +11,7 @@
 
 
 static Mix_Music *music[NUM_TUNES];
-static int music_volume[NUM_TUNES] = {88,88,88};
+static int music_volume[NUM_TUNES] = {255};
 static Mix_Chunk *wav[NUM_SOUNDS];
 
 int audio_rate;
@@ -24,9 +24,7 @@ char *wav_file[] = {
 };
 
 char *tune_file[] = {
-	"magic.mod",
-	"getzznew.mod",
-	"4est_fulla3s.mod"
+	"mph.xm"
 };
 
 // Return 1 if the sound is ready to roll, and 0 if not.
@@ -69,7 +67,7 @@ play_sound(int i)  {
 	Mix_PlayChannel(-1, wav[i], 0);
 }
 
-int playing=-1;
+int playing = NUM_TUNES + 1;
 
 
 void
@@ -80,11 +78,12 @@ play_tune(int i) {
 	if (playing == i) {
 		return;
 	}
-	if (playing) {
+	if (playing < NUM_TUNES) {
 		Mix_FadeOutMusic(2500);
 	}
-	if(i == TUNE_GAMEPLAY) {
-		Mix_FadeInMusic(music[i],-1,2000);
+	// There are songs yet to be written...
+	if(i < NUM_TUNES) {
+		Mix_FadeInMusic(music[i], -1, 2000);
 		Mix_VolumeMusic(music_volume[i]);
 	}
 
@@ -99,7 +98,7 @@ pause_tune() {
 	if(!opt_sound) {
 		return;
 	}
-	if(playing == TUNE_GAMEPLAY && !tune_paused) {
+	if(playing < NUM_TUNES && !tune_paused) {
 		Mix_PauseMusic();
 		tune_paused = 1;
 	}
@@ -110,7 +109,7 @@ resume_tune() {
 	if(!opt_sound) {
 		return;
 	}
-	if(playing == TUNE_GAMEPLAY && tune_paused) {
+	if(playing < NUM_TUNES && tune_paused) {
 		Mix_ResumeMusic();
 		tune_paused = 0;
 	}

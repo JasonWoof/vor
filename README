@@ -17,7 +17,8 @@ Arrows: Steer (use short taps, and remember to slow down)
 
 See INSTALL for instructions on building, running and installing.
 
-VoR is released under the GNU GPL -- see file COPYING for details.
+VoR is released under the GNU GPL -- see file COPYING for details. The audio is
+public domain.
 
 Jason Woofenden and Josh Grams like Rock Dodgers
 (http://spacerocks.sourceforge.net/) very much: both playing it and hacking on
