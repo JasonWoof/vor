@@ -51,6 +51,8 @@ INSTALL_DATA := $(INSTALL) -m 644
 .PHONY: program program-clean install-program uninstall-program
 .PHONY: data data-clean install-data uninstall-data
 
+.INTERMEDIATE: font_guts font_guts.pov
+
 all: program data
 
 data: $(graphics)
