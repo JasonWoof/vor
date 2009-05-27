@@ -15,13 +15,17 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-DATA_PREFIX := /usr/share/vor
-PROGRAM_PREFIX := /usr/games/bin
+prefix = /usr
+exec_prefix = $(prefix)
+
+datadir = $(prefix)/share/games
+pkgdatadir = $(datadir)/vor
+bindir = $(exec_prefix)/games
 
 CFLAGS := -Wall -O3
 LDFLAGS := 
 
-paths := -DDATA_PREFIX=\"$(DATA_PREFIX)\"
+paths := -DDATA_PREFIX=\"$(pkgdatadir)\"
 sdl-cflags := $(shell sdl-config --cflags)
 sdl-ldflags := $(shell sdl-config --libs)
 
@@ -106,30 +110,30 @@ data-clean:
 	rm -f $(graphics) font_guts font_guts.pov
 
 mkinstalldirs:
-	if [ ! -d $(DATA_PREFIX) ]; then mkdir $(DATA_PREFIX); fi
+	if [ ! -d $(DESTDIR)$(pkgdatadir) ]; then mkdir $(DESTDIR)$(pkgdatadir); fi
 
 rminstalldirs:
-	if [ -d $(DATA_PREFIX) ]; then rmdir $(DATA_PREFIX); fi
+	if [ -d $(DESTDIR)$(pkgdatadir) ]; then rmdir $(DESTDIR)$(pkgdatadir); fi
 
 install: all mkinstalldirs install-program install-data
 
 install-program: program
-	$(INSTALL_PROGRAM) ./vor $(PROGRAM_PREFIX)
+	$(INSTALL_PROGRAM) ./vor $(DESTDIR)$(bindir)
 
 install-data: data
-	$(INSTALL_DATA) ./data/*.png $(DATA_PREFIX)/
-	$(INSTALL_DATA) ./data/*.wav $(DATA_PREFIX)/
-	$(INSTALL_DATA) ./data/*.xm $(DATA_PREFIX)/
+	$(INSTALL_DATA) ./data/*.png $(DESTDIR)$(pkgdatadir)/
+	$(INSTALL_DATA) ./data/*.wav $(DESTDIR)$(pkgdatadir)/
+	$(INSTALL_DATA) ./data/*.xm $(DESTDIR)$(pkgdatadir)/
 	@echo
-	@echo "$(DATA_PREFIX)/icon.png (48x48) or ship.png (32x32) make good icons."
+	@echo "$(pkgdatadir)/icon.png (48x48) or ship.png (32x32) make good icons."
 	@echo
 
 uninstall: uninstall-program uninstall-data rminstalldirs
 
 uninstall-program:
-	rm -f $(PROGRAM_PREFIX)/vor
+	rm -f $(DESTDIR)$(bindir)/vor
 
 uninstall-data:
-	rm -f $(DATA_PREFIX)/*.png
-	rm -f $(DATA_PREFIX)/*.wav
-	rm -f $(DATA_PREFIX)/*.xm
+	rm -f $(DESTDIR)$(pkgdatadir)/*.png
+	rm -f $(DESTDIR)$(pkgdatadir)/*.wav
+	rm -f $(DESTDIR)$(pkgdatadir)/*.xm
