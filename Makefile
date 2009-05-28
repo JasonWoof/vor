@@ -46,7 +46,7 @@ rocks := $(rocks:%=data/rock%.png)
 graphics := data/ship.png data/icon.png data/life.png data/font.png $(rocks)
 
 INSTALL := install
-INSTALL_PROGRAM := $(INSTALL) $(shell sh -c 'test "$$UID" "=" "0" && echo "-o games -g games"')
+INSTALL_PROGRAM := $(INSTALL)
 INSTALL_DATA := $(INSTALL) -m 644
 
 
