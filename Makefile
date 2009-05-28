@@ -108,7 +108,8 @@ data-clean:
 	rm -f $(graphics) font_guts font_guts.pov
 
 mkinstalldirs:
-	if [ ! -d $(DESTDIR)$(pkgdatadir) ]; then mkdir $(DESTDIR)$(pkgdatadir); fi
+	if [ ! -d $(DESTDIR)$(pkgdatadir) ]; then mkdir -p $(DESTDIR)$(pkgdatadir); fi
+	if [ ! -d $(DESTDIR)$(bindir) ]; then mkdir -p $(DESTDIR)$(bindir); fi
 
 rminstalldirs: uninstall-data
 	if [ -d $(DESTDIR)$(pkgdatadir) ]; then rmdir $(DESTDIR)$(pkgdatadir); fi
