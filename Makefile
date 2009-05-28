@@ -64,8 +64,7 @@ data: $(graphics)
 program: vor
 
 %.o: %.c
-	@echo compiling $@ from $<
-	@$(CC) $(cflags) -c -o $@ $<
+	$(CC) $(cflags) -c -o $@ $<
 
 $(my_objects): config.h
 
@@ -90,8 +89,7 @@ sound.o: sound.h args.h common.h
 sprite.o: sprite.h common.h
 
 vor: $(objects)
-	@echo linking $@ from $^
-	@$(CC) $^ $(ldflags) -o $@
+	$(CC) $^ $(ldflags) -o $@
 
 include gfx.mk
 
