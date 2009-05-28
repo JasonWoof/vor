@@ -116,7 +116,7 @@ rminstalldirs: uninstall-data
 install: all mkinstalldirs install-program install-data
 
 install-program: program
-	$(INSTALL_PROGRAM) ./vor $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) ./vor $(DESTDIR)$(bindir)/
 
 install-data: data mkinstalldirs
 	$(INSTALL_DATA) ./data/*.png $(DESTDIR)$(pkgdatadir)/
