@@ -112,7 +112,7 @@ data-clean:
 mkinstalldirs:
 	if [ ! -d $(DESTDIR)$(pkgdatadir) ]; then mkdir $(DESTDIR)$(pkgdatadir); fi
 
-rminstalldirs:
+rminstalldirs: uninstall-data
 	if [ -d $(DESTDIR)$(pkgdatadir) ]; then rmdir $(DESTDIR)$(pkgdatadir); fi
 
 install: all mkinstalldirs install-program install-data
@@ -120,7 +120,7 @@ install: all mkinstalldirs install-program install-data
 install-program: program
 	$(INSTALL_PROGRAM) ./vor $(DESTDIR)$(bindir)
 
-install-data: data
+install-data: data mkinstalldirs
 	$(INSTALL_DATA) ./data/*.png $(DESTDIR)$(pkgdatadir)/
 	$(INSTALL_DATA) ./data/*.wav $(DESTDIR)$(pkgdatadir)/
 	$(INSTALL_DATA) ./data/*.xm $(DESTDIR)$(pkgdatadir)/
