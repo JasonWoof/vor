@@ -18,9 +18,9 @@
 prefix = /usr/local
 exec_prefix = $(prefix)
 
-datarootdir = $(prefix)/share/games
+datarootdir = $(prefix)/share
 pkgdatadir = $(datarootdir)/vor
-bindir = $(exec_prefix)/games
+bindir = $(exec_prefix)/bin
 
 CFLAGS := -Wall -O3
 LDFLAGS := 
