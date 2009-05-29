@@ -4,6 +4,7 @@ font_guts
 font_guts.pov
 data/rock*.png
 data/icon.png
+data/macicon.png
 data/ship.png
 data/life.png
 data/font.png
