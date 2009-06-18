@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
+AC_INIT(VoR, 0.5.4, jason@jasonwoof.com, vor)
 AC_CONFIG_SRCDIR([file.h])
 AC_CONFIG_HEADERS([config.h])
 
@@ -12,10 +12,8 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
 # Checks for libraries.
-# FIXME: Replace `main' with a function in `-lSDL_image':
-AC_CHECK_LIB([SDL_image], [main])
-# FIXME: Replace `main' with a function in `-lSDL_mixer':
-AC_CHECK_LIB([SDL_mixer], [main])
+AC_CHECK_LIB([SDL_image], [IMG_Load])
+AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio])
 
 # Checks for header files.
 AC_CHECK_HEADERS([inttypes.h stddef.h stdlib.h string.h unistd.h])
@@ -33,6 +31,5 @@ AC_TYPE_UINT8_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([atexit memset sqrt strdup])
 
-AC_CONFIG_FILES([Makefile
-                 windows_icon/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
