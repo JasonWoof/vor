@@ -15,22 +15,36 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-prefix = /usr/local
-exec_prefix = $(prefix)
 
+SHELL = /bin/sh
+VPATH = @srcdir@
+
+subdirs = @subdirs@
+top_srcdir = @top_srcdir@
+srcdir = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
 datarootdir = $(prefix)/share
 pkgdatadir = $(datarootdir)/vor
 bindir = $(exec_prefix)/bin
 
-CFLAGS := -Wall -O3
-LDFLAGS := 
+CC = @CC@
+CPPFLAGS = @CPPFLAGS@
+CFLAGS = $(CPPFLAGS) @CFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+INSTALL = @INSTALL@
+
+
+
+
 
 paths := -DDATA_PREFIX=\"$(pkgdatadir)\"
-sdl-cflags := $(shell sdl-config --cflags)
-sdl-ldflags := $(shell sdl-config --libs)
+SDL_CFLAGS := @SDL_CFLAGS@
+SDL_LIBS := @SDL_LIBS@
 
-ldflags := $(sdl-ldflags) -lSDL_image -lSDL_mixer $(LDFLAGS)
-cflags := $(sdl-cflags) $(paths) $(CFLAGS)
+ldflags := $(SDL_LIBS) -lSDL_image -lSDL_mixer $(LDFLAGS)
+cflags := $(SDL_CFLAGS) $(paths) $(CFLAGS)
 
 my_objects := args.o dust.o file.o mt.o rocks.o score.o sprite.o sound.o autopilot.o
 my_objects += main.o
