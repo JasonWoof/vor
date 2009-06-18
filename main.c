@@ -31,7 +31,7 @@
 
 #include "args.h"
 #include "common.h"
-#include "config.h"
+#include "vorconfig.h"
 #include "dust.h"
 #include "file.h"
 #include "float.h"

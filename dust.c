@@ -1,7 +1,7 @@
 #include <SDL.h>
 #include <math.h>
 
-#include "config.h"
+#include "vorconfig.h"
 #include "globals.h"
 #include "dust.h"
 #include "float.h"

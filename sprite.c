@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "config.h"
+#include "vorconfig.h"
 #include "common.h"
 #include "globals.h"
 #include "sprite.h"

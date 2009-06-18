@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "args.h"
-#include "config.h"
+#include "vorconfig.h"
 
 // Look and Feel
 int opt_fullscreen;

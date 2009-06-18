@@ -66,7 +66,7 @@ program: vor
 %.o: %.c
 	$(CC) $(cflags) -c -o $@ $<
 
-$(my_objects): config.h
+$(my_objects): vorconfig.h
 
 font.o: font.h
 

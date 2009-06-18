@@ -26,7 +26,7 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "config.h"
+#include "vorconfig.h"
 #include "file.h"
 
 #ifdef WIN32
