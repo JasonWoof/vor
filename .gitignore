@@ -10,3 +10,8 @@ data/life.png
 data/font.png
 tags
 log
+config.h
+configure
+config.status
+config.log
+autom4te.cache
