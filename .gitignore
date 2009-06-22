@@ -15,3 +15,8 @@ configure
 config.status
 config.log
 autom4te.cache
+*.dll
+*.exe
+Makefile
+vor.desktop
+scores

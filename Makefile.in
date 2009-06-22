@@ -24,8 +24,8 @@ top_srcdir = @top_srcdir@
 srcdir = @srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
-datarootdir = $(prefix)/share
-pkgdatadir = $(datarootdir)/vor
+datarootdir = @datarootdir@
+pkgdatadir = $(datarootdir)/@PACKAGE_TARNAME@
 bindir = $(exec_prefix)/bin
 
 CC = @CC@
@@ -36,6 +36,7 @@ LIBS = @LIBS@
 INSTALL = @INSTALL@
 
 
+exe_name = @PACKAGE_TARNAME@@EXEEXT@
 
 
 
@@ -46,9 +47,9 @@ SDL_LIBS := @SDL_LIBS@
 ldflags := $(SDL_LIBS) -lSDL_image -lSDL_mixer $(LDFLAGS)
 cflags := $(SDL_CFLAGS) $(paths) $(CFLAGS)
 
-my_objects := args.o dust.o file.o mt.o rocks.o score.o sprite.o sound.o autopilot.o
-my_objects += main.o
-libs := font.o
+my_objects := args.@OBJEXT@ dust.@OBJEXT@ file.@OBJEXT@ mt.@OBJEXT@ rocks.@OBJEXT@ score.@OBJEXT@ sprite.@OBJEXT@ sound.@OBJEXT@ autopilot.@OBJEXT@
+my_objects += main.@OBJEXT@
+libs := font.@OBJEXT@
 objects := $(libs) $(my_objects)
 
 rocks := 00 01 02 03 04 05 06 07 08 09
@@ -75,34 +76,37 @@ all: program data
 
 data: $(graphics)
 
-program: vor
+program: $(exe_name) @PACKAGE_TARNAME@.desktop
 
-%.o: %.c
+%.@OBJEXT@: %.c
 	$(CC) $(cflags) -c -o $@ $<
 
 $(my_objects): vorconfig.h
 
-font.o: font.h
+font.@OBJEXT@: font.h
 
-args.o: args.h
+args.@OBJEXT@: args.h
 
-dust.o: globals.h dust.h float.h mt.h
+dust.@OBJEXT@: globals.h dust.h float.h mt.h
 
-file.o: file.h common.h
+file.@OBJEXT@: file.h common.h
 
-main.o: args.h common.h dust.h file.h float.h globals.h mt.h rocks.h score.h sprite.h sound.h autopilot.h
+main.@OBJEXT@: args.h common.h dust.h file.h float.h globals.h mt.h rocks.h score.h sprite.h sound.h autopilot.h
 
-mt.o: mt.h
+mt.@OBJEXT@: mt.h
 
-rocks.o: rocks.h common.h file.h globals.h mt.h sprite.h
+rocks.@OBJEXT@: rocks.h common.h file.h globals.h mt.h sprite.h
 
-score.o: score.h common.h file.h
+score.@OBJEXT@: score.h common.h file.h
 
-sound.o: sound.h args.h common.h
+sound.@OBJEXT@: sound.h args.h common.h
 
-sprite.o: sprite.h common.h
+sprite.@OBJEXT@: sprite.h common.h
 
-vor: $(objects)
+@PACKAGE_TARNAME@.desktop: @PACKAGE_TARNAME@.desktop.in
+	sed -e "s|EXE_NAME|$(exe_name)|g" -e "s|DISPLAY_NAME|@PACKAGE_NAME@|g" -e "s|ICON_PATH|$(pkgdatadir)|g" $< > $@ || sh -c "rm $@; false"
+
+$(exe_name): $(objects)
 	$(CC) $^ $(ldflags) -o $@
 
 include gfx.mk
@@ -116,7 +120,7 @@ clean: program-clean
 maintainer-clean: program-clean data-clean
 
 program-clean:
-	rm -f *.o vor
+	rm -f *.@OBJEXT@ $(exe_name) @PACKAGE_TARNAME@.desktop
 
 data-clean:
 	rm -f $(graphics) font_guts font_guts.pov
@@ -128,10 +132,21 @@ mkinstalldirs:
 rminstalldirs: uninstall-data
 	if [ -d $(DESTDIR)$(pkgdatadir) ]; then rmdir $(DESTDIR)$(pkgdatadir); fi
 
-install: all mkinstalldirs install-program install-data
+
+install-desktop-file-note: @PACKAGE_TARNAME@.desktop install-files
+	@echo
+	@echo "If you've installed system wide, you may want to run: make install-desktop-file"
+	@echo '(as root) to install a menu entry for @PACKAGE_NAME@'
+
+install-desktop-file: @PACKAGE_TARNAME@.desktop
+	desktop-file-install @PACKAGE_TARNAME@.desktop
+
+install-files: all mkinstalldirs install-program install-data
+
+install: install-files install-desktop-file-note
 
 install-program: program
-	$(INSTALL_PROGRAM) ./vor $(DESTDIR)$(bindir)/
+	$(INSTALL_PROGRAM) ./$(exe_name) $(DESTDIR)$(bindir)/
 
 install-data: data mkinstalldirs
 	$(INSTALL_DATA) ./data/*.png $(DESTDIR)$(pkgdatadir)/
@@ -144,7 +159,7 @@ install-data: data mkinstalldirs
 uninstall: uninstall-program uninstall-data rminstalldirs
 
 uninstall-program:
-	rm -f $(DESTDIR)$(bindir)/vor
+	rm -f $(DESTDIR)$(bindir)/$(exe_name)
 
 uninstall-data:
 	rm -f $(DESTDIR)$(pkgdatadir)/*.png

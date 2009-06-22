@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Categories=Game;ArcadeGame;
+Comment=A quick action game
+Type=Application
+Terminal=false
+StartupNotify=false
+Exec=EXE_NAME
+Name=DISPLAY_NAME
+Icon=ICON_PATH/icon.png
