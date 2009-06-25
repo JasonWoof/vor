@@ -4,15 +4,64 @@ REQUIREMENTS
 		sdl           http://www.libsdl.org/download-1.2.php
 		sdl_mixer     http://www.libsdl.org/projects/SDL_mixer/
 		sdl_image     http://www.libsdl.org/projects/SDL_image/
-	And the following to create the graphics:
+
+	If you are building from git, (or editing the graphics) you will also
+	need:
+
 		povray        http://www.povray.org/
 		netpbm        http://netpbm.sourceforge.net/
+		autoconf      version 2.63 or greater
 
-BUILDING
-	
-	"cd" to the vor source directory and type "make" at the command prompt.
 
-	For the brave: see also BUILDING ON WINDOWS below
+BUILDING A RELEASE
+
+	(see BUILDING FROM GIT if you don't have a release tarball)
+
+	change to the source directory and run this:
+
+	./configure && make
+
+	Unless there are errors, you should be able to run the game from the
+	source directory like this:
+
+	./vor
+
+
+BUILDING FROM GIT
+
+	1) Make sure you have the extra dependencies first. If you want to avoid
+	installing povray and/or netpbm, you can simply the data/ directory from a
+	recent release.
+
+	Run "autoconf".
+
+	Continue as normal with the BUILDING A RELEASE section above.
+
+
+BUILDING FOR WINDOWS
+
+	Using mingw32 packages, you can use Linux to cross-compile a binary for
+	Windows. Below is the recommended way to achieve this:
+
+	1) Install Fedora 11, and get up to date with "yum upgrade"
+
+	2) run as root: yum install mingw32-SDL_mixer mingw32-SDL_image
+
+	3) change to the VoR source directory
+
+	4) If you need to build the graphics (eg if you edited them, or if you're
+	not using a release tarball) then run: ./configure && make graphics
+
+	5) run: mingw32-configure && make
+
+	6) make a directory with vor.exe, data/ and the following files from
+	/usr/i686-pc-mingw32/sys-root/mingw/bin/: SDL.dll SDL_image.dll
+	SDL_mixer.dll libjpeg-62.dll libpng12-0.dll zlib1.dll
+
+	7) (optional) change to that directory, and test like so: wine ./vor.exe
+
+	8) zip up that new directory and try it out on a Windows install.
+
 
 RUNNING
 
@@ -23,34 +72,10 @@ RUNNING
 
 INSTALLING
 
-	Just type "make install" at the command prompt.
+	You can run "make install" to install vor. If you're installing
+	system-wide (for example, to the default install location of /usr/local)
+	you'll need to run this as root.
 
-	By default it puts the executable in /usr/games/bin and the data in
-	/usr/share/vor. If you'd like to change either, edit the Makefile
-	before building. If you change these settings in the Makefile after
-	building, you'll have to "make clean" and build again before
-	installing.
-
-
-
-BUILDING ON WINDOWS
-
-	1) Grab a copy of the vor source code with the images already rendered. If
-	you want to compile from the latest sources in the repository, you'll have
-	to check out onto a unix machine, and "make data" to render the ships and
-	rocks. The source tarballs usually have these rendered already.
-
-	2) download sdl source from libsdl.org. follow these instructions to
-	install msys, mingw, and sdl:
-
-	http://www.libsdl.org/extras/win32/mingw32/README.txt
-
-	stay in the shell for step 3:
-
-	3) download, unpack and install sdl-mixer and sdl-image from source (should
-	(I hope) work the same way as installing sdl in step 2 above.)
-
-	http://www.libsdl.org/projects/SDL_mixer/index.html
-	http://www.libsdl.org/projects/SDL_image/index.html
-
-	4) run this command in the vor source directory: mingw-make -f Makefile.win
+	You can specify an alternative install location with the --prefix=
+	argument to ./configure. See the output of: ./configure --help for more
+	information.
