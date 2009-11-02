@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "font.h"
 
@@ -135,6 +136,14 @@ extern int optind, opterr, optopt;
 #define TO_TICKS(seconds) ((seconds)*20*gamespeed)
 
 // ************************************* FUNCS
+
+void
+tiny_sleep() {
+	struct timespec t;
+	t.tv_sec = 0;
+	t.tv_nsec = 1;
+	nanosleep(&t, 0);
+}
 
 void
 init_engine_dots() {
@@ -835,6 +844,8 @@ gameloop() {
 			state = HIGH_SCORE_DISPLAY;
 			state_timeout = 400;
 		}
+
+		tiny_sleep();
 	}
 }
 
