@@ -137,6 +137,7 @@ extern int optind, opterr, optopt;
 
 // ************************************* FUNCS
 
+#ifdef nanosleep
 void
 tiny_sleep() {
 	struct timespec t;
@@ -144,6 +145,9 @@ tiny_sleep() {
 	t.tv_nsec = 1;
 	nanosleep(&t, 0);
 }
+#else
+#define tiny_sleep()
+#endif
 
 void
 init_engine_dots() {
