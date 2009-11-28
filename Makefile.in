@@ -19,13 +19,12 @@
 SHELL = /bin/sh
 VPATH = @srcdir@
 
-subdirs = @subdirs@
-top_srcdir = @top_srcdir@
 srcdir = @srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 datarootdir = @datarootdir@
-pkgdatadir = $(datarootdir)/@PACKAGE_TARNAME@
+datadir = @datadir@
+pkgdatadir = $(datadir)/@PACKAGE_TARNAME@
 bindir = $(exec_prefix)/bin
 
 CC = @CC@
@@ -109,7 +108,7 @@ sprite.@OBJEXT@: sprite.h common.h
 $(exe_name): $(objects)
 	$(CC) $^ $(ldflags) -o $@
 
-include gfx.mk
+include $(srcdir)/gfx.mk
 
 tags: *.c *.h
 	exuberant-ctags *.c *.h /usr/include/SDL/*
@@ -117,13 +116,14 @@ tags: *.c *.h
 clean: program-clean
 	rm -f tags
 
-maintainer-clean: program-clean data-clean
+distclean: clean
+	rm -f Makefile config.h config.log config.status
+
+maintainer-clean: program-clean
+	rm -f $(graphics) font_guts font_guts.pov
 
 program-clean:
 	rm -f *.@OBJEXT@ $(exe_name) @PACKAGE_TARNAME@.desktop
-
-data-clean:
-	rm -f $(graphics) font_guts font_guts.pov
 
 mkinstalldirs:
 	if [ ! -d $(DESTDIR)$(pkgdatadir) ]; then mkdir -p $(DESTDIR)$(pkgdatadir); fi
@@ -149,9 +149,9 @@ install-program: program
 	$(INSTALL_PROGRAM) ./$(exe_name) $(DESTDIR)$(bindir)/
 
 install-data: data mkinstalldirs
-	$(INSTALL_DATA) ./data/*.png $(DESTDIR)$(pkgdatadir)/
-	$(INSTALL_DATA) ./data/*.wav $(DESTDIR)$(pkgdatadir)/
-	$(INSTALL_DATA) ./data/*.xm $(DESTDIR)$(pkgdatadir)/
+	$(INSTALL_DATA) $(srcdir)/data/*.png $(DESTDIR)$(pkgdatadir)/
+	$(INSTALL_DATA) $(srcdir)/data/*.wav $(DESTDIR)$(pkgdatadir)/
+	$(INSTALL_DATA) $(srcdir)/data/*.xm $(DESTDIR)$(pkgdatadir)/
 	@echo
 	@echo "$(pkgdatadir)/icon.png (48x48) or ship.png (32x32) make good icons."
 	@echo
