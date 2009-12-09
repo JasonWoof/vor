@@ -32,6 +32,7 @@
 
 #include "args.h"
 #include "common.h"
+#include "config.h"
 #include "vorconfig.h"
 #include "dust.h"
 #include "file.h"
@@ -534,7 +535,7 @@ draw_title_page(void)
 	x = (XSIZE-font_width(text))/2 + cos(fadetimer/4.5)*10;
 	font_write(x,YSIZE-100 + cos(fadetimer/3)*5,text);
 
-	text = "Version " VERSION;
+	text = "Version " PACKAGE_VERSION;
 	x = (XSIZE-font_width(text))/2 + sin(fadetimer/4.5)*10;
 	font_write(x,YSIZE-50 + sin(fadetimer/2)*5,text);
 }

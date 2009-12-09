@@ -84,13 +84,13 @@ $(my_objects): vorconfig.h
 
 font.@OBJEXT@: font.h
 
-args.@OBJEXT@: args.h
+args.@OBJEXT@: args.h config.h
 
 dust.@OBJEXT@: globals.h dust.h float.h mt.h
 
 file.@OBJEXT@: file.h common.h
 
-main.@OBJEXT@: args.h common.h dust.h file.h float.h globals.h mt.h rocks.h score.h sprite.h sound.h autopilot.h
+main.@OBJEXT@: args.h common.h config.h dust.h file.h float.h globals.h mt.h rocks.h score.h sprite.h sound.h autopilot.h
 
 mt.@OBJEXT@: mt.h
 

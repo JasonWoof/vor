@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "args.h"
+#include "config.h"
 #include "vorconfig.h"
 
 // Look and Feel
@@ -30,7 +31,7 @@ short_opt(char c, char *arg)
 		case 'f': opt_fullscreen = 1; break;
 		case 's': opt_sound = 0; break;
 		case 'V':
-				  printf("Variations on Rockdodger %s\n", VERSION);
+				  printf("Variations on Rockdodger %s\n", PACKAGE_VERSION);
 				  exit(0);
 		case '?':
 		case 'h': return 0;
