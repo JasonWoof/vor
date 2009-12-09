@@ -68,12 +68,17 @@ INSTALL_DATA := $(INSTALL) -m 644
 .PHONY: mkinstalldirs rminstalldirs
 .PHONY: program program-clean install-program uninstall-program
 .PHONY: data data-clean install-data uninstall-data
+.PHONY: build-dir-data-link
 
 .INTERMEDIATE: font_guts font_guts.pov
 
 all: program data
 
-data: $(graphics)
+data: $(graphics) build-dir-data-link
+
+# symbolic link to data dir so you can run the game from the build dir:
+build-dir-data-link:
+	test -e data || ln -s $(srcdir)/data
 
 program: $(exe_name) @PACKAGE_TARNAME@.desktop
 
