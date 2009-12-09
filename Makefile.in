@@ -124,7 +124,7 @@ clean: program-clean
 distclean: clean
 	rm -f Makefile config.h config.log config.status
 
-maintainer-clean: program-clean
+maintainer-clean: distclean
 	@echo 'This command is intended for maintainers to use; it'
 	@echo 'deletes files that may need special tools to rebuild.'
 	rm -f $(graphics) font_guts font_guts.pov
