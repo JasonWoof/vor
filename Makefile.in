@@ -44,7 +44,7 @@ SDL_CFLAGS := @SDL_CFLAGS@
 SDL_LIBS := @SDL_LIBS@
 
 ldflags := $(SDL_LIBS) -lSDL_image -lSDL_mixer $(LDFLAGS)
-cflags := $(SDL_CFLAGS) $(paths) $(CFLAGS)
+cflags := -I. $(SDL_CFLAGS) $(paths) $(CFLAGS)
 
 my_objects := args.@OBJEXT@ dust.@OBJEXT@ file.@OBJEXT@ mt.@OBJEXT@ rocks.@OBJEXT@ score.@OBJEXT@ sprite.@OBJEXT@ sound.@OBJEXT@ autopilot.@OBJEXT@
 my_objects += main.@OBJEXT@
