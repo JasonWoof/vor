@@ -25,7 +25,7 @@ exec_prefix = @exec_prefix@
 datarootdir = @datarootdir@
 datadir = @datadir@
 pkgdatadir = $(datadir)/@PACKAGE_TARNAME@
-bindir = $(exec_prefix)/bin
+bindir = @bindir@
 
 CC = @CC@
 CPPFLAGS = @CPPFLAGS@
