@@ -35,13 +35,13 @@ void font_set(font *to) {
 }
 
 // return true if column of pixels (pix points to the top one) is all black
-int line_clear(unsigned char* pix, int height, int width) {
+int line_clear(unsigned char* pix, int height, int pitch) {
 	int i;
 	for(i = 0; i < height; ++i) {
 		if(pix[0] != 0) {
 			return 0;
 		}
-		pix += width;
+		pix += pitch;
 	}
 	
 	return 1;
@@ -49,13 +49,13 @@ int line_clear(unsigned char* pix, int height, int width) {
 
 
 // return the number of consecutive colums of pixels are still clear (or still not clear)
-int find_change(unsigned char* pix, int height, int width) {
+int find_change(unsigned char* pix, int height, int pitch, int Bpp) {
 	int i;
-	int state = line_clear(pix, height, width);
-	pix += 3;
+	int state = line_clear(pix, height, pitch);
+	pix += Bpp;
 
-	for(i = 1; /*forever*/; pix += 3, ++i) {
-		if(line_clear(pix, height, width) != state) {
+	for(i = 1; /*forever*/; pix += Bpp, ++i) {
+		if(line_clear(pix, height, pitch) != state) {
 			return i;
 		}
 	}
@@ -98,14 +98,14 @@ font* font_load(const char *filename) {
 	new_font->bounds[0].x = 0; // the first character starts at the begining
 	for(i = 0; i < 93; ) {
 		// find the end of the character
-		width = find_change(pix, new_font->pixels->h, new_font->pixels->pitch);
+		width = find_change(pix, new_font->pixels->h, new_font->pixels->pitch, new_font->pixels->format->BytesPerPixel);
 		x += width;
 		pix += width * new_font->pixels->format->BytesPerPixel;
 		new_font->bounds[i].w = width;
 
 		++i;
 
-		width = find_change(pix, new_font->pixels->h, new_font->pixels->pitch);
+		width = find_change(pix, new_font->pixels->h, new_font->pixels->pitch, new_font->pixels->format->BytesPerPixel);
 		x += width;
 		pix += width * new_font->pixels->format->BytesPerPixel;
 		new_font->bounds[i].x = x;
