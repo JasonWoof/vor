@@ -22,7 +22,7 @@ AM_PATH_SDL($SDL_VERSION,
 )
 
 # Checks for header files.
-AC_CHECK_HEADERS([inttypes.h stddef.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([inttypes.h stddef.h stdlib.h string.h unistd.h time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -35,7 +35,7 @@ AC_TYPE_UINT8_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([atexit memset sqrt strdup])
+AC_CHECK_FUNCS([atexit memset sqrt strdup nanosleep])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

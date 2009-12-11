@@ -138,7 +138,7 @@ extern int optind, opterr, optopt;
 
 // ************************************* FUNCS
 
-#ifdef nanosleep
+#ifdef HAVE_NANOSLEEP
 void
 tiny_sleep() {
 	struct timespec t;
