@@ -12,14 +12,15 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
 # Checks for libraries.
+PKG_CHECK_MODULES([SDL], [sdl >= 1.2])
+PKG_CHECK_MODULES([SDL_IMAGE], [SDL_image >= 1.2],,
+	[SDL_IMAGE_LIBS="-lSDL_image"]) # <-- else
+PKG_CHECK_MODULES([SDL_MIXER], [SDL_mixer >= 1.2],,
+	[SDL_MIXER_LIBS="-lSDL_mixer"]) # <-- else
+# Make sure SDL_image was compiled with png support
 AC_CHECK_LIB([SDL_image], [IMG_LoadPNG_RW])
-AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio])
-
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION,
-            :,
-            AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
-)
+# Make sure SDL_mixer was compiled with ogg vorbis support
+AC_CHECK_LIB([SDL_mixer], [Mix_InitOgg])
 
 # Checks for header files.
 AC_CHECK_HEADERS([inttypes.h stddef.h stdlib.h string.h unistd.h time.h])
