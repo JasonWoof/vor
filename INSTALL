@@ -30,8 +30,8 @@ BUILDING A RELEASE
 BUILDING FROM GIT
 
 	1) Make sure you have the extra dependencies first. If you want to avoid
-	installing povray and/or netpbm, you can simply the data/ directory from a
-	recent release.
+	installing povray and/or netpbm, you can simply copy the data/ directory
+	from a recent release.
 
 	Run "autoconf".
 
