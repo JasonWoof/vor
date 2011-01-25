@@ -84,6 +84,7 @@ struct rock {
 	uint32_t area;
 	// ROCK extras
 	int type;
+	int life;
 };
 
 

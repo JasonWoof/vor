@@ -61,6 +61,9 @@ SDL_Surface
 
 font *g_font;
 
+#define ENGINEDOT 0
+#define BANGDOT 1
+
 struct dot {
 	int active;
 	float x, y;
@@ -68,6 +71,7 @@ struct dot {
 	float mass;   // in DOT_MASS_UNITs
 	float decay;  // rate at which to reduce mass.
 	int heat;     // heat multiplier (color).
+	uint8_t type;  // BANGDOT or ENGINEDOT
 };
 
 void draw(void);
@@ -151,10 +155,15 @@ tiny_sleep() {
 #endif
 
 void
-init_engine_dots() {
+init_dots() {
 	int i;
 	for(i = 0; i<MAXENGINEDOTS; i++) {
 		edot[i].active = 0;
+		edot[i].type = ENGINEDOT;
+	}
+	for(i = 0; i<MAXBANGDOTS; i++) {
+		bdot[i].active = 0;
+		bdot[i].type = BANGDOT;
 	}
 }
 
@@ -278,6 +287,10 @@ new_bang_dots(struct sprite *s)
 	if(SDL_MUSTLOCK(img)) { SDL_UnlockSurface(img); }
 }
 
+void
+kill_rock(struct rock *r) {
+	r->x = -200;
+}
 
 void
 move_dot(struct dot *d)
@@ -296,6 +309,13 @@ move_dot(struct dot *d)
 			if(hit) if(hit->type != SHIP) {
 				d->active = 0;
 				mass = sprite_mass(hit);
+				if(d->type == BANGDOT) {
+					struct rock *rock = (struct rock*)hit;
+					rock->life -= (d->dx - hit->dx) * (d->dx - hit->dx) + (d->dy - hit->dy) * (d->dy - hit->dy);
+					if(rock->life < 0) {
+						kill_rock(rock);
+					}
+				}
 				hit->dx += DOT_MASS_UNIT * d->mass * (d->dx - hit->dx) / mass;
 				hit->dy += DOT_MASS_UNIT * d->mass * (d->dy - hit->dy) / mass;
 			}
@@ -451,7 +471,7 @@ init(void) {
 		exit(1);
 	}
 
-	init_engine_dots();
+	init_dots();
 	init_dust();
 
 	init_sprites();

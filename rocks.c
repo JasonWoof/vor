@@ -159,6 +159,7 @@ new_rocks(void)
 			type = urnd() % NROCKS;
 			*r = prototypes[type];
 			r->type = type;
+			r->life = r->area * 300;
 			switch(i) {
 				case RIGHT:
 					r->x = XSIZE;
