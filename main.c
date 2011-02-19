@@ -732,6 +732,12 @@ gameloop() {
 									SDL_SaveBMP(surf_screen, screenshot_filename);
 								}
 								break;
+							case SDLK_SPACE:
+								if(state != GAMEPLAY && state != DEAD_PAUSE) {
+									// don't conflict with space key to start a new game
+									break;
+								}
+								// else fall through
 							case SDLK_p:
 							case SDLK_PAUSE:
 								paused = !paused;
