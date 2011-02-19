@@ -43,7 +43,7 @@ paths := -DDATA_PREFIX=\"$(pkgdatadir)\"
 SDL_CFLAGS := @SDL_CFLAGS@ @SDL_MIXER_CFLAGS@ @SDL_IMAGE_CFLAGS@
 SDL_LIBS := @SDL_LIBS@ @SDL_MIXER_LIBS@ @SDL_IMAGE_LIBS@
 
-ldflags := $(SDL_LIBS) $(LDFLAGS)
+ldflags := $(SDL_LIBS) $(LDFLAGS) -lm
 cflags := -I. $(SDL_CFLAGS) $(paths) $(CFLAGS)
 
 my_objects := args.@OBJEXT@ dust.@OBJEXT@ file.@OBJEXT@ mt.@OBJEXT@ rocks.@OBJEXT@ score.@OBJEXT@ sprite.@OBJEXT@ sound.@OBJEXT@ autopilot.@OBJEXT@
