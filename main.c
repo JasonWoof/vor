@@ -804,10 +804,10 @@ gameloop() {
 				if(keystate[SDLK_UP]    || keystate[SDLK_KP8]) {
 					ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;
 				}
-				if(x_move < -3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/32768; ship.jets |= 1<<0;}
-				if(y_move >  3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/32768; ship.jets |= 1<<1;}
-				if(x_move >  3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/32768; ship.jets |= 1<<2;}
-				if(y_move < -3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/32768; ship.jets |= 1<<3;}
+				if(x_move < -3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<0;}
+				if(y_move >  3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<1;}
+				if(x_move >  3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<2;}
+				if(y_move < -3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<3;}
 				if(ship.jets) {
 					ship.dx = fconstrain2(ship.dx, -50, 50);
 					ship.dy = fconstrain2(ship.dy, -50, 50);
