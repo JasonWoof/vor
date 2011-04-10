@@ -103,6 +103,8 @@ float fadetimer = 0;
 
 int paused = 0;
 
+SDL_Joystick *joy = NULL;
+
 // bangdot start (bd1) and end (bd2) position:
 int bd1 = 0, bd2 = 0;
 
@@ -416,7 +418,7 @@ init(void) {
 
 	if(opt_sound) {
 		// Initialize SDL with audio and video
-		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0) {
 			opt_sound = 0;
 			fputs("Can't open sound, starting without it\n", stderr);
 			atexit(SDL_Quit);
@@ -427,7 +429,7 @@ init(void) {
 		}
 	} else {
 		// Initialize with video only
-		CONDERROR(SDL_Init(SDL_INIT_VIDEO) != 0);
+		CONDERROR(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0);
 		atexit(SDL_Quit);
 	}
 
@@ -469,6 +471,11 @@ init(void) {
 	} else {
 		fprintf(stderr, "could create path to font\n");
 		exit(1);
+	}
+
+	if(SDL_NumJoysticks() > 0)
+	{
+		NULLERROR(joy = SDL_JoystickOpen(0));
 	}
 
 	init_dots();
@@ -678,6 +685,9 @@ void
 gameloop() {
 	SDL_Event e;
 	Uint8 *keystate;
+	Sint16 x_move, y_move;
+	char button_pressed;
+	short i;
 	float tmp;
 
 	for(;;) {
@@ -761,6 +771,19 @@ gameloop() {
 			}
 		}
 		keystate = SDL_GetKeyState(NULL);
+		SDL_JoystickUpdate();
+		x_move = SDL_JoystickGetAxis(joy, 4);
+		y_move = SDL_JoystickGetAxis(joy, 5);
+		button_pressed = 0;
+		for(i = 1; i <= SDL_JoystickNumButtons(joy); i++)
+		{
+			if(SDL_JoystickGetButton(joy, i) == 1)
+			{
+				button_pressed = 1;
+				break;
+			}
+		}
+
 		if(opt_autopilot) {
 			autopilot_fix_keystates(keystate);
 		}
@@ -781,6 +804,10 @@ gameloop() {
 				if(keystate[SDLK_UP]    || keystate[SDLK_KP8]) {
 					ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;
 				}
+				if(x_move < -3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/32768; ship.jets |= 1<<0;}
+				if(y_move >  3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/32768; ship.jets |= 1<<1;}
+				if(x_move >  3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/32768; ship.jets |= 1<<2;}
+				if(y_move < -3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/32768; ship.jets |= 1<<3;}
 				if(ship.jets) {
 					ship.dx = fconstrain2(ship.dx, -50, 50);
 					ship.dy = fconstrain2(ship.dy, -50, 50);
@@ -832,14 +859,14 @@ gameloop() {
 			draw();
 
 			// new game
-			if((keystate[SDLK_SPACE] || keystate[SDLK_1] || keystate[SDLK_2])
+			if((keystate[SDLK_SPACE] || keystate[SDLK_1] || keystate[SDLK_2] || button_pressed)
 			   && (state == HIGH_SCORE_DISPLAY
 			       || state == TITLE_PAGE
 			       || state == GAME_OVER)) {
 				if(state == GAME_OVER && new_high_score(score))
 					init_score_entry();
 				else {
-					if((keystate[SDLK_SPACE] && !initial_rocks) || keystate[SDLK_2]) {
+					if((keystate[SDLK_SPACE] && !initial_rocks) || keystate[SDLK_2] || button_pressed) {
 						g_easy = 0;
 						initial_rocks = NORMAL_I_ROCKS;
 						final_rocks = NORMAL_F_ROCKS;
