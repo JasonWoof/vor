@@ -103,7 +103,8 @@ float fadetimer = 0;
 
 int paused = 0;
 
-SDL_Joystick *joy = NULL;
+int num_joysticks = 0;
+SDL_Joystick **joysticks = NULL;
 
 // bangdot start (bd1) and end (bd2) position:
 int bd1 = 0, bd2 = 0;
@@ -473,9 +474,14 @@ init(void) {
 		exit(1);
 	}
 
-	if(SDL_NumJoysticks() > 0)
+	num_joysticks = SDL_NumJoysticks();
+printf("num_joysticks: %i\n", num_joysticks);
+	if(num_joysticks)
 	{
-		NULLERROR(joy = SDL_JoystickOpen(0));
+		joysticks = (SDL_Joystick **)malloc(num_joysticks * sizeof(SDL_Joystick *));
+		for(i = 0; i < num_joysticks; ++i) {
+			NULLERROR(joysticks[i] = SDL_JoystickOpen(i));
+		}
 	}
 
 	init_dots();
@@ -686,8 +692,8 @@ gameloop() {
 	SDL_Event e;
 	Uint8 *keystate;
 	Sint16 x_move, y_move;
-	char button_pressed;
-	short i;
+	char button_pressed = 0;
+	short i, j;
 	float tmp;
 
 	for(;;) {
@@ -771,16 +777,40 @@ gameloop() {
 			}
 		}
 		keystate = SDL_GetKeyState(NULL);
-		SDL_JoystickUpdate();
-		x_move = SDL_JoystickGetAxis(joy, 4);
-		y_move = SDL_JoystickGetAxis(joy, 5);
-		button_pressed = 0;
-		for(i = 1; i <= SDL_JoystickNumButtons(joy); i++)
-		{
-			if(SDL_JoystickGetButton(joy, i) == 1)
-			{
-				button_pressed = 1;
-				break;
+		if(num_joysticks) {
+			SDL_JoystickUpdate();
+			if(opt_joystick_enabled) {
+				x_move = SDL_JoystickGetAxis(joysticks[opt_joystick_number], opt_joystick_x_axis);
+				y_move = SDL_JoystickGetAxis(joysticks[opt_joystick_number], opt_joystick_y_axis);
+				button_pressed = 0;
+				for(i = 1; i <= SDL_JoystickNumButtons(joysticks[opt_joystick_number]); i++)
+				{
+					if(SDL_JoystickGetButton(joysticks[opt_joystick_number], i) == 1)
+					{
+						button_pressed = 1;
+						break;
+					}
+				}
+			} else { // there is at least one joystick, but it hasn't been enabled yet
+				// if any joystick has a button down, enable that joystick
+				for(j = 0; j <= num_joysticks; j++) {
+					for(i = 1; i <= SDL_JoystickNumButtons(joysticks[j]); i++)
+					{
+						if(SDL_JoystickGetButton(joysticks[j], i) == 1)
+						{
+							opt_joystick_enabled = 1;
+							opt_joystick_number = j;
+printf("enabled joystick #%i\n", opt_joystick_number);
+							if(state != GAMEPLAY) {
+								// first (enabling) press of the joystick
+								// button should start a game, but should
+								// not pause a running game
+								button_pressed = 1;
+							}
+							break;
+						}
+					}
+				}
 			}
 		}
 
@@ -804,10 +834,12 @@ gameloop() {
 				if(keystate[SDLK_UP]    || keystate[SDLK_KP8]) {
 					ship.dy -= THRUSTER_STRENGTH*t_frame; ship.jets |= 1<<3;
 				}
-				if(x_move < -3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<0;}
-				if(y_move >  3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<1;}
-				if(x_move >  3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<2;}
-				if(y_move < -3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<3;}
+				if(opt_joystick_enabled) {
+					if(x_move < -3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<0;}
+					if(y_move >  3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<1;}
+					if(x_move >  3000) { ship.dx += x_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<2;}
+					if(y_move < -3000) { ship.dy += y_move*THRUSTER_STRENGTH*t_frame/22768; ship.jets |= 1<<3;}
+				}
 				if(ship.jets) {
 					ship.dx = fconstrain2(ship.dx, -50, 50);
 					ship.dy = fconstrain2(ship.dy, -50, 50);
@@ -920,7 +952,7 @@ main(int argc, char **argv) {
 	frames = 0;
 	gameloop();
 	end = SDL_GetTicks();
-	// printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
+	printf("%ld frames in %ld ms, %.2f fps.\n", frames, end-start, frames * 1000.0 / (end-start));
 
 	return 0;
 }

@@ -4,6 +4,10 @@
 // Look and Feel
 extern int opt_fullscreen;
 extern int opt_sound;
+extern int opt_joystick_enabled;
+extern int opt_joystick_number;
+extern int opt_joystick_x_axis;
+extern int opt_joystick_y_axis;
 
 extern int opt_autopilot;
 
