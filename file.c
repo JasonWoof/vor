@@ -91,8 +91,20 @@ static bool
 is_dir(char *dirname)
 {
 	struct stat buf;
-	stat(dirname, &buf);
+	if(stat(dirname, &buf)) {
+		return false;
+	}
 	return S_ISDIR(buf.st_mode);
+}
+
+static bool
+is_file(char *dirname)
+{
+	struct stat buf;
+	if(stat(dirname, &buf)) {
+		return false;
+	}
+	return S_ISREG(buf.st_mode);
 }
 
 static bool
@@ -108,7 +120,11 @@ find_data_dir(void)
 	for(i=0; i<3; i++) {
 		if(!data_options[i]) continue;
 		g_data_dir = strdup(data_options[i]);
-		if(is_dir(g_data_dir)) return true;
+		if(is_dir(g_data_dir)) {
+			char *s = add_path(g_data_dir, "b_variations.png");
+			if(s) if(is_file(s))
+				return true;
+		}
 	}
 
 	fprintf(stderr, "Can't find VoR data! Tried:\n");
