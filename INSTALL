@@ -44,7 +44,7 @@ Building From Git
 	installing povray and/or netpbm, you can simply copy the data/ directory
 	from a recent release.
 
-2.	Run "autoconf".
+2.	Run ``autoreconf``
 
 3.	Continue as normal with the Building From A Release Tarball section above.
 
