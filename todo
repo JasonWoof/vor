@@ -1,11 +1,11 @@
 ***	Move game logic into a script so we can have "variations".
 *	Then an in-game menu to choose which game:
-	Rock Dodger
-	Free-form/Practice
-	Crazy Taxi
+		Rock Dodger
+		Free-form/Practice
+		Crazy Taxi
 *	Add networking for multiplayer games:
-	Tag
-	Deathmatch
+		Tag
+		Deathmatch
 
 **	Switch all ray-traced graphics (only big green messages left)
 *	Then we can run at the native screen size

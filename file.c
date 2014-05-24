@@ -98,10 +98,10 @@ is_dir(char *dirname)
 }
 
 static bool
-is_file(char *dirname)
+is_file(char *filename)
 {
 	struct stat buf;
-	if(stat(dirname, &buf)) {
+	if(stat(filename, &buf)) {
 		return false;
 	}
 	return S_ISREG(buf.st_mode);
