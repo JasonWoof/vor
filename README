@@ -1,4 +1,4 @@
-Variations on Rockdodger 0.5.5
+Variations on Rockdodger 0.5.6
 
 VoR is a quick action game where you drive a space ship and try to avoid
 crashing into rocks. Current information about vor can be found on the
@@ -36,6 +36,9 @@ I have been playing this one for quite a while now.
 Changes from Rock Dodgers
 
 User-Visible Changes:
+
+0.5.6:
+  * Some rocks dissapear when hit by your exploding ship sparks
 
 0.5.4:
   * new sound effect and music
