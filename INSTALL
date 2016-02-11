@@ -19,6 +19,7 @@ You'll also need the graphics (`data` subdir) from the tarbal, or the following
 packages to render the graphics:
 
 	povray        http://www.povray.org/
+	povray-includes  (if your distribution ships this in a separate package)
 	netpbm        http://netpbm.sourceforge.net/
 
 
