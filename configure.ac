@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT(VoR, 0.5.6, jason@jasonwoof.com, vor)
+AC_INIT(VoR, 0.5.7, jason@jasonwoof.com, vor)
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 
