@@ -64,15 +64,21 @@ void
 read_high_score_table()
 {
 	FILE *f;
-	int i, j;
+	int i, j, ret;
 	
 	f = open_score_file("r");
 	if(f) {
 		// If the file exists, read from it
 		for(j=0; j<2; j++) {
-			fscanf(f, titles[j]);
+			ret = fseek(f, strlen(titles[j]), SEEK_CUR);
+			if (ret != 0) {
+				break;
+			}
 			for(i = 0; i<N_SCORES; i++) {
-				fscanf(f, "%d %31[^\n]\n", &g_scores[j][i].score, g_scores[j][i].name);
+				ret = fscanf(f, "%d %31[^\n]\n", &g_scores[j][i].score, g_scores[j][i].name);
+				if (ret != 2) {
+					break;
+				}
 			}
 		}
 		fclose(f);
@@ -89,7 +95,7 @@ write_high_score_table()
 	if(f) {
 		// If the file exists, write to it
 		for(j=0; j<2; j++) {
-			fprintf(f, titles[j]);
+			fprintf(f, "%s", titles[j]);
 			for(i = 0; i<N_SCORES; i++) {
 				fprintf (f, "%d %.31s\n", g_scores[j][i].score, g_scores[j][i].name);
 			}
