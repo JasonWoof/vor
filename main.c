@@ -122,12 +122,12 @@ char *msgs[2][3] = {
 	{
 		"Press SPACE for normal game",
 		"Press '1' for easy game",
-		"http://jasonwoof.org/vor"
+		"https://sametwice.com/vor"
 	},
 	{
 		"Press SPACE for easy game",
 		"Press '2' for normal game",
-		"http://jasonwoof.org/vor"
+		"https://sametwice.com/vor"
 	}
 };
 

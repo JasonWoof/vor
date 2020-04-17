@@ -21,7 +21,7 @@ show_help(void)
 	puts("  -V, --version              Print program version");
 	puts("  -?, --help                 Give this help list");
 	putchar('\n');
-	puts("Report bugs at http://jasonwoof.com/contact.html");
+	puts("Report bugs at https://jasonwoof.com/contact");
 }
 
 int

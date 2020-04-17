@@ -2,7 +2,7 @@ Variations on Rockdodger 0.5.7
 
 VoR is a quick action game where you drive a space ship and try to avoid
 crashing into rocks. Current information about vor can be found on the
-homepage: http://jasonwoof.org/vor
+homepage: https://sametwice.com/vor
 
 Here are the keys:
 
@@ -26,7 +26,7 @@ it. VoR is the result. It is currently based on the rockdodger 0.4.2 codebase,
 with quite a few modifications, both user-visible changes and internal
 technical improvements.
 
-Available for download from http://qualdan.com/vor/
+Available for download from https://sametwice.com/vor
 
 Note: This is a fairly hard game, intended to be a quickie game for when you
 want to kill a few spare minutes. For reference, my best time [Josh Grams] is
