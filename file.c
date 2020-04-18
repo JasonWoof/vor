@@ -52,7 +52,8 @@ find_files(void)
 	return true;
 }
 
-FILE *open_score_file(char *mode)
+FILE *
+open_score_file(char *mode)
 {
 	return fopen("scores", mode);
 }

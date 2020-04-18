@@ -33,7 +33,7 @@ struct sprite {
 
 #define COLLIDES(sprite) ((sprite)->flags & COLLIDE)
 
-Sprite *free_sprites[N_TYPES];  // lists of free sprites, by type.
+extern Sprite *free_sprites[N_TYPES];  // lists of free sprites, by type.
 
 void do_collision(Sprite *a, Sprite *b);
 void collisions(void);
