@@ -1,4 +1,4 @@
-Variations on Rockdodger 0.5.7
+# Variations on Rockdodger 0.5.7
 
 VoR is a quick action game where you drive a space ship and try to avoid
 crashing into rocks. Current information about vor can be found on the
@@ -6,22 +6,22 @@ homepage: https://sametwice.com/vor
 
 Here are the keys:
 
- Space: Start playing
-     1: Switch to easy mode and start playing
-     2: Switch to normal mode (default) and start playing
-Arrows: Steer (use short taps, and remember to slow down)
-   Esc: Quit
-     F: Toggle full-screen mode
-     P: Pause/unpause
-     3: Save a screenshot
+     Space: Start playing
+         1: Switch to easy mode and start playing
+         2: Switch to normal mode (default) and start playing
+    Arrows: Steer (use short taps, and remember to slow down)
+       Esc: Quit
+         F: Toggle full-screen mode
+         P: Pause/unpause
+         3: Save a screenshot
 
 See INSTALL for instructions on building, running and installing.
 
 VoR is released under the GNU GPL -- see file COPYING for details. The audio is
 public domain.
 
-Jason Woofenden and Josh Grams like Rock Dodgers
-(http://spacerocks.sourceforge.net/) very much: both playing it and hacking on
+Jason Woofenden and Josh Grams like Rock Dodgers (a game by Paul Holt:
+http://spacerocks.sourceforge.net/) very much: both playing it and hacking on
 it. VoR is the result. It is currently based on the rockdodger 0.4.2 codebase,
 with quite a few modifications, both user-visible changes and internal
 technical improvements.
@@ -33,7 +33,8 @@ want to kill a few spare minutes. For reference, my best time [Josh Grams] is
 about 2 minutes in version 0.3. I'm not generally very good at video games, but
 I have been playing this one for quite a while now.
 
-Changes from Rock Dodgers
+
+## Changes from Rock Dodgers
 
 User-Visible Changes:
 
